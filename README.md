@@ -1,2 +1,2 @@
 # PDG-Tounoix
-logiciel de géstion de tournois
+logiciel de gestion de tournois
