@@ -1,22 +1,18 @@
 use yew::prelude::*;
 use dotenv::dotenv;
+use yew_router::{BrowserRouter, Switch};
+
+use crate::routers::{Route, router};
+
+mod pages;
+mod routers;
 
 #[function_component]
 fn App() -> Html {
-    let counter = use_state(|| 0);
-    let onclick = {
-        let counter = counter.clone();
-        move |_| {
-            let value = *counter + 1;
-            counter.set(value);
-        }
-    };
-
     html! {
-        <div class={"bg-blue-400"}>
-            <button {onclick}>{ "+1" }</button>
-            <p>{ *counter }</p>
-        </div>
+        <BrowserRouter>
+            <Switch<Route> render={router} />
+        </BrowserRouter>
     }
 }
 

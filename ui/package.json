@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npx tailwindcss -i ./style.scss -o ./output.scss --minify",
-    "copy-files" : "rm -rf ../backend/public/**.js ../backend/public/**.wasm ../backend/public/**.css && cp ./dist/* ../backend/public/"
+    "copy-files" : "rm -rf ../backend/public/**.js ../backend/public/**.wasm ../backend/public/**.css && cp -r ./dist/. ../backend/public/"
   },
   "author": "",
   "license": "ISC",
