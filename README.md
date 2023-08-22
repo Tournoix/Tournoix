@@ -1,6 +1,6 @@
 # Tournoix
 
-Tournoix est une application web de gestion de tournoi. 
+Tournoix est une application web de gestion de tournoi. Elle permet également aux utilisateur de miser des noix, une monnaie virtuelle du site. A la fin du tournoi, on regarde qui a gagné ainsi que qui a su faire les paris les plus judicieux et avoir le plus de noix.
 
 ## Spécifications
 
@@ -67,7 +67,9 @@ Le site doit être compatible sur toutes les plateformes. Cela comprenant diffé
 
 ## Méthodologie de travail
 
-Nous travaillons avec une méthodologie de type SCURM avec des sprint d'une semaine. Chaque semaine, une liste de tâche est mise dans le backlog dans le kanban du projet. Les tâches à effectuer durant la semaine sont choisi lors d'une réunion de l'équipe et un poids leur est attribuée. Les membres de l'équipe s'attribuent ensuite de tâches et les effectue le long du sprint. Les tâches sont mises dans les colonnes "Ready", "In Progress" et "Done" selon leur avancement.
+Nous travaillons avec une méthodologie de type SCURM avec des sprint d'une semaine. Chaque semaine, une liste de tâche est mise dans le backlog dans le kanban du projet. Les tâches à effectuer durant la semaine sont choisi lors d'une réunion de l'équipe et une priorié leur est attribuée si cela est pertinent.
+
+Les membres de l'équipe s'attribuent ensuite de tâches et les effectue le long du sprint. Les tâches sont mises dans les colonnes "Ready", "In Progress" et "Done" selon leur avancement.
 
 ## Lancer l'application
 
