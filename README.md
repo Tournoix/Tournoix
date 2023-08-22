@@ -65,6 +65,10 @@ Le site doit être compatible sur toutes les plateformes. Cela comprenant diffé
 
 ### Structure de l'application
 
+## Méthodologie de travail
+
+Nous travaillons avec une méthodologie de type SCURM avec des sprint d'une semaine. Chaque semaine, une liste de tâche est mise dans le backlog dans le kanban du projet. Les tâches à effectuer durant la semaine sont choisi lors d'une réunion de l'équipe et un poids leur est attribuée. Les membres de l'équipe s'attribuent ensuite de tâches et les effectue le long du sprint. Les tâches sont mises dans les colonnes "Ready", "In Progress" et "Done" selon leur avancement.
+
 ## Lancer l'application
 
 **Pré-requis**: 
