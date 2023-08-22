@@ -24,4 +24,27 @@ Tournoix est une application web de gestion de tournoi.
 
 ```cargo install --locked trunk```
 
-3. ...
+
+
+3. Lancer en développement
+
+3a. Lancer le backend (API)
+
+```
+cd ./backend
+cargo run
+```
+
+3b. Lancer le frontend en dev
+```
+cd ./ui
+trunk serve
+```
+
+4. Build en release
+
+```
+npm run build
+cd ./backend
+cargo run --release
+```
