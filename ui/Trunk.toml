@@ -1,0 +1,9 @@
+[[hooks]]
+stage = "pre_build"
+command = "npm"
+command_arguments = ["run", "build"]
+
+[[hooks]]
+stage = "post_build"
+command = "npm"
+command_arguments = ["run", "copy-files"]
