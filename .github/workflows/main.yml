@@ -25,6 +25,7 @@ jobs:
     - name: Install latest nightly
       uses: actions-rs/toolchain@v1
       with:
+          toolchain: stable
           target: wasm32-unknown-unknown
     
     - name: Build frontend
