@@ -72,7 +72,7 @@ jobs:
       run: rm -rf ./backend/target
 
     - name: Move frontend files
-      run: cp ./ui/dist/* ./backend/public/
+      run: cp -r ./ui/dist/* ./backend/public/
 
     - name: Deploy in production
       continue-on-error: true
