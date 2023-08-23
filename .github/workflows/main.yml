@@ -41,6 +41,7 @@ jobs:
       run: cd ./backend && cargo test --release --verbose
     
   deploy:
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
