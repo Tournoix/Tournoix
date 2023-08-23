@@ -65,11 +65,25 @@ Le site doit être compatible sur toutes les plateformes. Cela comprenant diffé
 
 ### Structure de l'application
 
-## Méthodologie de travail
+## Méthodologie de travail agile 
 
-Nous travaillons avec une méthodologie de type SCURM avec des sprint d'une semaine. Chaque semaine, une liste de tâche est mise dans le backlog dans le kanban du projet. Les tâches à effectuer durant la semaine sont choisi lors d'une réunion de l'équipe et une priorié leur est attribuée si cela est pertinent.
+Pour ce projet nous allons travailler avec la méthode SCRUM.
 
-Les membres de l'équipe s'attribuent ensuite de tâches et les effectue le long du sprint. Les tâches sont mises dans les colonnes "Ready", "In Progress" et "Done" selon leur avancement.
+Afin de gérer les différentes stories et tâches, nous allons utiliser un tableau Kanban qui nous permettra de représenter le backlog, le sprint actuel, les tâches en cours et les tâches terminées.
+
+Ce tableau Kanban contient 4 colonnes **Backlog**, **Ready**, **In Progress** et **Done**.
+- La colonne **Backlog** contient le backlog du projet, c’est à dire toutes les tâches en attente d’être réalisées.
+- La colonne **Ready** contient les tâches du sprint actuel. Ces tâches sont déplacées dans cette colonne en début de sprint durant le premier meeting scrum du sprint. Les tâches non terminées restent dans cette colonne pour le prochain sprint.
+- La colonne **In Progress** contient les tâches en cours de réalisation. Les développeurs déplacent eux-mêmes les tâches qu’ils souhaitent réaliser ou qui leur ont été assignées dans la colonne **Ready**.
+- Une tâche est mise dans la colonne **Done** quand une tâche est terminée, qu'elle a été push dans le repo github et que tous les tests sont passés.
+
+### Scrum
+
+Un meeting scrum aura lieu chaque matin et chaque début d'après midi afin de mettre à jour toute l’équipe sur les tâches en cours, terminées et les prochaines priorités ainsi que les problèmes rencontrés. Cela nous permet de se recoordonner, regarder son avancement et de se rendre compte d’un possible ralentissement de l’avancée des taches.
+
+### Scrum Master
+
+Le scrum master aura la responsabilité que l’équipe applique correctement la méthode scrum.
 
 ## Lancer l'application
 
