@@ -1,0 +1,56 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: jetli/trunk-action@v0.4.0
+      with:
+        version: 'latest'
+    
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install latest nightly
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+
+    - uses: Swatinem/rust-cache@v2
+    
+    - name: Build frontend
+      run: cd ./ui && trunk build --release --verbose
+      
+    - name: Build backend
+      run: cd ./backend && cargo build --release --verbose
+
+    - name: Run backend tests
+      run: cd ./backend && cargo test --release --verbose
+
+    - name: Cleanup
+      run: rm -rf ./backend/target
+
+    - name: Deploy in production
+      continue-on-error: true
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      with:
+          username: ${{ secrets.SFTP_USER }}
+          server: ${{ secrets.SFTP_HOST }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          port: ${{ secrets.SFTP_PORT }}
+          local_path: './backend/*'
+          remote_path: '/'
+          sftp_only: true
+    
