@@ -10,11 +10,15 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  deploy:
 
     runs-on: ubuntu-latest
 
     steps:
+    - uses: jetli/trunk-action@v0.4.0
+      with:
+        version: 'latest'
+    
     - name: Checkout code
       uses: actions/checkout@v3
     
