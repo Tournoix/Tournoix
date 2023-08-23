@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::routers::Route;
+use crate::{routers::Route, layouts::homelayout::HomeLayout};
 
 #[derive(PartialEq, Properties)]
 pub struct HomeProps {}
@@ -14,9 +14,11 @@ pub fn Home(props: &HomeProps) -> Html {
     let onclick = Callback::from(move |_| navigator.push(&Route::Tournoix));
 
     html! {
-        <div class={"flex flex-col"}>
-            {"Welcome home"}
-            <button {onclick}>{"Go to Tournoix"}</button>
-        </div>
+        <HomeLayout>
+            <div class={"flex flex-col"}>
+                {"Welcome home"}
+                <button {onclick}>{"Go to Tournoix"}</button>
+            </div>
+        </HomeLayout>
     }
 }
