@@ -1,11 +1,14 @@
 use std::path::{PathBuf, Path};
 
+use dotenv::dotenv;
 use rocket::{fs::NamedFile, response::status::NotFound};
 
 #[macro_use] extern crate rocket;
 
 #[launch]
 fn rocket() -> _ {
+    dotenv().ok();
+
     rocket::build().mount("/", routes![index, static_file])
 }
 
