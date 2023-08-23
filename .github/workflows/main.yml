@@ -10,8 +10,37 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  deploy:
+  test:
+    runs-on: ubuntu-latest
 
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - uses: jetli/trunk-action@v0.4.0
+      with:
+        version: 'latest'
+
+    - name: Install latest stable
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+
+    - uses: Swatinem/rust-cache@v2
+      with:
+        cache-directories: "./backend/.cargo\n ./backend/target\n ./frontend/.cargo\n ./frontend/target"
+
+    - name: Build frontend
+      run: cd ./ui && trunk build --release --verbose
+      
+    - name: Build backend
+      run: cd ./backend && cargo build --release --verbose
+
+    - name: Run backend tests
+      run: cd ./backend && cargo test --release --verbose
+    
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,22 +51,21 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Install latest nightly
+    - name: Install latest stable
       uses: actions-rs/toolchain@v1
       with:
           toolchain: stable
           target: wasm32-unknown-unknown
 
     - uses: Swatinem/rust-cache@v2
+      with:
+        save-if: false
     
     - name: Build frontend
       run: cd ./ui && trunk build --release --verbose
       
     - name: Build backend
       run: cd ./backend && cargo build --release --verbose
-
-    - name: Run backend tests
-      run: cd ./backend && cargo test --release --verbose
 
     - name: Cleanup
       run: rm -rf ./backend/target
