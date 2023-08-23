@@ -71,6 +71,9 @@ jobs:
     - name: Cleanup
       run: rm -rf ./backend/target
 
+    - name: Move frontend files
+      run: cp ./ui/dist/* ./backend/public/
+
     - name: Deploy in production
       continue-on-error: true
       uses: wlixcc/SFTP-Deploy-Action@v1.2.4
@@ -79,7 +82,7 @@ jobs:
           server: ${{ secrets.SFTP_HOST }}
           password: ${{ secrets.SFTP_PASSWORD }}
           port: ${{ secrets.SFTP_PORT }}
-          local_path: './backend/'
+          local_path: './backend/*'
           remote_path: '/'
           sftp_only: true
     
