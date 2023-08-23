@@ -35,7 +35,7 @@ jobs:
       run: cd ./backend && cargo build --release --verbose
 
     - name: Run backend tests
-      run: cd ./backend && cargo test --verbose
+      run: cd ./backend && cargo test --release --verbose
 
     - name: Cleanup
       run: rm -rf ./backend/target
