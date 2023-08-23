@@ -1,0 +1,41 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+    - uses: actions/checkout@v3
+    
+    - name: Build frontend
+      run: cd ./ui && trunk build --release --verbose
+      
+    - name: Build backend
+      run: cd ./backend && cargo build --release --verbose
+
+    - name: Run backend tests
+      run: cd ./backend && cargo test --verbose
+
+    - name: Cleanup
+      run: rm -rf ./backend/target
+
+    - name: Deploy in production
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      with:
+          username: ${{ secrets.SFTP_USER }}
+          server: ${{ secrets.SFTP_HOST }}
+          password: ${{ secrets.SFTP_PASSWORD }} 
+          local_path: './backend/*'
+          remote_path: '/'
+    
