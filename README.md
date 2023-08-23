@@ -85,6 +85,13 @@ Un meeting scrum aura lieu chaque matin et chaque début d'après midi afin de m
 
 Le scrum master aura la responsabilité que l’équipe applique correctement la méthode scrum.
 
+## Méthodologie GIT
+
+Dnas notre repertoire git, nous utilisons les branches de trois façon distinctes :
+- la branche **main**, elle contient le code en production. Cette branche a un CI/CD.
+- la branche **develop**, elle contient toutes les features que l'on a implémenté mais il n'y a pas encore assez de features pour faire une release. Cette branche a un CI.
+- les branches **feature/...**, elle est utilisé pour coder les features du Kanban. L'objectif est d'avoir environ une branche par issue.
+
 ## Lancer l'application
 
 **Pré-requis**: 
