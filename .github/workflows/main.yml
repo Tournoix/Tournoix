@@ -33,9 +33,6 @@ jobs:
 
     - name: Build frontend
       run: cd ./ui && trunk build --release --verbose
-      
-    - name: Build backend
-      run: cd ./backend && cargo build --release --verbose
 
     - name: Run backend tests
       run: cd ./backend && cargo test --release --verbose
@@ -61,6 +58,7 @@ jobs:
     - uses: Swatinem/rust-cache@v2
       with:
         save-if: false
+        cache-directories: "./backend/.cargo\n ./backend/target\n ./frontend/.cargo\n ./frontend/target"
     
     - name: Build frontend
       run: cd ./ui && trunk build --release --verbose
