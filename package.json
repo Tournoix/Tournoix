@@ -1,0 +1,19 @@
+{
+  "name": "tournoix",
+  "version": "1.0.0",
+  "description": "Tournoix est une application web de gestion de tournoi.",
+  "main": "index.js",
+  "scripts": {
+    "build": "cd ui && trunk build --release && cd ../backend && cargo build --release"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tournoix/Tournoix.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Tournoix/Tournoix/issues"
+  },
+  "homepage": "https://github.com/Tournoix/Tournoix#readme"
+}
