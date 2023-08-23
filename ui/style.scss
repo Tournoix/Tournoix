@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+	font-family: "Bebas Neue";
+	src: url("./assets/fonts/Bebas_neue/BebasNeue-Regular.woff2");
+}
