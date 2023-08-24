@@ -37,7 +37,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                 {children.clone()}
             </main>
 
-            <footer class="sticky bg-nutDark w-full text-white flex text-lg align-center justify-center pt-3 z-10">
+            <footer class="sticky bg-nutDark w-full text-white flex text-lg align-center justify-center pt-3">
                 <div class="relative left-[-40%]">
                     <h3 class="text-2xl mb-1">{"A propos"}</h3>
                     <ul>
