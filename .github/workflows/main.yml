@@ -33,7 +33,7 @@ jobs:
         shared-key: "rust_cache"
 
     - name: Build frontend
-      run: cd ./ui && trunk build --release --verbose
+      run: cd ./ui && npm run build
 
     - name: Run backend tests
       run: cd ./backend && cargo test --release --verbose
@@ -63,7 +63,7 @@ jobs:
         shared-key: "rust_cache"
     
     - name: Build frontend
-      run: cd ./ui && trunk build --release --verbose
+      run: cd ./ui && npm run build
       
     - name: Build backend
       run: cd ./backend && cargo build --release --verbose
