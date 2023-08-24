@@ -3,8 +3,6 @@ name: Rust
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -33,7 +31,7 @@ jobs:
         shared-key: "rust_cache"
 
     - name: Build frontend
-      run: cd ./ui && trunk build --release --verbose
+      run: cd ./ui && npm i && npm run build
 
     - name: Run backend tests
       run: cd ./backend && cargo test --release --verbose
@@ -63,7 +61,7 @@ jobs:
         shared-key: "rust_cache"
     
     - name: Build frontend
-      run: cd ./ui && trunk build --release --verbose
+      run: cd ./ui && npm i && npx tailwindcss -i ./style.scss -o ./output.scss --minify && trunk build --release
       
     - name: Build backend
       run: cd ./backend && cargo build --release --verbose
