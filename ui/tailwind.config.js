@@ -10,6 +10,7 @@ module.exports = {
     extend: {
       fontFamily: {
         bebas: ['Bebas Neue', 'sans-serif'],
+        intrepid: ['Intrepid', 'sans-serif'],
       },
 
       colors: {
