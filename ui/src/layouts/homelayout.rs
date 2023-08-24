@@ -24,11 +24,11 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
     };
 
     html! {
-        <div class="font-bebas h-full">
+        <div class="font-bebas bg-[#fbfefb]">
             <header class="h-16 bg-nutDark flex items-center drop-shadow-lg pl-8 z-50 sticky top-0">
                 <a onclick={on_home_click} href="javascript:void" class="flex flex-row ml-5 transition-all hover:tracking-[.2em] hover:duration-[200ms] duration-[400ms]">
                     <img src="/img/nut.svg" class="h-12 mr-8"/>
-                    <h1 class="text-5xl">{"Tournoix"}</h1>
+                    <h1 class="text-5xl text-light">{"Tournoix"}</h1>
                 </a>
                 <Button class="ml-auto mr-5 px-4 py-1" onclick={on_login_click}>{"Connexion"}</Button>
             </header>
