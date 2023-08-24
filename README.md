@@ -97,8 +97,8 @@ Dnas notre repertoire git, nous utilisons les branches de trois façon distincte
 ![tournoix_structure drawio](https://github.com/Tournoix/Tournoix/assets/30533851/9f160057-f37e-42c5-ba31-2a0790b3d757)
 
 Notre application est en réalité composée de deux applications distinctes:
-- Un backend, qui est une application web fournissant une API REST
-- Un frontend, qui est une application WebAssembly tournant dans le navigateu
+- Un backend, qui est une application web fournissant l'application frontend et une API REST
+- Un frontend, qui est une application WebAssembly tournant dans le navigateur
 
 ## Lancer l'application
 
