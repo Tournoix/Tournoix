@@ -30,7 +30,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                     <img src="/img/nut.svg" class="h-12 mr-8"/>
                     <h1 class="text-5xl">{"Tournoix"}</h1>
                 </a>
-                <Button class="ml-auto mr-5" label="Connexion" onclick={on_login_click}/>
+                <Button class="ml-auto mr-5 px-4 py-1" label="Connexion" onclick={on_login_click}/>
             </header>
 
             <main class={"w-full"}>
