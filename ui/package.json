@@ -4,12 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npx tailwindcss -i ./style.scss -o ./output.scss --minify",
-    "copy-files" : "rm -rf ../backend/public/**.js ../backend/public/**.wasm ../backend/public/**.css && cp -r ./dist/. ../backend/public/"
+    "serve": "npx tailwindcss -i ./style.scss -o ./output.scss && trunk serve",
+    "build": "npx tailwindcss -i ./style.scss -o ./output.scss --minify && trunk build --release && npm run copy-files",
+    "copy-files": "shx rm -rf ../backend/public/**.js ../backend/public/**.wasm ../backend/public/**.css && shx cp -r ./dist/. ../backend/public/"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "shx": "^0.3.4",
     "tailwindcss": "^3.3.3"
   }
 }
