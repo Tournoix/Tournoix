@@ -17,7 +17,7 @@ pub fn Home(props: &HomeProps) -> Html {
         <HomeLayout>
             <div class="h-full relative">
                 <div class="wavy absolute top-0 w-full h-full pointer-events-none opacity-30"></div>
-                <div class="font-bebas flex flex-col items-center h-full w-9/12 mx-auto z-10 relative">
+                <div class="font-bebas flex flex-col items-center h-full sm:w-9/12 w-11/12 mx-auto z-10 relative">
                     /*<img src="/img/bullets_texture.svg" class="absolute opacity-5 w-full"/>*/
                     <img src="/img/hero_nut.png" class="sm:h-32 h-24 mt-16 mb-8 drop-shadow"/>
 

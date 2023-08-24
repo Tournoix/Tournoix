@@ -34,7 +34,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                         </div>
                     </a>
                     <div class="ml-auto my-auto flex">
-                        <Button class="px-4 py-1 origin-right hover:scale-110" onclick={on_login_click}>{"Connexion"}</Button>
+                        <Button class="sm:px-4 px-2 py-1 origin-right hover:scale-110 sm:text-base text-sm" onclick={on_login_click}>{"Connexion"}</Button>
                     </div>
                 </div>
             </header>
