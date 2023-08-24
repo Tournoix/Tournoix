@@ -25,31 +25,39 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
 
     html! {
         <div class="font-bebas bg-[#fbfefb] min-h-full">
-            <header class="h-16 bg-nutDark flex items-center drop-shadow-lg pl-8 z-50 sticky top-0">
-                <a onclick={on_home_click} href="javascript:void" class="flex flex-row ml-5 transition-all hover:tracking-[.2em] hover:duration-[200ms] duration-[400ms]">
-                    <img src="/img/nut.svg" class="h-12 mr-8"/>
-                    <h1 class="text-5xl text-light">{"Tournoix"}</h1>
-                </a>
-                <Button class="ml-auto mr-5 px-4 py-1" onclick={on_login_click}>{"Connexion"}</Button>
+            <header class="h-16 bg-nutDark flex items-center drop-shadow-lg z-50 sticky top-0">
+                <div class="layout-nav">
+                    <a onclick={on_home_click} href="javascript:void" class="flex flex-row my-auto transition-all hover:tracking-[.2em] hover:scale-[105%] origin-left hover:duration-[200ms] duration-[400ms]">
+                        <img src="/img/nut_invert.png" class="sm:h-12 h-8 sm:mr-8 mr-2"/>
+                        <div>
+                            <h1 class="sm:text-5xl text-3xl text-white">{"Tournoix"}</h1>
+                        </div>
+                    </a>
+                    <div class="ml-auto my-auto flex">
+                        <Button class="px-4 py-1 origin-right hover:scale-110" onclick={on_login_click}>{"Connexion"}</Button>
+                    </div>
+                </div>
             </header>
 
             <main class={"w-full"}>
                 {children.clone()}
             </main>
 
-            <footer class="sticky bg-nutDark w-full text-white flex text-lg align-center justify-center pt-3">
-                <div class="relative left-[-40%]">
-                    <h3 class="text-2xl mb-1">{"A propos"}</h3>
-                    <ul>
-                        <li>{"L'équipe"}</li>
-                        <li>{"Contact"}</li>
-                        <li>{"Localisation"}</li>
-                    </ul>
-                </div>
-                <div class="relative right-[-40%] text-right">
-                    <img src="/img/nut.svg" class="h-8 invert ml-auto"/>
-                    <p>{"Copyright Tournoix"}</p>
-                    <p>{"© 2023"}</p>
+            <footer class="sticky bg-nutDark w-full">
+                <div class="layout-nav">
+                    <div class="relative my-auto">
+                        <h3 class="mt-1">{"A propos"}</h3>
+                        <ul class="leading-4">
+                            <li><p>{"L'équipe"}</p></li>
+                            <li><p>{"Contact"}</p></li>
+                            <li><p>{"Localisation"}</p></li>
+                        </ul>
+                    </div>
+                    <div class="relative ml-auto text-right my-auto">
+                        <img src="/img/nut_invert.png" class="h-8 ml-auto"/>
+                        <p>{"Copyright Tournoix"}</p>
+                        <p>{"© 2023"}</p>
+                    </div>
                 </div>
             </footer>
         </div>
