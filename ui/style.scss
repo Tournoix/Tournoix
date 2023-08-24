@@ -17,19 +17,19 @@
 }
 
 h1 {
-	@apply text-6xl font-bebas;
+	@apply text-3xl font-bebas sm:text-6xl;
 }
 
 h2 {
-	@apply text-4xl mb-2 font-bebas;
+	@apply text-xl mb-2 font-bebas sm:text-4xl;
 }
 
 h3 {
-	@apply text-2xl mb-2 font-bebas;
+	@apply text-lg mb-2 font-bebas sm:text-2xl;
 }
 
 p {
-	@apply text-lg;
+	@apply text-base sm:text-lg;
 }
 
 .discrete {
@@ -37,21 +37,29 @@ p {
 }
 
 .why-card {
-	@apply border rounded bg-white p-5 m-5 basis-0 grow drop-shadow-lg;
+	@apply border rounded bg-white p-5 m-5 drop-shadow-lg basis-96;
 }
 
 .team-card {
-	@apply border rounded bg-white p-5 m-5 basis-0 grow drop-shadow-lg;
+	@apply border rounded bg-white p-5 m-5 drop-shadow-lg basis-60;
 }
 
 .team-nut-image {
 	@apply h-16 m-4 drop-shadow rounded-full;
 }
 
+.layout-nav {
+	@apply text-white text-lg flex justify-center mx-auto w-3/4 h-full;
+}
+
 /*CSS here is only used because it cannot be easily done in tailwind*/
 
 html, body {
 	height: 100%;
+}
+
+li + li {
+	margin-top: -4px;
 }
 
 .wavy {
