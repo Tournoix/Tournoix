@@ -34,7 +34,12 @@ pub fn Home(props: &HomeProps) -> Html {
                         </div>
                     </div>
 
-                    <Button class="mt-16 text-2xl mb-16 px-5 py-3" label="Créer un tournoi maintenant" {onclick}/>
+                    <Button class="flex items-center space-x-2 mt-16 text-2xl mb-16 px-5 py-3" {onclick}>
+                        <span>{"Créer un tournoi maintenant"}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </Button>
 
                     <div class="mt-5 z-10 mb-16">
                         <h2>{"Pourquoi utiliser Tournoix ?"}</h2>
