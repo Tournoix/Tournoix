@@ -30,11 +30,11 @@ pub fn Home(props: &HomeProps) -> Html {
                         <h2>{"Qu'est-ce que c'est ?"}</h2>
                         <div class="ml-5">
                             <p>{"Lorsque vous organisez votre tournoi sur Tournoix, vos utilisateurs peuvent voir l'avancement du tournoi en live et miser une monnaie virtuelle (des noix) sur l'équipe gagnante."}</p>
-                            <p>{"A la fin du tournoi, un classement affiche l'équipe gagnante ainsi que l'utilisateur ayant le plus de noix. Tout le monde commence avec 20 nois par tournoi."}</p>
+                            <p>{"A la fin du tournoi, un classement affiche l'équipe gagnante ainsi que l'utilisateur ayant le plus de noix. Tout le monde commence avec 20 noix par tournoi."}</p>
                         </div>
                     </div>
 
-                    <Button class="mt-16 text-2xl mb-16" label="Créer un tournoi maintenant" {onclick}/>
+                    <Button class="mt-16 text-2xl mb-16 px-5 py-3" label="Créer un tournoi maintenant" {onclick}/>
 
                     <div class="mt-5 z-10 mb-16">
                         <h2>{"Pourquoi utiliser Tournoix ?"}</h2>
@@ -49,7 +49,7 @@ pub fn Home(props: &HomeProps) -> Html {
                             </li>
                             <li class="why-card">
                                 <h3>{"Gamification"}</h3>
-                                <p>{"En gamifiant votre tournoi, vous donner un coup de jeune à votre image."}</p>
+                                <p>{"En gamifiant votre tournoi, vous donnez un coup de jeune à votre image."}</p>
                             </li>
                         </ul>
                     </div>
