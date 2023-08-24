@@ -24,7 +24,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
     };
 
     html! {
-        <div class="font-bebas bg-[#fbfefb]">
+        <div class="font-bebas bg-[#fbfefb] min-h-full">
             <header class="h-16 bg-nutDark flex items-center drop-shadow-lg pl-8 z-50 sticky top-0">
                 <a onclick={on_home_click} href="javascript:void" class="flex flex-row ml-5 transition-all hover:tracking-[.2em] hover:duration-[200ms] duration-[400ms]">
                     <img src="/img/nut.svg" class="h-12 mr-8"/>
