@@ -7,16 +7,25 @@
 	src: url("./fonts/Bebas_neue/BebasNeue-Regular.woff2");
 }
 
+@font-face {
+	font-family: "Intrepid";
+	src: url("./fonts/Intrepid/intrepid.ttf");
+}
+
+* {
+	@apply font-intrepid;
+}
+
 h1 {
-	@apply text-6xl mb-2;
+	@apply text-6xl mb-2 font-bebas;
 }
 
 h2 {
-	@apply text-4xl mb-2;
+	@apply text-4xl mb-2 font-bebas;
 }
 
 h3 {
-	@apply text-2xl mb-2;
+	@apply text-2xl mb-2 font-bebas;
 }
 
 p {
