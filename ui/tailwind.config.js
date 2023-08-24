@@ -22,7 +22,7 @@ module.exports = {
         light: '#EFEFEF',
         primary: '#89BBFE',
         secondary: '#6F8AB7',
-        discrete: '#BBB9B6',
+        discrete: '#50463D',
       },
     },
   },

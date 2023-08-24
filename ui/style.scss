@@ -7,7 +7,43 @@
 	src: url("./fonts/Bebas_neue/BebasNeue-Regular.woff2");
 }
 
+h1 {
+	@apply text-6xl mb-2;
+}
+
+h2 {
+	@apply text-4xl mb-2;
+}
+
+h3 {
+	@apply text-2xl mb-2;
+}
+
+p {
+	@apply text-lg;
+}
+
+.discrete {
+	@apply text-base text-discrete;
+}
+
+.why-card {
+	@apply border rounded bg-white p-5 m-5 basis-0 grow drop-shadow-lg;
+}
+
+.team-card {
+	@apply border rounded bg-white p-5 m-5 basis-0 grow drop-shadow-lg;
+}
+
+.team-nut-image {
+	@apply h-16 m-4 drop-shadow rounded-full;
+}
+
 /*CSS here is only used because it cannot be easily done in tailwind*/
+
+html, body {
+	height: 100%;
+}
 
 .wavy {
 	--size: 50px;
@@ -24,6 +60,6 @@
 }
 
 footer {
-	height: 150px;
-	top: calc(100vh - 150px);
+	height: 140px;
+	top: calc(100vh - 140px);
 }
