@@ -4,5 +4,71 @@
 
 @font-face {
 	font-family: "Bebas Neue";
-	src: url("./assets/fonts/Bebas_neue/BebasNeue-Regular.woff2");
+	src: url("./fonts/Bebas_neue/BebasNeue-Regular.woff2");
+}
+
+@font-face {
+	font-family: "Intrepid";
+	src: url("./fonts/Intrepid/intrepid.ttf");
+}
+
+* {
+	@apply font-intrepid;
+}
+
+h1 {
+	@apply text-6xl mb-2 font-bebas;
+}
+
+h2 {
+	@apply text-4xl mb-2 font-bebas;
+}
+
+h3 {
+	@apply text-2xl mb-2 font-bebas;
+}
+
+p {
+	@apply text-lg;
+}
+
+.discrete {
+	@apply text-base text-discrete;
+}
+
+.why-card {
+	@apply border rounded bg-white p-5 m-5 basis-0 grow drop-shadow-lg;
+}
+
+.team-card {
+	@apply border rounded bg-white p-5 m-5 basis-0 grow drop-shadow-lg;
+}
+
+.team-nut-image {
+	@apply h-16 m-4 drop-shadow rounded-full;
+}
+
+/*CSS here is only used because it cannot be easily done in tailwind*/
+
+html, body {
+	height: 100%;
+}
+
+.wavy {
+	--size: 50px;
+	--b: 3px;
+	--p: 25px;
+	--R: calc(55.9px + var(--b)/2);
+	background: linear-gradient(90deg,#f4d1ae,#cfb192);
+	--_g: #0000 calc(99% - var(--b)),#000 calc(101% - var(--b)) 99%,#0000 101%;
+	-webkit-mask:
+	  radial-gradient(var(--R) at left 50% bottom calc(-1*var(--p)),var(--_g)) 
+		calc(50% - 2*var(--size)) calc(50% - var(--size)/2 - var(--b)/2)/calc(4*var(--size)) calc(var(--size) + var(--b)),
+	  radial-gradient(var(--R) at left 50% top    calc(-1*var(--p)),var(--_g)) 
+		50%                       calc(50% + var(--size)/2 + var(--b)/2)/calc(4*var(--size)) calc(var(--size) + var(--b));
+}
+
+footer {
+	height: 140px;
+	top: calc(100vh - 140px);
 }
