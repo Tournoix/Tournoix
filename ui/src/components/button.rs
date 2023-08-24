@@ -13,6 +13,6 @@ pub fn Button(props: &ButtonProps) -> Html {
     let ButtonProps { class, children, onclick } = props;
 
     html! {
-        <button class={classes!(class.clone(), "bg-nut", "text-white", "hover:tracking-[.05em]", "rounded", "border", "drop-shadow-md", "hover:duration-[200ms]", "duration-[600ms]", "transition-all")} onclick={onclick}>{children.clone()}</button>
+        <button class={classes!(class.clone(), "bg-nut", "text-white", "hover:tracking-[.05em]", "rounded", "drop-shadow-md", "hover:duration-[200ms]", "duration-[600ms]", "transition-all")} onclick={onclick}>{children.clone()}</button>
     }
 }
