@@ -9,6 +9,10 @@
 
 /*CSS here is only used because it cannot be easily done in tailwind*/
 
+html, body {
+	height: 100%;
+}
+
 .wavy {
 	--size: 50px;
 	--b: 3px;
@@ -24,6 +28,6 @@
 }
 
 footer {
-	height: 150px;
-	top: calc(100vh - 150px);
+	height: 140px;
+	top: calc(100vh - 140px);
 }

@@ -1,4 +1,7 @@
 use yew::prelude::*;
+use yew_router::prelude::use_navigator;
+
+use crate::{components::button::Button, routers::Route};
 
 #[derive(PartialEq, Properties)]
 pub struct HomeLayoutProps {
@@ -8,21 +11,33 @@ pub struct HomeLayoutProps {
 #[function_component]
 pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
     let HomeLayoutProps { children } = props;
+    let navigator = use_navigator().unwrap();
+
+    let on_home_click = {
+        let navigator = navigator.clone();
+        Callback::from(move |_| navigator.push(&Route::Home))
+    };
+
+    let on_login_click = {
+        let navigator = navigator.clone();
+        Callback::from(move |_| navigator.push(&Route::Home))
+    };
 
     html! {
-        <div class="font-bebas">
-            <header class="h-16 bg-light flex items-center drop-shadow-lg pl-8">
-                <a href="/" class="flex flex-row ml-5 transition-all hover:tracking-[.2em] hover:duration-[200ms] duration-[400ms]">
+        <div class="font-bebas h-full">
+            <header class="h-16 bg-light flex items-center drop-shadow-lg pl-8 z-10 relative">
+                <a onclick={on_home_click} href="javascript:void" class="flex flex-row ml-5 transition-all hover:tracking-[.2em] hover:duration-[200ms] duration-[400ms]">
                     <img src="/img/nut.svg" class="h-12 mr-8"/>
                     <h1 class="text-5xl">{"Tournoix"}</h1>
                 </a>
+                <Button class="ml-auto mr-5" label="Connexion" onclick={on_login_click}/>
             </header>
 
-            <main class={"w-full"}>
+            <main class={"w-full h-full"}>
                 {children.clone()}
             </main>
 
-            <footer class="bg-nutDark absolute w-full text-white flex text-lg align-center justify-center pt-3">
+            <footer class="sticky bg-nutDark w-full text-white flex text-lg align-center justify-center pt-3 z-10">
                 <div class="relative left-[-40%]">
                     <h3 class="text-2xl mb-1">{"A propos"}</h3>
                     <ul>
