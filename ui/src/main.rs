@@ -7,6 +7,7 @@ use crate::routers::{Route, router};
 mod pages;
 mod routers;
 mod layouts;
+mod components;
 
 #[function_component]
 fn App() -> Html {
