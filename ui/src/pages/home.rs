@@ -15,18 +15,18 @@ pub fn Home(props: &HomeProps) -> Html {
 
     html! {
         <HomeLayout>
-            <div class="h-full z-10 relative">
-                <div class="wavy absolute top-0 w-full h-full z-0 pointer-events-none opacity-30"></div>
+            <div class="h-full relative">
+                <div class="wavy absolute top-0 w-full h-full pointer-events-none opacity-30"></div>
                 <div class="font-bebas flex flex-col items-center h-full w-10/12 mx-auto">
                     /*<img src="/img/bullets_texture.svg" class="absolute opacity-5 w-full"/>*/
                     <img src="/img/hero_nut.png" class="h-32 mt-16 mb-8 drop-shadow"/>
 
-                    <div class="flex flex-col items-center z-10">
+                    <div class="flex flex-col items-center space-y-2">
                         <h1>{"Arrêtez de vous les briser,"}</h1>
                         <h1>{"utilisez Tournoix"}</h1>
                     </div>
 
-                    <div class="mt-5 z-10 mb-16">
+                    <div class="mt-5 mb-16">
                         <h2>{"Qu'est-ce que c'est ?"}</h2>
                         <div class="ml-5">
                             <p>{"Lorsque vous organisez votre tournoi sur Tournoix, vos utilisateurs peuvent voir l'avancement du tournoi en live et miser une monnaie virtuelle (des noix) sur l'équipe gagnante."}</p>
@@ -41,7 +41,7 @@ pub fn Home(props: &HomeProps) -> Html {
                         </svg>
                     </Button>
 
-                    <div class="mt-5 z-10 mb-16">
+                    <div class="mt-5 mb-16">
                         <h2>{"Pourquoi utiliser Tournoix ?"}</h2>
                         <ul class="flex">
                             <li class="why-card">
@@ -59,7 +59,7 @@ pub fn Home(props: &HomeProps) -> Html {
                         </ul>
                     </div>
 
-                    <div class="mt-5 z-10 mb-32">
+                    <div class="mt-5 mb-32">
                         <h2>{"L'équipe"}</h2>
                         <ul class="flex">
                             <li class="team-card">
