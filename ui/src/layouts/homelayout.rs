@@ -33,7 +33,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                 <Button class="ml-auto mr-5" label="Connexion" onclick={on_login_click}/>
             </header>
 
-            <main class={"w-full h-full"}>
+            <main class={"w-full"}>
                 {children.clone()}
             </main>
 
