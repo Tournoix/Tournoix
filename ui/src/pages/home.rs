@@ -60,7 +60,7 @@ pub fn Home(props: &HomeProps) -> Html {
                     </div>
 
                     <div class="mt-5 mb-32">
-                        <h2 class="text-center">{"L'équipe"}</h2>
+                        <h2 class="text-center">{"Notre équipe"}</h2>
                         <ul class="flex flex-wrap justify-center">
                             <li class="team-card">
                                 <div class="flex flex-row">
