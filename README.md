@@ -85,6 +85,21 @@ Un meeting scrum aura lieu chaque matin et chaque début d'après midi afin de m
 
 Le scrum master aura la responsabilité que l’équipe applique correctement la méthode scrum.
 
+## Méthodologie GIT
+
+Dnas notre repertoire git, nous utilisons les branches de trois façon distinctes :
+- la branche **main**, elle contient le code en production. Cette branche a un CI/CD permettant de lancer les tests unitaires définis dans le code et de déployer l'application en production.
+- la branche **develop**, elle contient toutes les features que l'on a implémenté mais il n'y a pas encore assez de features pour faire une release. Cette branche a un CI qui lance les tests unitaires définis dans le code.
+- les branches **feature/...**, elles sont utilisées pour coder les différentes features. L'objectif est d'avoir environ une branche par issue.
+
+## Structure de l'application
+
+![tournoix_structure drawio](https://github.com/Tournoix/Tournoix/assets/30533851/9f160057-f37e-42c5-ba31-2a0790b3d757)
+
+Notre application est en réalité composée de deux applications distinctes:
+- Un backend, qui est une application web fournissant l'application frontend et une API REST
+- Un frontend, qui est une application WebAssembly tournant dans le navigateur
+
 ## Lancer l'application
 
 **Pré-requis**: 
