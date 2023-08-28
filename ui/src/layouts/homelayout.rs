@@ -41,6 +41,11 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
         Callback::from(move |_| navigator.push(&Route::Login))
     };
 
+    let on_tournoix_click = {
+        let navigator = navigator.clone();
+        Callback::from(move |_| navigator.push(&Route::Tournoix))
+    };
+
     let on_logout_click = {
         let navigator = navigator.clone();
         let is_logged = is_logged.clone();
@@ -61,7 +66,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
 
     html! {
         <div class="font-bebas bg-[#fbfefb] min-h-full">
-            <header class="h-16 bg-nutDark flex items-center drop-shadow-lg z-50 sticky top-0">
+            <header class="h-16 bg-nutLight flex items-center drop-shadow-lg z-50 sticky top-0">
                 <div class="layout-nav">
                     <a onclick={on_home_click} href="javascript:void" class="flex flex-row my-auto transition-all hover:tracking-[.2em] hover:scale-[105%] origin-left hover:duration-[200ms] duration-[400ms]">
                         <img src="/img/nut_invert.png" class="sm:h-12 h-8 sm:mr-8 mr-2"/>
@@ -71,6 +76,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                     </a>
                     if *is_logged {
                         <div class="ml-auto my-auto flex">
+                            <Button class="sm:px-4 px-2 py-1 hover:scale-110 sm:text-base text-sm mr-6" onclick={on_tournoix_click}>{"Liste des tournoix"}</Button>
                             <Button class="sm:px-4 px-2 py-1 origin-right hover:scale-110 sm:text-base text-sm" onclick={on_logout_click}>{"Déconnexion"}</Button>
                         </div>
                     } else {
@@ -85,11 +91,11 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                 {children.clone()}
             </main>
 
-            <footer class="sticky bg-nutDark w-full">
+            <footer class="sticky bg-nutLight w-full">
                 <div class="layout-nav">
                     <div class="relative my-auto">
                         <h3 class="mt-1">{"A propos"}</h3>
-                        <ul class="leading-4">
+                        <ul class="leading-4 footer-links">
                             <li><p>{"L'équipe"}</p></li>
                             <li><p>{"Contact"}</p></li>
                             <li><p>{"Localisation"}</p></li>
