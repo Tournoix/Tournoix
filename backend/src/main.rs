@@ -2,8 +2,17 @@ use std::path::{PathBuf, Path};
 
 use dotenv::dotenv;
 use rocket::{fs::NamedFile, response::status::NotFound};
+use diesel::prelude::*;
+// use rocket::serde::json::Json;
+use self::models::*;
+// use self::schema::user::dsl::*;
 
-#[macro_use] extern crate rocket;
+mod api;
+mod database;
+mod models;
+
+#[macro_use]
+extern crate rocket;
 
 #[launch]
 fn rocket() -> _ {
