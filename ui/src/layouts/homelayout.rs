@@ -1,9 +1,12 @@
 use yew::prelude::*;
 use yew_hooks::prelude::*;
+use yew_notifications::{NotificationsProvider, Notification, NotificationFactory, NotificationsPosition};
 use yew_router::prelude::use_navigator;
+use time::Duration;
 
 use crate::{components::button::Button, routers::Route};
 use web_sys::window;
+use yew_notifications::{use_notification, NotificationType};
 
 #[derive(PartialEq, Properties)]
 pub struct HomeLayoutProps {
@@ -15,9 +18,12 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
     let HomeLayoutProps { children } = props;
     let navigator = use_navigator().unwrap();
     let is_logged = use_state(|| false);
+    let component_creator = NotificationFactory::default();
+    let notifications_manager = use_notification::<Notification>();
 
     {
         let is_logged = is_logged.clone();
+        let notifications_manager = notifications_manager.clone();
         use_effect_once(move || {
             if let Some(win) = window() {
                 if let Ok(Some(store)) = win.local_storage() {
@@ -26,13 +32,31 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                     }
                 }
             }
+            notifications_manager.spawn(Notification::new(
+                NotificationType::Warn,
+                "Connexion",
+                "yoyoyo",
+                Duration::seconds(999)
+            ));
 
             || {}
         });
     }
 
+    let on_test_click = {
+        Callback::from(move |_| {
+            notifications_manager.spawn(Notification::new(
+                NotificationType::Warn,
+                "Connexion",
+                "yoyoyo",
+                Duration::seconds(5)
+            ));
+        })
+    };
+
     let on_home_click = {
         let navigator = navigator.clone();
+        
         Callback::from(move |_| navigator.push(&Route::Home))
     };
 
@@ -80,10 +104,16 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                     }
                 </div>
             </header>
-
-            <main class={"w-full"}>
-                {children.clone()}
-            </main>
+                
+                <div>
+                <NotificationsProvider<Notification, NotificationFactory> {component_creator} position={NotificationsPosition::TopRight}>
+                    <button onclick={on_test_click}>{"test"}</button>
+                </NotificationsProvider<Notification, NotificationFactory>>
+                <div style="height: 150vh"></div>
+                </div>
+                <main class={"w-full"}>
+                    {children.clone()}
+                </main>
 
             <footer class="sticky bg-nutDark w-full">
                 <div class="layout-nav">

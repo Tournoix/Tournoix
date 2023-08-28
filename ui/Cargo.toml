@@ -7,7 +7,13 @@ edition = "2021"
 
 [dependencies]
 yew-hooks = "0.2.0"
-web-sys = "0.3"
+web-sys = "0.3.61"
 dotenv = "0.15.0"
 yew = { version = "0.20.0", features = ["csr"] }
 yew-router = "0.17.0"
+yew-notifications = { git = "https://github.com/TheBestTvarynka/yew-notifications.git", features = ["standard-notification"] }
+time = { version = "0.3.20", features = ["local-offset", "wasm-bindgen"] }
+
+# logging
+wasm-logger = "0.2.0"
+log = "0.4.17"
