@@ -7,6 +7,9 @@ use diesel::prelude::*;
 use self::models::*;
 // use self::schema::user::dsl::*;
 
+use rocket_sync_db_pools::database;
+
+
 mod api;
 mod database;
 mod models;
@@ -14,11 +17,16 @@ mod models;
 #[macro_use]
 extern crate rocket;
 
+#[database("tournoix_db")]
+pub struct MysqlConnection(diesel::MysqlConnection);
+
 #[launch]
 fn rocket() -> _ {
     dotenv().ok();
 
-    rocket::build().mount("/", routes![index, static_file])
+    rocket::build()
+		.attach(MysqlConnection::fairing())
+		.mount("/", routes![index, static_file])
 }
 
 async fn get_index() -> Result<NamedFile, NotFound<String>> {

@@ -1,0 +1,13 @@
+-- Your SQL goes here
+CREATE TABLE matchs (
+  id INTEGER PRIMARY KEY AUTO_INCREMENT,
+  fk_team1 INTEGER NOT NULL,
+  fk_team2 INTEGER NOT NULL,
+  score1 INTEGER NOT NULL,
+  score2 INTEGER NOT NULL,
+  phase INTEGER NOT NULL,
+  place INTEGER NOT NULL,
+
+  CONSTRAINT matchs_team1 FOREIGN KEY (fk_team1) REFERENCES teams(id),
+  CONSTRAINT matchs_team2 FOREIGN KEY (fk_team2) REFERENCES teams(id)
+)
