@@ -1,6 +1,9 @@
 #[macro_use]
 extern crate rocket;
 
+#[macro_use]
+extern crate diesel;
+
 use std::path::{Path, PathBuf};
 
 use dotenv::dotenv;
@@ -11,6 +14,8 @@ use serde::Serialize;
 
 mod routes;
 mod tests;
+mod models;
+mod schema;
 
 #[database("tournoix_db")]
 pub struct MysqlConnection(diesel::MysqlConnection);

@@ -61,7 +61,7 @@ diesel::table! {
         #[max_length = 255]
         location -> Nullable<Varchar>,
         phase -> Integer,
-        sizeGroupe -> Nullable<Integer>,
+        size_groupe -> Nullable<Integer>,
     }
 }
 
