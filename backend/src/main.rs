@@ -2,14 +2,20 @@ use std::path::{PathBuf, Path};
 
 use dotenv::dotenv;
 use rocket::{fs::NamedFile, response::status::NotFound};
+use rocket_sync_db_pools::database;
 
 #[macro_use] extern crate rocket;
+
+#[database("tournoix_db")]
+pub struct MysqlConnection(diesel::MysqlConnection);
 
 #[launch]
 fn rocket() -> _ {
     dotenv().ok();
 
-    rocket::build().mount("/", routes![index, static_file])
+    rocket::build()
+		.attach(MysqlConnection::fairing())
+		.mount("/", routes![index, static_file])
 }
 
 async fn get_index() -> Result<NamedFile, NotFound<String>> {
