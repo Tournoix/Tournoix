@@ -959,6 +959,7 @@ dependencies = [
  "rocket_codegen",
  "rocket_http",
  "serde",
+ "serde_json",
  "state",
  "tempfile",
  "time",
@@ -1380,6 +1381,7 @@ dependencies = [
  "dotenv",
  "rocket",
  "rocket_sync_db_pools",
+ "serde",
 ]
 
 [[package]]
