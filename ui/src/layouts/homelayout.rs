@@ -1,7 +1,9 @@
 use yew::prelude::*;
+use yew_hooks::prelude::*;
 use yew_router::prelude::use_navigator;
 
 use crate::{components::button::Button, routers::Route};
+use web_sys::window;
 
 #[derive(PartialEq, Properties)]
 pub struct HomeLayoutProps {
@@ -12,6 +14,22 @@ pub struct HomeLayoutProps {
 pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
     let HomeLayoutProps { children } = props;
     let navigator = use_navigator().unwrap();
+    let is_logged = use_state(|| false);
+
+    {
+        let is_logged = is_logged.clone();
+        use_effect_once(move || {
+            if let Some(win) = window() {
+                if let Ok(Some(store)) = win.local_storage() {
+                    if let Ok(Some(_item)) = store.get_item("loginToken") {
+                        is_logged.set(true);
+                    }
+                }
+            }
+
+            || {}
+        });
+    }
 
     let on_home_click = {
         let navigator = navigator.clone();
@@ -20,7 +38,25 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
 
     let on_login_click = {
         let navigator = navigator.clone();
-        Callback::from(move |_| navigator.push(&Route::Home))
+        Callback::from(move |_| navigator.push(&Route::Login))
+    };
+
+    let on_logout_click = {
+        let navigator = navigator.clone();
+        let is_logged = is_logged.clone();
+        Callback::from(move |_| {
+            // TODO logout
+
+            if let Some(win) = window() {
+                if let Ok(Some(store)) = win.local_storage() {
+                    if let Ok(_item) = store.remove_item("loginToken") {
+                        is_logged.set(false);
+                    }
+                }
+            }
+
+            navigator.push(&Route::Home)
+        })
     };
 
     html! {
@@ -33,9 +69,15 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                             <h1 class="sm:text-5xl text-3xl text-white">{"Tournoix"}</h1>
                         </div>
                     </a>
-                    <div class="ml-auto my-auto flex">
-                        <Button class="sm:px-4 px-2 py-1 origin-right hover:scale-110 sm:text-base text-sm" onclick={on_login_click}>{"Connexion"}</Button>
-                    </div>
+                    if *is_logged {
+                        <div class="ml-auto my-auto flex">
+                            <Button class="sm:px-4 px-2 py-1 origin-right hover:scale-110 sm:text-base text-sm" onclick={on_logout_click}>{"Déconnexion"}</Button>
+                        </div>
+                    } else {
+                        <div class="ml-auto my-auto flex">
+                            <Button class="sm:px-4 px-2 py-1 origin-right hover:scale-110 sm:text-base text-sm" onclick={on_login_click}>{"Connexion"}</Button>
+                        </div>
+                    }
                 </div>
             </header>
 
