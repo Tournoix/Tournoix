@@ -52,14 +52,21 @@ p {
 	@apply text-white text-lg flex justify-center mx-auto sm:w-9/12 w-11/12 h-full;
 }
 
+/* Tournaments */
+.tournament-card {
+	@apply p-8 bg-nutLighter rounded drop-shadow cursor-pointer;
+}
+
 /*CSS here is only used because it cannot be easily done in tailwind*/
 
 html, body {
 	height: 100%;
 }
 
-li + li {
-	margin-top: -4px;
+.footer-links {
+	li + li {
+		margin-top: -4px;
+	}
 }
 
 .wavy {
