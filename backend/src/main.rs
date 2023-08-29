@@ -7,27 +7,17 @@ extern crate diesel;
 use std::path::{Path, PathBuf};
 
 use dotenv::dotenv;
-use rocket::{fs::NamedFile, response::status::NotFound};
-use diesel::prelude::*;
-// use rocket::serde::json::Json;
-use self::models::*;
-// use self::schema::user::dsl::*;
-
-use rocket::{fs::NamedFile, http::Status, response::status::NotFound, serde::json::Json};
+use rocket::{fs::NamedFile, response::status::NotFound, http::Status, serde::json::Json};
 use rocket_sync_db_pools::database;
+use serde::Serialize;
+
+use crate::routes::users::get_user;
 
 mod routes;
 mod tests;
 mod models;
 mod schema;
 pub mod crypto;
-
-mod api;
-mod database;
-mod models;
-
-#[macro_use]
-extern crate rocket;
 
 #[database("tournoix_db")]
 pub struct MysqlConnection(diesel::MysqlConnection);
