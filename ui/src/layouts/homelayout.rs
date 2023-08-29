@@ -2,8 +2,10 @@ use yew::prelude::*;
 use yew_hooks::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::{components::button::Button, routers::Route};
+use crate::components::notification::Notif;
+use crate::{components::button::Button, routers::Route, utils::utils::*};
 use web_sys::window;
+use web_sys::console;
 
 #[derive(PartialEq, Properties)]
 pub struct HomeLayoutProps {
@@ -15,6 +17,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
     let HomeLayoutProps { children } = props;
     let navigator = use_navigator().unwrap();
     let is_logged = use_state(|| false);
+    let notifs: UseStateHandle<Vec<Notif>> = use_state(|| Vec::new());
 
     {
         let is_logged = is_logged.clone();
@@ -28,6 +31,33 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
             }
 
             || {}
+        });
+    }
+
+    {
+        let notifs = notifs.clone();
+        use_effect(move || {
+            // WARNING Only work with a single notif for now
+            if let Some(fetched_notifs) = consume_notifs() {
+                match fetched_notifs {
+                    Ok(fetched_notifs) => {
+                        if let Some(title) = fetched_notifs.get("title") {
+                            if let Some(title) = title.as_str() {
+                                if let Some(content) = fetched_notifs.get("content") {
+                                    if let Some(content) = content.as_str() {
+                                        notifs.set(vec![Notif {
+                                            title: String::from(title),
+                                            content: String::from(content),
+                                        }]);
+                                        console::log_1(&format!("{}: {}", title, content).into());
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    _ => {}
+                }
+            }
         });
     }
 
@@ -51,6 +81,9 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
         let is_logged = is_logged.clone();
         Callback::from(move |_| {
             // TODO logout
+
+
+            add_notif("Disconnected", "Sucessfully logged out of your account");
 
             if let Some(win) = window() {
                 if let Ok(Some(store)) = win.local_storage() {
@@ -88,6 +121,16 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
             </header>
 
             <main class={"w-full"}>
+                <div id="notifs-container" class="pointer-events-none flex fixed bottom-0 left-0 right-0 sm:w-9/12 w-11/12 h-full z-50 ml-[12.5%] flex-col-reverse items-end pb-12">
+                    {
+                        notifs.iter().map(|notif| {
+                            html!{<div class="m-2 p-3 bg-green-600 text-white rounded drop-shadow-lg">
+                                <h3>{&notif.title}</h3>
+                                {&notif.content}
+                            </div>}
+                        }).collect::<Html>()
+                    }
+                </div>
                 {children.clone()}
             </main>
 

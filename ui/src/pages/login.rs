@@ -4,6 +4,7 @@ use yew_router::prelude::use_navigator;
 use crate::routers::Route;
 use crate::components::{button::Button, form_input::FormInput};
 use crate::layouts::homelayout::HomeLayout;
+use crate::utils::utils::*;
 use web_sys::window;
 
 #[derive(PartialEq, Properties)]
@@ -18,6 +19,8 @@ pub fn Login(props: &LoginProps) -> Html {
         let navigator = navigator.clone();
         Callback::from(move |_| {
             // TODO login
+
+            add_notif("Logged in", "Sucessfully logged in your account");
             
             if let Some(win) = window() {
                 if let Ok(Some(store)) = win.local_storage() {
