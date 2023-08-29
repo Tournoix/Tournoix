@@ -1,5 +1,5 @@
 -- Your SQL goes here
-CREATE TABLE matchs (
+CREATE TABLE games (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
   fk_team1 INTEGER NOT NULL,
   fk_team2 INTEGER NOT NULL,
