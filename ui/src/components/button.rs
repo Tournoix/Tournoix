@@ -5,6 +5,7 @@ pub struct ButtonProps {
     #[prop_or_default]
     pub class: Classes,
     pub children: Children,
+    #[prop_or_default]
     pub onclick: Callback<MouseEvent>,
 }
 

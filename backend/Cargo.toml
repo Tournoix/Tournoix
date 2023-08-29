@@ -11,11 +11,8 @@ dotenv = "0.15.0"
 serde = "1.0.188"
 chrono = { version = "0.4.24", features = ["serde"] }
 diesel = { version = "2.1.0", features = ["mysql", "chrono"] }
-serde = "1.0.147"
-chrono = {version = "0.4.23", features=["serde"]}
-rust-argon2 = "1.0"
 rand = "0.8.5"
-rust-argon2 = "2.0.0"
+rust-argon2 = "1.0.0"
 
 [dependencies.rocket_sync_db_pools]
 version = "=0.1.0-rc.3"
