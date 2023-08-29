@@ -54,7 +54,15 @@ p {
 
 /* Tournaments */
 .tournament-card {
-	@apply p-8 bg-nutLighter rounded drop-shadow cursor-pointer;
+	@apply flex justify-center content-center p-3 bg-nutLighter rounded drop-shadow-lg cursor-pointer hover:scale-110 hover:duration-[200ms] duration-[400ms] w-32 h-32 origin-bottom;
+}
+
+.tournament-btn-icon {
+	@apply h-8 p-1.5 basis-0 grow hover:duration-[200ms] duration-[400ms] rounded;
+}
+
+.tournament-btn-list {
+	@apply flex gap-4 w-full mt-2 justify-center;
 }
 
 /*CSS here is only used because it cannot be easily done in tailwind*/
