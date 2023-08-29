@@ -20,7 +20,7 @@ pub struct NewTeam {
     pub group: i32,
 }
 
-#[derive(Serialize, Deserialize, Insertable, Clone)]
+#[derive(Serialize, Deserialize, AsChangeset, Clone)]
 #[diesel(belongs_to(Tournament))]
 #[diesel(table_name = teams)]
 pub struct PatchTeam {
