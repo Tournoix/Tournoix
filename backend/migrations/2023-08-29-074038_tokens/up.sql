@@ -9,7 +9,7 @@ CREATE TABLE tokens (
 );
 
 CREATE TRIGGER drop_trigger
-AFTER INSERT ON tokens
+BEFORE INSERT ON tokens
 FOR EACH ROW
 BEGIN
     DELETE FROM tokens WHERE expiration_date < NOW();
