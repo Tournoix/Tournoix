@@ -17,3 +17,11 @@ rand = "0.8.5"
 [dependencies.rocket_sync_db_pools]
 version = "=0.1.0-rc.3"
 features = ["diesel_mysql_pool"]
+
+[dependencies.uuid]
+version = "1.4.1"
+features = [
+    "v4",                # Lets you generate random UUIDs
+    "fast-rng",          # Use a faster (but still sufficiently random) RNG
+    "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+]

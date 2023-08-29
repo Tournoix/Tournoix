@@ -1,7 +1,7 @@
 use crate::schema::users;
 use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Queryable, Identifiable)]
+#[derive(Serialize, Deserialize, Queryable, Identifiable, Clone)]
 #[diesel(table_name = users)]
 pub struct User {
     pub id: i32,
