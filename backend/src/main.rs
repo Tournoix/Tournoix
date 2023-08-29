@@ -16,6 +16,7 @@ mod routes;
 mod tests;
 mod models;
 mod schema;
+pub mod crypto;
 
 #[database("tournoix_db")]
 pub struct MysqlConnection(diesel::MysqlConnection);
