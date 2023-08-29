@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-use crate::layouts::homelayout::HomeLayout;
+use crate::{layouts::homelayout::HomeLayout, routers::Route, components::backlink::Backlink};
 
 #[derive(PartialEq, Properties)]
 pub struct TournoixViewProps {
@@ -13,8 +13,9 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
     
     html! {
         <HomeLayout>
-            <div class="flex flex-col items-center h-full pb-16 sm:w-9/12 w-11/12 mx-auto relative">
-                <h1 class="mt-12 mb-5">{"Affichage de tournoi"}</h1>
+            <div class="flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto relative">
+                <Backlink route={Route::Tournoix} label="Retour à la liste des tournoix"/>
+                <h1 class="mb-5">{"Affichage de tournoi"}</h1>
                 <h2>{"Id du tournoi : "}{ id }</h2>
             </div>
         </HomeLayout>
