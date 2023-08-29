@@ -12,8 +12,6 @@ use rocket_sync_db_pools::database;
 use routes::{users::get_user, auth::login};
 use serde::Serialize;
 
-use crate::routes::users::get_user;
-
 mod routes;
 mod tests;
 mod models;
