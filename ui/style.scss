@@ -54,7 +54,7 @@ p {
 
 /* Tournaments */
 .tournament-card {
-	@apply flex justify-center content-center p-3 bg-nutLighter rounded drop-shadow-lg cursor-pointer hover:scale-110 hover:duration-[200ms] duration-[400ms] w-32 h-32 origin-bottom;
+	@apply flex justify-center content-center p-3 bg-nutLighter rounded drop-shadow-lg cursor-pointer hover:scale-110 hover:duration-[200ms] duration-[400ms] w-32 h-32 origin-bottom select-none leading-5;
 }
 
 .tournament-btn-icon {
