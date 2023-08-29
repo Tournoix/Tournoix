@@ -18,7 +18,7 @@ pub struct UserInfo {
     pub email: String
 }
 
-#[derive(Serialize, Deserialize, Insertable)]
+#[derive(Serialize, Deserialize, Insertable, Clone)]
 #[diesel(table_name = users)]
 pub struct NewUser {
     pub name: String,
