@@ -1,5 +1,3 @@
-extern crate argon2;
-
 use argon2::{Config, Variant, Version, Error};
 use rand::Rng;
 use uuid::Uuid;
@@ -40,9 +38,10 @@ pub fn validate_password(password: &str) -> bool {
 // Hash password
 pub fn hash_password(password: &str) -> Result<String, Error> {
     // Validate password
-    if !validate_password(password) {
-        return Err(Error::IncorrectType);
-    }
+    // if !validate_password(password) {
+    //     // Return error message if password is invalid
+    //     return Err(Error::PwdTooShort);
+    // }
 
     // Convert password to ascii
     let password = password.as_bytes();
@@ -55,8 +54,9 @@ pub fn hash_password(password: &str) -> Result<String, Error> {
         variant: Variant::Argon2id,
         version: Version::Version13,
         mem_cost: 65536,
-        time_cost: 2,
+        time_cost: 10,
         lanes: 4,
+        thread_mode: argon2::ThreadMode::Parallel,
         secret: &[],
         ad: &[],
         hash_length: 32,

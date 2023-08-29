@@ -1,6 +1,6 @@
 use diesel::{prelude::*, insert_into};
 use rocket::http::Status;
-use crate::{schema::{users::{self, email}, tokens}, models::user::NewUser};
+use crate::{schema::{users::{self, email, password}, tokens}, models::user::NewUser};
 use crate::models::{user::User, token::NewToken};
 use rocket::serde::json::Json;
 use crate::{MysqlConnection, crypto};
@@ -121,8 +121,8 @@ pub async fn logout(
 #[post("/auth/register", data = "<data>")]
 pub async fn register(
     connection: MysqlConnection,
-    data: Json<User>,
-) -> Result<Json<User>, (Status, String)> {
+    data: Json<NewUser>,
+) -> Result<Json<NewUser>, (Status, String)> {
     // Check if email is already used
     match connection.run(
         {
@@ -139,8 +139,8 @@ pub async fn register(
 
         Err(_e) => {
             // Hash password and check if return error
-            let password = match crypto::hash_password(&data.password) {
-                Ok(password) => password,
+            let hashed_password = match crypto::hash_password(&data.password.as_str()) {
+                Ok(hashed_password) => hashed_password,
                 Err(e) => {
                     return Err((
                         Status::InternalServerError,
@@ -153,7 +153,7 @@ pub async fn register(
             let new_user = NewUser {
                 name: data.name.clone(),
                 email: data.email.clone(),
-                password: password,
+                password: hashed_password,
             };
 
             // Add user to db
