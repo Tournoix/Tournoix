@@ -12,8 +12,9 @@ pub async fn get_user(
     id: i32,
 ) -> Result<Json<UserInfo>, (Status, String)> {
     match connection.run(
-        move |c| users::table.select((users::id, users::name, users::email)
-    ).find(id).first::<UserInfo>(c)).await.map(Json) {
+        move |c| 
+            users::table.select((users::id, users::name, users::email)).find(id).first::<UserInfo>(c)
+    ).await.map(Json) {
         Ok(user) => {
            return Ok(user)
         },
