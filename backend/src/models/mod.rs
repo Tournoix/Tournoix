@@ -4,4 +4,5 @@ pub mod game;
 pub mod team;
 pub mod tournament;
 pub mod nut;
-pub mod subscription;
+pub mod subscriber;
+pub mod token;
