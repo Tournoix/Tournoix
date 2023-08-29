@@ -10,6 +10,8 @@ rocket = {version = "=0.5.0-rc.3", features = ["json"]}
 dotenv = "0.15.0"
 diesel = { version = "2.1.0", features = ["mysql"] }
 serde = "1.0.147"
+rust-argon2 = "2.0.0"
+rand = "0.8.5"
 
 [dependencies.rocket_sync_db_pools]
 version = "=0.1.0-rc.3"

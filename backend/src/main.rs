@@ -11,6 +11,7 @@ use serde::Serialize;
 
 mod routes;
 mod tests;
+pub mod crypto;
 
 #[database("tournoix_db")]
 pub struct MysqlConnection(diesel::MysqlConnection);
