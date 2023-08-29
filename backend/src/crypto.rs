@@ -54,7 +54,7 @@ pub fn hash_password(password: &str) -> Result<String, Error> {
         variant: Variant::Argon2id,
         version: Version::Version13,
         mem_cost: 65536,
-        time_cost: 2,
+        time_cost: 10,
         lanes: 4,
         thread_mode: argon2::ThreadMode::Parallel,
         secret: &[],
