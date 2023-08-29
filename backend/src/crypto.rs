@@ -2,6 +2,7 @@ extern crate argon2;
 
 use argon2::{Config, Variant, Version, Error};
 use rand::Rng;
+use uuid::Uuid;
 
 pub fn validate_password(password: &str) -> bool {
     // Convert password to ascii
@@ -54,7 +55,7 @@ pub fn hash_password(password: &str) -> Result<String, Error> {
         variant: Variant::Argon2id,
         version: Version::Version13,
         mem_cost: 65536,
-        time_cost: 10,
+        time_cost: 2,
         lanes: 4,
         secret: &[],
         ad: &[],
@@ -72,4 +73,13 @@ pub fn hash_password(password: &str) -> Result<String, Error> {
 pub fn verify_password(hash: &str, password: &str) -> bool {
     // Verify password
     argon2::verify_encoded(hash, password.as_bytes()).unwrap()
+}
+
+// Generate token for user session (UUID v4)
+pub fn generate_token() -> String {
+    // Generate token
+    let token = Uuid::new_v4().to_string();
+
+    // Return token
+    token
 }
