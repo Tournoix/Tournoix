@@ -32,6 +32,10 @@ p {
 	@apply text-base sm:text-lg;
 }
 
+hr {
+	@apply w-full drop-shadow my-8;
+}
+
 .discrete {
 	@apply text-base text-discrete;
 }
