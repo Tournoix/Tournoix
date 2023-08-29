@@ -10,7 +10,7 @@ pub struct Tournament {
     pub name: String,
     pub description: String,
     pub date: Option<chrono::NaiveDateTime>,
-    pub location: String,
+    pub location: Option<String>,
     pub phase: i32,
     pub size_group: Option<i32>,
 }
@@ -23,7 +23,7 @@ pub struct NewTournament {
     pub name: String,
     pub description: String,
     pub date: Option<chrono::NaiveDateTime>,
-    pub location: String,
+    pub location: Option<String>,
     pub phase: i32,
     pub size_group: Option<i32>,
 }
