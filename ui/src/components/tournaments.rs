@@ -21,7 +21,7 @@ pub fn Tournaments(props: &TournamentsProps) -> Html {
             // Create a tournament
             {if let Some(_on_create) = on_create {
                 html! { <li class="tournament-card flex-col text-center" onclick={_on_create}>
-                    <img src="/img/plus.svg" class="h-1/2 mb-1"/>
+                    <img src="/img/plus.svg" class="add-btn"/>
                     {"Créer un tournoi"}
                 </li> }
             } else { html! {}}}
@@ -49,8 +49,8 @@ pub fn Tournaments(props: &TournamentsProps) -> Html {
 
                             // Nut number
                             {if let Some(_nb_nuts) = nb_nuts {
-                                html! { <span class="flex gap-1">
-                                    <span>{_nb_nuts}</span><img src="/img/nut.svg" class="tournament-btn-icon"/>
+                                html! { <span class="flex gap-0.5 pt-[5px]">
+                                    <span>{_nb_nuts}</span><img src="/img/nut.svg" class="tournament-btn-icon mt-[-5px]"/>
                                 </span> }
                             } else { html! {}}}
 
