@@ -11,4 +11,8 @@ web-sys = "0.3"
 dotenv = "0.15.0"
 yew = { version = "0.20.0", features = ["csr"] }
 yew-router = "0.17.0"
-serde_json = "1.0.105"
+reqwest = {version = "0.11.20", features = ["blocking", "json"]}
+dotenv_codegen = "0.15.0"
+serde = "1.0.188"
+serde_json = "1.0.96"
+chrono = { version = "0.4.24", features = ["serde"] }

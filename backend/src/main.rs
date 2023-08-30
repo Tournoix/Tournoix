@@ -7,13 +7,10 @@ extern crate diesel;
 use std::path::{Path, PathBuf};
 
 use dotenv::dotenv;
-use rocket::{fs::NamedFile, response::status::NotFound, http::Status, serde::json::Json};
+use rocket::{fs::NamedFile, response::status::NotFound, http::{Status, Header}, serde::json::Json, fairing::{Fairing, Info, Kind}, Request, Response};
 use rocket_sync_db_pools::database;
-use routes::{users::get_user, auth::{login, logout, register}};
+use routes::{users::*, auth::*, tournoix::*, team::*};
 use serde::Serialize;
-
-use crate::routes::tournoix::*;
-use crate::routes::team::*;
 
 mod routes;
 mod tests;
@@ -23,6 +20,28 @@ pub mod crypto;
 
 #[database("tournoix_db")]
 pub struct MysqlConnection(diesel::MysqlConnection);
+
+pub struct CORS;
+
+#[rocket::async_trait]
+impl Fairing for CORS {
+	fn info(&self) -> Info {
+		Info {
+			name: "Add CORS headers to responses",
+			kind: Kind::Response,
+		}
+	}
+
+	async fn on_response<'r>(&self, _request: &'r Request<'_>, response: &mut Response<'r>) {
+		response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+		response.set_header(Header::new(
+			"Access-Control-Allow-Methods",
+			"POST, GET, PATCH, DELETE, OPTIONS",
+		));
+		response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
+		response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+	}
+}
 
 #[derive(Serialize)]
 pub struct ErrorResponse {
@@ -36,6 +55,7 @@ fn rocket() -> _ {
 
     rocket::build()
         .attach(MysqlConnection::fairing())
+        .attach(CORS)
         .mount("/", routes![index, static_file])
         .mount("/api", routes![get_user, get_tournoix, create_tournoix, update_tournoix, delete_tournoix, get_teams, create_team, update_team, delete_team, api_hole, login, logout, register])
 }

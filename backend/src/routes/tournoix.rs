@@ -67,7 +67,7 @@ pub async fn update_tournoix(
 
     match connection.run(
        move |c| c.transaction(|c| {
-            diesel::update(tournaments::table)
+            diesel::update(tournaments::table.find(id))
                 .set(tournoix.clone())
                 .execute(c)?;
 

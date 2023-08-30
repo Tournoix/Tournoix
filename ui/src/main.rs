@@ -1,6 +1,6 @@
 use yew::prelude::*;
-use dotenv::dotenv;
 use yew_router::{BrowserRouter, Switch};
+use dotenv::dotenv;
 
 use crate::routers::{Route, router};
 
