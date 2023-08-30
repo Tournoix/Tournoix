@@ -40,8 +40,6 @@ pub fn Login(props: &LoginProps) -> Html {
 
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
-            // TODO login
-
             loading.set(true);
             
             let email = email_ref.cast::<HtmlInputElement>().unwrap().value();

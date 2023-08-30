@@ -1,6 +1,6 @@
 use diesel::{prelude::*, insert_into};
 use rocket::http::Status;
-use crate::{schema::{users::{self, email}, tokens}, models::user::NewUser};
+use crate::{schema::{users::{self, email}, tokens}, models::user::{NewUser, UserInfo}};
 use crate::models::{user::User, token::NewToken};
 use rocket::serde::json::Json;
 use crate::{MysqlConnection, crypto};
@@ -122,7 +122,7 @@ pub async fn logout(
 pub async fn register(
     connection: MysqlConnection,
     data: Json<NewUser>,
-) -> Result<Json<NewUser>, (Status, String)> {
+) -> Result<Json<UserInfo>, (Status, String)> {
     // Check if email is already used
     match connection.run(
         {
@@ -160,11 +160,17 @@ pub async fn register(
             match connection.run(
                 {
                     let user = new_user.clone();
-                    move |c| insert_into(users::dsl::users).values(user).execute(c)
+                    move |c| c.transaction(|c| {
+                        insert_into(users::dsl::users).values(user).execute(c)?;
+
+                        let user = users::table.order(users::id.desc()).select((users::id, users::name, users::email)).first::<UserInfo>(c).map(Json)?;
+
+                        diesel::result::QueryResult::Ok(user)
+                    })
                 }
             ).await {
-                Ok(_) => {
-                    return Ok(Json(data.into_inner()))
+                Ok(user) => {
+                    return Ok(user)
                 },
 
                 Err(e) => {
