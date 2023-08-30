@@ -14,6 +14,7 @@ use serde::Serialize;
 use crate::routes::users::get_user;
 use crate::routes::tournoix::*;
 use crate::routes::team::*;
+use crate::routes::subscription::*;
 
 mod routes;
 mod tests;
@@ -37,7 +38,11 @@ fn rocket() -> _ {
     rocket::build()
         .attach(MysqlConnection::fairing())
         .mount("/", routes![index, static_file])
-        .mount("/api", routes![get_user, get_tournoix, create_tournoix, update_tournoix, delete_tournoix, get_teams, create_team, update_team, delete_team, api_hole])
+        .mount("/api", routes![get_user, 
+            get_tournoix, create_tournoix, update_tournoix, delete_tournoix, 
+            get_teams, create_team, update_team, delete_team, 
+            get_user_tournoix, get_user_subscription, create_subsciption, delete_subscription,
+            api_hole])
 }
 
 async fn get_index() -> Result<NamedFile, NotFound<String>> {

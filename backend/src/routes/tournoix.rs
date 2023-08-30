@@ -1,9 +1,13 @@
 use diesel::prelude::*;
+use rand::Rng;
+use rand::distributions::Alphanumeric;
 use rocket::http::Status;
 use rocket::serde::json::Json;
+use rocket::serde::{Deserialize, Serialize};
 use crate::MysqlConnection;
 use crate::models::tournament::{Tournament, NewTournament, PatchTournament};
 use crate::schema::tournaments;
+use diesel::result::Error;
 
 #[get("/tournoix/<id>")]
 pub async fn get_tournoix(
@@ -26,12 +30,64 @@ pub async fn get_tournoix(
     }
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+pub struct AddTournament {
+    pub fk_users: i32,
+    pub name: String,
+    pub description: String,
+    pub date: Option<chrono::NaiveDateTime>,
+    pub location: Option<String>,
+    pub phase: i32,
+    pub size_group: Option<i32>,
+    pub code: String,
+}
+
 #[post("/tournoix", data = "<data>")]
 pub async fn create_tournoix(
     connection: MysqlConnection,
-    data: Json<NewTournament>,
+    data: Json<AddTournament>,
 ) -> Result<Json<Tournament>, (Status, String)> {
-    let tournoix = data.0;
+    let mut generated_code = String::new();
+    let mut code_exist = true;
+
+    while code_exist {
+        generated_code = rand::thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(16)
+            .map(char::from)
+            .collect();
+
+        // Check if the code already exists in the database
+        match connection.run(
+            {
+                let generated_code = generated_code.clone();
+                move |c| tournaments::table.filter(tournaments::code.eq(generated_code)).first::<Tournament>(c)
+            }
+        ).await {
+            Ok(_) => {
+                // The code exists, generate a new one in the next iteration
+                continue;
+            },
+            Err(Error::NotFound) => {
+                // The code doesn't exist, break the loop
+                code_exist = false;
+            },
+            Err(_) => return Err((Status::InternalServerError, "Database error".to_string())),
+        };
+    }
+
+    let add_tournoix = data.0;
+
+    let tournoix = NewTournament {
+        fk_users: add_tournoix.fk_users,
+        name: add_tournoix.name,
+        description: add_tournoix.description,
+        date: add_tournoix.date,
+        location: add_tournoix.location,
+        phase: add_tournoix.phase,
+        size_group: add_tournoix.size_group,
+        code: generated_code, // Use the generated code
+    };
 
     match connection.run(
        move |c| c.transaction(|c| {

@@ -13,6 +13,7 @@ pub struct Tournament {
     pub location: Option<String>,
     pub phase: i32,
     pub size_group: Option<i32>,
+    pub code: String,
 }
 
 #[derive(Serialize, Deserialize, Insertable, Clone)]
@@ -26,6 +27,7 @@ pub struct NewTournament {
     pub location: Option<String>,
     pub phase: i32,
     pub size_group: Option<i32>,
+    pub code: String,
 }
 
 #[derive(Serialize, Deserialize, AsChangeset, Clone)]
