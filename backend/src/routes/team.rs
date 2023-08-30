@@ -3,9 +3,8 @@ use rocket::http::Status;
 use rocket::serde::json::Json;
 use crate::MysqlConnection;
 use crate::models::team::*;
-use crate::models::tournament::{Tournament, NewTournament, PatchTournament};
 use crate::schema::teams::fk_tournaments;
-use crate::schema::{tournaments, teams};
+use crate::schema::teams;
 use rocket::serde::{Deserialize, Serialize};
 
 #[get("/tournoix/<id>/team")]
