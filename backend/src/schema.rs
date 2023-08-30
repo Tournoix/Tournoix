@@ -32,7 +32,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    subscribers (id) {
+    subscriptions (id) {
         id -> Integer,
         fk_users -> Integer,
         fk_tournaments -> Integer,
@@ -72,6 +72,8 @@ diesel::table! {
         location -> Nullable<Varchar>,
         phase -> Integer,
         size_group -> Nullable<Integer>,
+        #[max_length = 16]
+        code -> Varchar,
     }
 }
 
@@ -92,8 +94,8 @@ diesel::joinable!(bets -> nuts (fk_nuts));
 diesel::joinable!(bets -> teams (fk_teams));
 diesel::joinable!(nuts -> tournaments (fk_tournaments));
 diesel::joinable!(nuts -> users (fk_users));
-diesel::joinable!(subscribers -> tournaments (fk_tournaments));
-diesel::joinable!(subscribers -> users (fk_users));
+diesel::joinable!(subscriptions -> tournaments (fk_tournaments));
+diesel::joinable!(subscriptions -> users (fk_users));
 diesel::joinable!(teams -> tournaments (fk_tournaments));
 diesel::joinable!(tokens -> users (fk_users));
 diesel::joinable!(tournaments -> users (fk_users));
@@ -102,7 +104,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     bets,
     games,
     nuts,
-    subscribers,
+    subscriptions,
     teams,
     tokens,
     tournaments,

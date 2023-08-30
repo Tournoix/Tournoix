@@ -12,6 +12,11 @@ use rocket_sync_db_pools::database;
 use routes::{users::*, auth::*, tournoix::*, team::*};
 use serde::Serialize;
 
+use crate::routes::users::get_user;
+use crate::routes::tournoix::*;
+use crate::routes::team::*;
+use crate::routes::subscription::*;
+
 mod routes;
 mod tests;
 mod models;
@@ -57,7 +62,12 @@ fn rocket() -> _ {
         .attach(MysqlConnection::fairing())
         .attach(CORS)
         .mount("/", routes![index, static_file])
-        .mount("/api", routes![get_user, get_tournoix, create_tournoix, update_tournoix, delete_tournoix, get_teams, create_team, update_team, delete_team, api_hole, login, logout, register])
+        .mount("/api", routes![get_user, 
+            get_tournoix, create_tournoix, update_tournoix, delete_tournoix, 
+            get_teams, create_team, update_team, delete_team, 
+            get_user_tournoix, get_user_subscription, create_subsciption, delete_subscription,
+            api_hole,
+            login, logout, register])
 }
 
 async fn get_index() -> Result<NamedFile, NotFound<String>> {
