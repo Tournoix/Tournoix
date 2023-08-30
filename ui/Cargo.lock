@@ -751,6 +751,7 @@ name = "tournoix-ui"
 version = "0.1.0"
 dependencies = [
  "dotenv",
+ "serde_json",
  "web-sys",
  "yew",
  "yew-hooks",

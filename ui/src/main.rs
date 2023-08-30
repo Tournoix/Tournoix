@@ -8,6 +8,7 @@ mod pages;
 mod routers;
 mod layouts;
 mod components;
+mod utils;
 
 #[function_component]
 fn App() -> Html {

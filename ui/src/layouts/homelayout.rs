@@ -1,8 +1,12 @@
+use std::rc::Rc;
+use std::str::FromStr;
+
 use yew::prelude::*;
 use yew_hooks::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::{components::button::Button, routers::Route};
+use crate::components::notification::{Notif, NotifType, Notification};
+use crate::{components::button::Button, routers::Route, utils::utils::*};
 use web_sys::window;
 
 #[derive(PartialEq, Properties)]
@@ -15,6 +19,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
     let HomeLayoutProps { children } = props;
     let navigator = use_navigator().unwrap();
     let is_logged = use_state(|| false);
+    let notifs: UseStateHandle<Vec<Notif>> = use_state(|| Vec::new());
 
     {
         let is_logged = is_logged.clone();
@@ -28,6 +33,43 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
             }
 
             || {}
+        });
+    }
+
+    {
+        let notifs = notifs.clone();
+        use_effect(move || {
+            if let Some(fetched_notifs) = consume_notifs() {
+                match fetched_notifs {
+                    Ok(fetched_notifs) => {
+                        if let Some(fetched_notifs_array) = fetched_notifs.as_array() {
+                            let mut buf_notifs: Vec<Notif> = vec![];
+                            let mut curr_id = 0;
+        
+                            for fetched_notif in fetched_notifs_array.iter() {
+                                if let (Some(title), Some(content), Some(type_notif)) = (
+                                    fetched_notif.get("title").and_then(|t| t.as_str()),
+                                    fetched_notif.get("content").and_then(|c| c.as_str()),
+                                    fetched_notif.get("type").and_then(|tt: &serde_json::Value| tt.as_str()),
+                                ) {
+                                    buf_notifs.push(Notif {
+                                        id: curr_id,
+                                        title: title.to_string(),
+                                        content: content.to_string(),
+                                        type_notif: NotifType::from_str(type_notif).unwrap(),
+                                    });
+                                    curr_id += 1;
+                                }
+                            }
+        
+                            if !buf_notifs.is_empty() {
+                                notifs.set(buf_notifs);
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
         });
     }
 
@@ -51,6 +93,9 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
         let is_logged = is_logged.clone();
         Callback::from(move |_| {
             // TODO logout
+
+
+            add_delayed_notif("Disconnected", "Sucessfully logged out of your account", NotifType::Success);
 
             if let Some(win) = window() {
                 if let Ok(Some(store)) = win.local_storage() {
@@ -88,7 +133,18 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
             </header>
 
             <main class={"w-full"}>
-                {children.clone()}
+                <ContextProvider<UseStateHandle<Vec<Notif>>> context={notifs.clone()}>
+                    <div id="notifs-container" class="pointer-events-none flex fixed bottom-0 left-0 right-0 sm:w-9/12 w-11/12 h-full z-50 ml-[12.5%] flex-col-reverse items-end pb-12">
+                        {
+                            notifs.iter().map(|notif| {
+                                html!{
+                                    <Notification notif={notif.clone()}/>
+                                }
+                            }).collect::<Html>()
+                        }
+                    </div>
+                    {children.clone()}
+                </ContextProvider<UseStateHandle<Vec<Notif>>>>
             </main>
 
             <footer class="sticky bg-nutLight w-full">
