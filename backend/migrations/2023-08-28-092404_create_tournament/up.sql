@@ -8,6 +8,7 @@ CREATE TABLE tournaments (
   location VARCHAR(255),
   phase INTEGER NOT NULL,
   size_group INTEGER,
+  code VARCHAR(16) NOT NULL,
 
   CONSTRAINT tournaments_users FOREIGN KEY (fk_users) REFERENCES users(id)
 )
