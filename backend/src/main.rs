@@ -12,7 +12,6 @@ use rocket_sync_db_pools::database;
 use routes::{users::get_user, auth::{login, logout, register}};
 use serde::Serialize;
 
-use crate::routes::users::get_user;
 use crate::routes::tournoix::*;
 use crate::routes::team::*;
 
