@@ -1,10 +1,11 @@
+use std::rc::Rc;
 use std::str::FromStr;
 
 use yew::prelude::*;
 use yew_hooks::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::components::notification::{Notif, NotifType};
+use crate::components::notification::{Notif, NotifType, Notification};
 use crate::{components::button::Button, routers::Route, utils::utils::*};
 use web_sys::window;
 
@@ -43,6 +44,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                     Ok(fetched_notifs) => {
                         if let Some(fetched_notifs_array) = fetched_notifs.as_array() {
                             let mut buf_notifs: Vec<Notif> = vec![];
+                            let mut curr_id = 0;
         
                             for fetched_notif in fetched_notifs_array.iter() {
                                 if let (Some(title), Some(content), Some(type_notif)) = (
@@ -51,10 +53,12 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                                     fetched_notif.get("type").and_then(|tt: &serde_json::Value| tt.as_str()),
                                 ) {
                                     buf_notifs.push(Notif {
+                                        id: curr_id,
                                         title: title.to_string(),
                                         content: content.to_string(),
                                         type_notif: NotifType::from_str(type_notif).unwrap(),
                                     });
+                                    curr_id += 1;
                                 }
                             }
         
@@ -129,17 +133,18 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
             </header>
 
             <main class={"w-full"}>
-                <div id="notifs-container" class="pointer-events-none flex fixed bottom-0 left-0 right-0 sm:w-9/12 w-11/12 h-full z-50 ml-[12.5%] flex-col-reverse items-end pb-12">
-                    {
-                        notifs.iter().map(|notif| {
-                            html!{<div class={format!("m-2 p-3 text-white rounded drop-shadow-lg notif-{}", {&notif.type_notif})}>
-                                <h3>{&notif.title}</h3>
-                                {&notif.content}
-                            </div>}
-                        }).collect::<Html>()
-                    }
-                </div>
-                {children.clone()}
+                <ContextProvider<UseStateHandle<Vec<Notif>>> context={notifs.clone()}>
+                    <div id="notifs-container" class="pointer-events-none flex fixed bottom-0 left-0 right-0 sm:w-9/12 w-11/12 h-full z-50 ml-[12.5%] flex-col-reverse items-end pb-12">
+                        {
+                            notifs.iter().map(|notif| {
+                                html!{
+                                    <Notification notif={notif.clone()}/>
+                                }
+                            }).collect::<Html>()
+                        }
+                    </div>
+                    {children.clone()}
+                </ContextProvider<UseStateHandle<Vec<Notif>>>>
             </main>
 
             <footer class="sticky bg-nutLight w-full">
