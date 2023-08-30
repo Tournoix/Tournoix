@@ -7,7 +7,7 @@ use serde::{Serialize, Deserialize};
 use crate::routers::Route;
 use crate::components::{button::Button, form_input::FormInput};
 use crate::layouts::homelayout::HomeLayout;
-use web_sys::{window, console, HtmlInputElement};
+use web_sys::{window, HtmlInputElement};
 
 #[derive(PartialEq, Properties)]
 pub struct LoginProps {}
@@ -30,15 +30,19 @@ pub fn Login(props: &LoginProps) -> Html {
     let navigator = use_navigator().unwrap();
     let email_ref = use_node_ref();
     let password_ref = use_node_ref();
+    let loading = use_state(|| false);
 
     let on_login_submit = {
         let navigator = navigator.clone();
         let email_ref = email_ref.clone();
         let password_ref = password_ref.clone();
+        let loading = loading.clone();
 
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
             // TODO login
+
+            loading.set(true);
             
             let email = email_ref.cast::<HtmlInputElement>().unwrap().value();
             let password = password_ref.cast::<HtmlInputElement>().unwrap().value();
@@ -50,6 +54,7 @@ pub fn Login(props: &LoginProps) -> Html {
 
             {
                 let navigator = navigator.clone();
+                let loading = loading.clone();
 
                 spawn_local(async move {
                     let client = reqwest::Client::new();
@@ -59,21 +64,28 @@ pub fn Login(props: &LoginProps) -> Html {
                         .send()
                         .await {
                             Ok(r) => {
-                                // TODO: Check if response is an error response or a successfull one
+                                match r.error_for_status_ref() {
+                                    Ok(_r) => {
+                                        let response = r.json::<LoginResponse>().await.unwrap();
 
-                                let response = r.json::<LoginResponse>().await.unwrap(); // Panic if error response
+                                        if let Some(win) = window() {
+                                            if let Ok(Some(store)) = win.local_storage() {
+                                                if let Ok(_item) = store.set_item("loginToken", &response.token) { }
+                                            }
+                                        }
+                                        
+                                        loading.set(false);
+                                        navigator.push(&Route::Home);
+                                    },
 
-                                if let Some(win) = window() {
-                                    if let Ok(Some(store)) = win.local_storage() {
-                                        if let Ok(_item) = store.set_item("loginToken", &response.token) { }
+                                    Err(_e) => {
+                                        loading.set(false);
                                     }
                                 }
-    
-                                navigator.push(&Route::Home);
                             },
     
-                            Err(e) => {
-                                console::log_1(&e.to_string().into());
+                            Err(_e) => {
+                                loading.set(false);
                             }
                     }
                 });
@@ -97,7 +109,7 @@ pub fn Login(props: &LoginProps) -> Html {
                     <FormInput id="email" label="E-mail" form_type="email" required={true} _ref={email_ref.clone()} />
                     <FormInput id="password" label="Mot de passe" form_type="password" required={true} _ref={password_ref.clone()} />
                     <div class="mx-auto"><FormInput id="remember" label="Se rappeler de moi" form_type="checkbox" required={false}/></div>
-                    <Button class="px-3 py-2 mx-auto mt-3 mb-4 hover:scale-110">{"Connexion"}</Button>
+                    <Button class={classes!("px-3", "py-2", "mx-auto", "mt-3", "mb-4", if *loading {"animate-pulse"} else {"hover:scale-110"})} disabled={*loading}>{"Connexion"}</Button>
                 </form>
                 <Button class="sm:text-xl text-lg px-3 py-2 mx-auto mt-3 mb-16 hover:scale-110" onclick={on_register_click}>{"Créer un compte"}</Button>
             </div>
