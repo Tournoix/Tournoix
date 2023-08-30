@@ -5,11 +5,12 @@ use dotenv_codegen::dotenv;
 use serde::{Serialize, Deserialize};
 
 use crate::components::notification::NotifType;
+use crate::components::user_provider::UserContext;
 use crate::routers::Route;
 use crate::components::{button::Button, form_input::FormInput};
 use crate::layouts::homelayout::HomeLayout;
 use crate::utils::utils::*;
-use web_sys::{window, HtmlInputElement};
+use web_sys::HtmlInputElement;
 
 #[derive(PartialEq, Properties)]
 pub struct LoginProps {}
@@ -33,6 +34,7 @@ pub fn Login(props: &LoginProps) -> Html {
     let email_ref = use_node_ref();
     let password_ref = use_node_ref();
     let loading = use_state(|| false);
+    let user_info = use_context::<UserContext>().expect("Missing UserInfo contect provider");
 
     let on_login_submit = {
         let navigator = navigator.clone();
@@ -55,10 +57,11 @@ pub fn Login(props: &LoginProps) -> Html {
             {
                 let navigator = navigator.clone();
                 let loading = loading.clone();
+                let user_info = user_info.clone();
 
                 spawn_local(async move {
                     let client = reqwest::Client::new();
-    
+
                     match client.post(format!("{}/{}", dotenv!("API_ENDPOINT"), "auth/login"))
                         .body(serde_json::to_string(&login_request).unwrap())
                         .send()
@@ -68,11 +71,7 @@ pub fn Login(props: &LoginProps) -> Html {
                                     Ok(_r) => {
                                         let response = r.json::<LoginResponse>().await.unwrap();
 
-                                        if let Some(win) = window() {
-                                            if let Ok(Some(store)) = win.local_storage() {
-                                                if let Ok(_item) = store.set_item("loginToken", &response.token) { }
-                                            }
-                                        }
+                                        user_info.login(&response.token);
                                         
                                         loading.set(false);
                                         add_delayed_notif("Connecté(e)", "Vous vous êtes connecté(e) avec succès à votre compte.", NotifType::Success);

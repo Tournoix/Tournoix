@@ -1,7 +1,8 @@
+use web_sys::console;
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::{routers::Route, layouts::homelayout::HomeLayout, components::button::Button};
+use crate::{routers::Route, layouts::homelayout::HomeLayout, components::{button::Button, user_provider::UserContext}};
 
 #[derive(PartialEq, Properties)]
 pub struct HomeProps {}
@@ -10,6 +11,11 @@ pub struct HomeProps {}
 pub fn Home(props: &HomeProps) -> Html {
     let HomeProps {} = props;
     let navigator = use_navigator().unwrap();
+    let user_info = use_context::<UserContext>().expect("Missing UserInfo contect provider");
+
+    if let Some(token) = user_info.token() {
+        console::log_1(&token.into());
+    }
     
     let onclick = Callback::from(move |_| navigator.push(&Route::Tournoix));
 

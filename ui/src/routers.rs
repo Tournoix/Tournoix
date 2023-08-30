@@ -1,7 +1,7 @@
 use yew_router::prelude::*;
 use yew::prelude::*;
 
-use crate::pages::{home::Home, tournoix::Tournoix, login::Login, register::Register, tournoix_edit::TournoixEdit, tournoix_view::TournoixView, tournoix_create::TournoixCreate};
+use crate::{pages::{home::Home, tournoix::Tournoix, login::Login, register::Register, tournoix_edit::TournoixEdit, tournoix_view::TournoixView, tournoix_create::TournoixCreate}, components::user_provider::UserContext};
 
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {
@@ -27,12 +27,31 @@ pub enum Route {
 pub fn router(routes: Route) -> Html {
     match routes {
         Route::Home => html! {<Home/> },
-        Route::Tournoix => html! {<Tournoix/>},
+        Route::Tournoix => html! {<LoggedRoute><Tournoix/></LoggedRoute>},
         Route::TournoixView { id } => html! {<TournoixView id={id} />},
         Route::TournoixEdit { id }=> html! {<TournoixEdit id={id} />},
         Route::TournoixCreate => html! {<TournoixCreate />},
         Route::Login => html! {<Login/>},
         Route::Register => html! {<Register/>},
         Route::NotFound => html! {<h1>{"404 Not Found"}</h1>}
+    }
+}
+
+#[derive(Clone, PartialEq, Properties)]
+pub struct LoggedRouteProps {
+    pub children: Children,
+}
+
+#[function_component]
+pub fn LoggedRoute(props: &LoggedRouteProps) -> Html {
+    let LoggedRouteProps { children } = props;
+    let user_info = use_context::<UserContext>().expect("Missing user context provider");
+
+    html ! {
+        if user_info.is_logged() {
+            {children.clone()}
+        } else {
+            <Redirect<Route> to={Route::Home} />
+        }
     }
 }

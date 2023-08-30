@@ -2,7 +2,7 @@ use yew::prelude::*;
 use yew_router::{BrowserRouter, Switch};
 use dotenv::dotenv;
 
-use crate::routers::{Route, router};
+use crate::{routers::{Route, router}, components::user_provider::UserProvider};
 
 mod pages;
 mod routers;
@@ -13,9 +13,11 @@ mod utils;
 #[function_component]
 fn App() -> Html {
     html! {
-        <BrowserRouter>
-            <Switch<Route> render={router} />
-        </BrowserRouter>
+        <UserProvider>
+            <BrowserRouter>
+                <Switch<Route> render={router} />
+            </BrowserRouter>
+        </UserProvider>
     }
 }
 
