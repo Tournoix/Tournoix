@@ -37,24 +37,29 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
     {
         let notifs = notifs.clone();
         use_effect(move || {
-            // WARNING Only work with a single notif for now
             if let Some(fetched_notifs) = consume_notifs() {
                 match fetched_notifs {
                     Ok(fetched_notifs) => {
-                        if let Some(title) = fetched_notifs.get("title") {
-                            if let Some(title) = title.as_str() {
-                                if let Some(content) = fetched_notifs.get("content") {
-                                    if let Some(content) = content.as_str() {
-                                        notifs.set(vec![Notif {
-                                            title: String::from(title),
-                                            content: String::from(content),
-                                        }]);
-                                        console::log_1(&format!("{}: {}", title, content).into());
-                                    }
+                        if let Some(fetched_notifs_array) = fetched_notifs.as_array() {
+                            let mut buf_notifs: Vec<Notif> = vec![];
+        
+                            for fetched_notif in fetched_notifs_array.iter() {
+                                if let (Some(title), Some(content)) = (
+                                    fetched_notif.get("title").and_then(|t| t.as_str()),
+                                    fetched_notif.get("content").and_then(|c| c.as_str()),
+                                ) {
+                                    buf_notifs.push(Notif {
+                                        title: title.to_string(),
+                                        content: content.to_string(),
+                                    });
                                 }
                             }
+        
+                            if !buf_notifs.is_empty() {
+                                notifs.set(buf_notifs);
+                            }
                         }
-                    },
+                    }
                     _ => {}
                 }
             }
@@ -83,7 +88,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
             // TODO logout
 
 
-            add_notif("Disconnected", "Sucessfully logged out of your account");
+            add_delayed_notif("Disconnected", "Sucessfully logged out of your account");
 
             if let Some(win) = window() {
                 if let Ok(Some(store)) = win.local_storage() {

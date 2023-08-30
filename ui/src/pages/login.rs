@@ -20,7 +20,7 @@ pub fn Login(props: &LoginProps) -> Html {
         Callback::from(move |_| {
             // TODO login
 
-            add_notif("Logged in", "Sucessfully logged in your account");
+            add_delayed_notif("Logged in", "Sucessfully logged in your account");
             
             if let Some(win) = window() {
                 if let Ok(Some(store)) = win.local_storage() {
