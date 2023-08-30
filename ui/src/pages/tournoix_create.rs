@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink}};
+use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::Teams}};
 use crate::routers::Route;
 
 #[derive(PartialEq, Properties)]
