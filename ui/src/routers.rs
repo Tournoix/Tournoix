@@ -28,9 +28,9 @@ pub fn router(routes: Route) -> Html {
     match routes {
         Route::Home => html! {<Home/> },
         Route::Tournoix => html! {<LoggedRoute><Tournoix/></LoggedRoute>},
-        Route::TournoixView { id } => html! {<TournoixView id={id} />},
-        Route::TournoixEdit { id }=> html! {<TournoixEdit id={id} />},
-        Route::TournoixCreate => html! {<TournoixCreate />},
+        Route::TournoixView { id } => html! {<LoggedRoute><TournoixView id={id} /></LoggedRoute>},
+        Route::TournoixEdit { id }=> html! {<LoggedRoute><TournoixEdit id={id} /></LoggedRoute>},
+        Route::TournoixCreate => html! {<LoggedRoute><TournoixCreate /></LoggedRoute>},
         Route::Login => html! {<Login/>},
         Route::Register => html! {<Register/>},
         Route::NotFound => html! {<h1>{"404 Not Found"}</h1>}
