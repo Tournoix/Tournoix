@@ -19,6 +19,8 @@ pub fn Backlink(props: &BacklinkProps) -> Html {
     };
 
     html! {
-        <a onclick={on_click} class="backlink">{"<< "}{label}</a>
+        <span class="w-full">
+            <a onclick={on_click} class="backlink">{"<< "}{label}</a>
+        </span>
     }
 }
