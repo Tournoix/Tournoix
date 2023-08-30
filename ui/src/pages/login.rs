@@ -21,7 +21,7 @@ pub fn Login(props: &LoginProps) -> Html {
         Callback::from(move |_| {
             // TODO login
 
-            add_delayed_notif("Logged in", "Sucessfully logged in your account", NotifType::Success);
+            add_delayed_notif("Connecté(e)", "Vous vous êtes connecté(e) avec succès à votre compte.", NotifType::Success);
             
             if let Some(win) = window() {
                 if let Ok(Some(store)) = win.local_storage() {

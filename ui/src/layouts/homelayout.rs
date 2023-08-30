@@ -95,7 +95,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
             // TODO logout
 
 
-            add_delayed_notif("Disconnected", "Sucessfully logged out of your account", NotifType::Success);
+            add_delayed_notif("Déconnecté(e)", "Vous vous êtes déconnecté(e) avec succès de votre compte.", NotifType::Success);
 
             if let Some(win) = window() {
                 if let Ok(Some(store)) = win.local_storage() {
