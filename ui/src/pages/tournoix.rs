@@ -1,7 +1,9 @@
 use yew::prelude::*;
+use yew_router::prelude::use_navigator;
 
 use crate::layouts::homelayout::HomeLayout;
 use crate::components::tournaments::Tournaments;
+use crate::routers::Route;
 
 #[derive(PartialEq, Properties)]
 pub struct TournoixProps {}
@@ -9,8 +11,12 @@ pub struct TournoixProps {}
 #[function_component]
 pub fn Tournoix(props: &TournoixProps) -> Html {
     let TournoixProps {} = props;
+    let navigator = use_navigator().unwrap();
 
-    let on_create_click = Callback::from(move |_| { });
+    let on_create_click = {
+        let navigator = navigator.clone();
+        Callback::from(move |_| navigator.push(&Route::TournoixCreate))
+    };
     let on_read_click = Callback::from(move |_| { });
     let on_edit_click = Callback::from(move |_| { });
     let on_delete_click = Callback::from(move |_| { });

@@ -32,6 +32,10 @@ p {
 	@apply text-base sm:text-lg;
 }
 
+hr {
+	@apply w-full drop-shadow my-8;
+}
+
 .discrete {
 	@apply text-base text-discrete;
 }
@@ -52,13 +56,27 @@ p {
 	@apply text-white text-lg flex justify-center mx-auto sm:w-9/12 w-11/12 h-full;
 }
 
+.backlink {
+	@apply w-full float-left underline text-nut cursor-pointer hover:duration-[200ms] duration-[400ms] hover:tracking-wide transition-all sm:text-lg text-base;
+}
+
 /* Tournaments */
 .tournament-card {
 	@apply flex justify-center content-center p-3 bg-nutLighter rounded drop-shadow-lg cursor-pointer hover:scale-110 hover:duration-[200ms] duration-[400ms] w-32 h-32 origin-bottom select-none leading-5;
+
+	.add-btn {
+		@apply h-1/2 mb-1 w-1/2 mx-auto rounded-full duration-[200ms];
+	}
+
+	&:hover {
+		.add-btn {
+			@apply bg-[#6fcf6f] transition-all duration-[400ms];
+		}
+	}
 }
 
 .tournament-btn-icon {
-	@apply h-8 p-1.5 basis-0 grow hover:duration-[200ms] duration-[400ms] rounded;
+	@apply h-8 p-1.5 basis-0 grow hover:duration-[200ms] duration-[400ms] rounded select-none;
 }
 
 .tournament-btn-list {
