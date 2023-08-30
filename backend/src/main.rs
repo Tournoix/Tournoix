@@ -7,7 +7,7 @@ extern crate diesel;
 use std::path::{Path, PathBuf};
 
 use dotenv::dotenv;
-use rocket::{fs::NamedFile, http::Status, response::status::NotFound, serde::json::Json};
+use rocket::{fs::NamedFile, response::status::NotFound, http::Status, serde::json::Json};
 use rocket_sync_db_pools::database;
 use routes::{users::get_user, auth::{login, logout, register}};
 use serde::Serialize;
