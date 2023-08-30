@@ -4,7 +4,6 @@ use rocket::serde::json::Json;
 use crate::MysqlConnection;
 use crate::models::subscription::{Subscription, NewSubscription};
 use crate::models::tournament::Tournament;
-use crate::schema::subscriptions::fk_tournaments;
 use crate::schema::{tournaments, subscriptions};
 
 
