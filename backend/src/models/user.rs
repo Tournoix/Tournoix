@@ -1,7 +1,7 @@
 use crate::schema::users;
 use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Queryable, Identifiable)]
+#[derive(Serialize, Deserialize, Queryable, Identifiable, Clone)]
 #[diesel(table_name = users)]
 pub struct User {
     pub id: i32,
@@ -18,7 +18,7 @@ pub struct UserInfo {
     pub email: String
 }
 
-#[derive(Serialize, Deserialize, Insertable)]
+#[derive(Serialize, Deserialize, Insertable, Clone)]
 #[diesel(table_name = users)]
 pub struct NewUser {
     pub name: String,

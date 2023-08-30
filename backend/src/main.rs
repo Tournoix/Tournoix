@@ -9,9 +9,9 @@ use std::path::{Path, PathBuf};
 use dotenv::dotenv;
 use rocket::{fs::NamedFile, response::status::NotFound, http::Status, serde::json::Json};
 use rocket_sync_db_pools::database;
+use routes::{users::get_user, auth::{login, logout, register}};
 use serde::Serialize;
 
-use crate::routes::users::get_user;
 use crate::routes::tournoix::*;
 use crate::routes::team::*;
 
@@ -37,7 +37,7 @@ fn rocket() -> _ {
     rocket::build()
         .attach(MysqlConnection::fairing())
         .mount("/", routes![index, static_file])
-        .mount("/api", routes![get_user, get_tournoix, create_tournoix, update_tournoix, delete_tournoix, get_teams, create_team, update_team, delete_team, api_hole])
+        .mount("/api", routes![get_user, get_tournoix, create_tournoix, update_tournoix, delete_tournoix, get_teams, create_team, update_team, delete_team, api_hole, login, logout, register])
 }
 
 async fn get_index() -> Result<NamedFile, NotFound<String>> {

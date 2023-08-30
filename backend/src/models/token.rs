@@ -12,7 +12,7 @@ pub struct Token {
     pub expiration_date: chrono::NaiveDateTime,
 }
 
-#[derive(Serialize, Deserialize, Insertable)]
+#[derive(Serialize, Deserialize, Insertable, Clone)]
 #[diesel(primary_key(token))]
 #[diesel(belongs_to(User))]
 #[diesel(table_name = tokens)]
