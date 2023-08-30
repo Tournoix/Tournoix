@@ -65,6 +65,19 @@ p {
 	@apply flex gap-4 w-full mt-2 justify-center;
 }
 
+/* Notifications */
+.notif-success {
+	@apply bg-green-600;
+}
+
+.notif-warning {
+	@apply bg-yellow-600;
+}
+
+.notif-error {
+	@apply bg-red-600;
+}
+
 /*CSS here is only used because it cannot be easily done in tailwind*/
 
 html, body {

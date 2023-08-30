@@ -1,5 +1,7 @@
 use web_sys::window;
 
+use crate::components::notification::NotifType;
+
 pub fn fetch_notifs() -> Option<Result<serde_json::Value, serde_json::Error>> {
     if let Some(win) = window() {
         if let Ok(Some(store)) = win.local_storage() {
@@ -31,8 +33,8 @@ pub fn consume_notifs() -> Option<Result<serde_json::Value, serde_json::Error>> 
     notifs
 }
 
-pub fn add_delayed_notif(title: &str, content: &str) -> bool {
-    let mut notif_string = format!("{{ \"title\": \"{}\", \"content\": \"{}\" }}", title, content);
+pub fn add_delayed_notif(title: &str, content: &str, notif_type: NotifType) -> bool {
+    let mut notif_string = format!("{{ \"title\": \"{}\", \"content\": \"{}\", \"type\": \"{}\" }}", title, content, notif_type.to_string());
 
     if let Some(win) = window() {
         if let Ok(Some(store)) = win.local_storage() {

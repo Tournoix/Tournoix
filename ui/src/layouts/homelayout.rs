@@ -1,11 +1,12 @@
+use std::str::FromStr;
+
 use yew::prelude::*;
 use yew_hooks::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::components::notification::Notif;
+use crate::components::notification::{Notif, NotifType};
 use crate::{components::button::Button, routers::Route, utils::utils::*};
 use web_sys::window;
-use web_sys::console;
 
 #[derive(PartialEq, Properties)]
 pub struct HomeLayoutProps {
@@ -44,13 +45,15 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                             let mut buf_notifs: Vec<Notif> = vec![];
         
                             for fetched_notif in fetched_notifs_array.iter() {
-                                if let (Some(title), Some(content)) = (
+                                if let (Some(title), Some(content), Some(type_notif)) = (
                                     fetched_notif.get("title").and_then(|t| t.as_str()),
                                     fetched_notif.get("content").and_then(|c| c.as_str()),
+                                    fetched_notif.get("type").and_then(|tt: &serde_json::Value| tt.as_str()),
                                 ) {
                                     buf_notifs.push(Notif {
                                         title: title.to_string(),
                                         content: content.to_string(),
+                                        type_notif: NotifType::from_str(type_notif).unwrap(),
                                     });
                                 }
                             }
@@ -88,7 +91,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
             // TODO logout
 
 
-            add_delayed_notif("Disconnected", "Sucessfully logged out of your account");
+            add_delayed_notif("Disconnected", "Sucessfully logged out of your account", NotifType::Success);
 
             if let Some(win) = window() {
                 if let Ok(Some(store)) = win.local_storage() {
@@ -129,7 +132,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                 <div id="notifs-container" class="pointer-events-none flex fixed bottom-0 left-0 right-0 sm:w-9/12 w-11/12 h-full z-50 ml-[12.5%] flex-col-reverse items-end pb-12">
                     {
                         notifs.iter().map(|notif| {
-                            html!{<div class="m-2 p-3 bg-green-600 text-white rounded drop-shadow-lg">
+                            html!{<div class={format!("m-2 p-3 text-white rounded drop-shadow-lg notif-{}", {&notif.type_notif})}>
                                 <h3>{&notif.title}</h3>
                                 {&notif.content}
                             </div>}

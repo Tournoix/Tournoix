@@ -1,6 +1,7 @@
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
 
+use crate::components::notification::NotifType;
 use crate::routers::Route;
 use crate::components::{button::Button, form_input::FormInput};
 use crate::layouts::homelayout::HomeLayout;
@@ -20,7 +21,7 @@ pub fn Login(props: &LoginProps) -> Html {
         Callback::from(move |_| {
             // TODO login
 
-            add_delayed_notif("Logged in", "Sucessfully logged in your account");
+            add_delayed_notif("Logged in", "Sucessfully logged in your account", NotifType::Success);
             
             if let Some(win) = window() {
                 if let Ok(Some(store)) = win.local_storage() {
