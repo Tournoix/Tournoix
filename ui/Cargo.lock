@@ -752,6 +752,7 @@ version = "0.1.0"
 dependencies = [
  "dotenv",
  "serde_json",
+ "wasm-bindgen",
  "web-sys",
  "yew",
  "yew-hooks",
