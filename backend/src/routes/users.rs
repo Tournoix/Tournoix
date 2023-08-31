@@ -51,7 +51,7 @@ pub async fn get_user(
     }
 }
 
-#[get("/@me")]
+#[get("/users/@me")]
 pub async fn get_current_user(auth: ApiAuth) -> Result<Json<UserInfo>, (Status, String)> {
     Ok(Json(auth.user))
 }
