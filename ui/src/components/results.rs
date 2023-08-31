@@ -9,8 +9,6 @@ pub fn Results(props: &ResultsProps) -> Html {
 
     html! {
         <div class="bg-green-200">
-            {"Results component"}
-            <div class="text-red-500">{"AFFICHER UNIQUEMENT SI TOUT LES MATCHS DE CE TOURNOIS SONT FERMÉS"}</div>
             <div class="flex">
                 <div class="m-4 p-4 bg-nutLight">
                     <h3>{"Classement des équipes"}</h3>

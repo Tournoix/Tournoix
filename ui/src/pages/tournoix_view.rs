@@ -30,10 +30,17 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                 <Backlink route={Route::Tournoix} label="Retour à la liste des tournoix"/>
                 <h1 class="mb-5">{"Affichage de tournoi"}</h1>
                 <h2>{"Id du tournoi : "}{ id }</h2>
-                <button class="bg-green-500 hover:bg-green-700 text-white font-bold p-2" onclick={on_click_edit}>{"MODIFIER CE TOURNOI (bouton affiché uniquement si on a les droits)"}</button>
-                <button class="bg-green-500 hover:bg-green-700 text-white font-bold p-2" onclick={on_click_match}>{"AFFICHER UN MATCH DE TEST"}</button>
+                <button class="m-3 bg-green-500 hover:bg-green-700 text-white font-bold p-2" onclick={on_click_edit}>{"MODIFIER CE TOURNOI (bouton affiché uniquement si on a les droits)"}</button>
+                <button class="m-3 bg-green-500 hover:bg-green-700 text-white font-bold p-2" onclick={on_click_match}>{"AFFICHER UN MATCH DE TEST"}</button>
+                <hr/>
+                <h2>{"Phase de qualifications"}</h2>
                 <QualificationPhase/>
+                <hr/>
+                <h2>{"Phase d'éliminations"}</h2>
                 <EliminationPhase/>
+                <hr/>
+                <h2>{"Résultats"}</h2>
+                <div class="text-red-500">{"AFFICHER UNIQUEMENT SI TOUT LES MATCHS DE CE TOURNOIS SONT TERMINÉS"}</div>
                 <Results/>
             </div>
         </HomeLayout>

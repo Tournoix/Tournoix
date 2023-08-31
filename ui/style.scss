@@ -83,6 +83,33 @@ hr {
 	@apply flex gap-4 w-full mt-2 justify-center;
 }
 
+/* Groups */
+.group-item {
+	@apply basis-[9rem] bg-nutLighter rounded p-3;
+
+	.add-btn {
+		@apply h-1/2 mb-1 w-1/2 mx-auto rounded-full duration-[200ms];
+	}
+
+	&:hover {
+		.add-btn {
+			@apply bg-[#6fcf6f] transition-all duration-[400ms];
+		}
+	}
+}
+
+.group-selectable {
+	@apply cursor-pointer hover:scale-[105%] hover:duration-[200ms] duration-[400ms] select-none;
+}
+
+.group-btn-icon {
+	@apply h-5 p-0.5 basis-0 grow hover:duration-[200ms] duration-[400ms] rounded select-none;
+}
+
+.group-btn-list {
+	@apply flex gap-2 w-full justify-center p-1 bg-white rounded-b;
+}
+
 /* Teams */
 .team-item {
 	@apply basis-[9rem];
