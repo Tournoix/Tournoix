@@ -2,8 +2,10 @@ use diesel::prelude::*;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use crate::MysqlConnection;
+use crate::models::token::{Token, self};
 use crate::models::tournament::{Tournament, NewTournament, PatchTournament};
 use crate::routes::auth::NetworkResponse;
+use crate::schema::tokens;
 use crate::schema::tournaments::{self, fk_users};
 use crate::routes::auth::JWT;
 
@@ -127,7 +129,23 @@ pub async fn get_tournoix_by_organizer(
 ) -> Result<Json<Vec<Tournament>>, NetworkResponse> {
     // Check key validity and get user id
     let id = match key {
-        Ok(key) => key.claims.id,
+        Ok(key) => {
+            match connection.run(
+                move |c| tokens::table.filter(tokens::token.eq(&key.claims.jti)).filter(tokens::fk_users.eq(&key.claims.id)).first::<Token>(c)
+            ).await {
+                Ok(token) => {
+                    // Check if token is expired
+                    println!("{:?}", token.expiration_date);
+                    println!("{:?}", chrono::Local::now().naive_local());
+
+                    if token.expiration_date < chrono::Local::now().naive_local() {
+                        return Err(NetworkResponse::Unauthorized(("Token expired".to_string())))
+                    }
+                    token.fk_users
+                },
+                Err(e) => return Err(NetworkResponse::Unauthorized(("Invalid token".to_string())))
+            }
+        },
         Err(e) => return Err(e),
     };
 

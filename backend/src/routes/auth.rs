@@ -10,7 +10,7 @@ use crate::{
         users::{self, email, password},
     },
 };
-use chrono::{Duration, Utc};
+use chrono::{Duration, Local};
 use diesel::{insert_into, prelude::*, connection};
 use jsonwebtoken::{
     decode, encode,
@@ -23,6 +23,7 @@ use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
 use rocket::Responder;
 use rocket::request::{Outcome, Request, FromRequest};
+use uuid::timestamp;
 
 
 #[derive(Responder, Debug)]
@@ -55,7 +56,7 @@ pub struct Response {
 pub struct Claims {
     pub id: i32,
     pub jti: String,
-    exp: usize,
+    pub exp: usize,
 }
 
 #[derive(Debug)]
@@ -108,8 +109,8 @@ pub struct LoginResponse {
 pub fn create_jwt(id: i32) -> Result<String, Error> {
     let secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set.");
 
-    let expiration = Utc::now()
-        .checked_add_signed(Duration::hours(6))
+    let expiration = Local::now()
+        .checked_add_signed(Duration::hours(3))
         .expect("Invalid timestamp")
         .timestamp();
 
