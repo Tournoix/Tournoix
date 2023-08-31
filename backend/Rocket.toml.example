@@ -1,2 +1,2 @@
 [global.databases.tournoix_db]
-url = "mysql://user:password@127.0.0.1:3306/db"
+url = "mysql://tournoix_user:sample_password@127.0.0.1:3306/tournoix_db"
