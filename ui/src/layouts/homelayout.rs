@@ -1,11 +1,10 @@
-use std::str::FromStr;
-
 use yew::prelude::*;
+use yew_hooks::prelude::*;
 use yew_router::prelude::use_navigator;
 
 use crate::components::notification::{Notif, NotifType, Notification};
-use crate::components::user_provider::UserContext;
 use crate::{components::button::Button, routers::Route, utils::utils::*};
+use web_sys::window;
 
 #[derive(PartialEq, Properties)]
 pub struct HomeLayoutProps {
@@ -16,41 +15,44 @@ pub struct HomeLayoutProps {
 pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
     let HomeLayoutProps { children } = props;
     let navigator = use_navigator().unwrap();
+    let is_logged = use_state(|| false);
     let notifs: UseStateHandle<Vec<Notif>> = use_state(|| Vec::new());
-    let user_info = use_context::<UserContext>().expect("Missing UserInfo contect provider");
+
+    {
+        let is_logged = is_logged.clone();
+        use_effect_once(move || {
+            if let Some(win) = window() {
+                if let Ok(Some(store)) = win.local_storage() {
+                    if let Ok(Some(_item)) = store.get_item("loginToken") {
+                        is_logged.set(true);
+                    }
+                }
+            }
+
+            || {}
+        });
+    }
 
     {
         let notifs = notifs.clone();
         use_effect(move || {
             if let Some(fetched_notifs) = consume_notifs() {
-                match fetched_notifs {
-                    Ok(fetched_notifs) => {
-                        if let Some(fetched_notifs_array) = fetched_notifs.as_array() {
-                            let mut buf_notifs: Vec<Notif> = vec![];
-                            let mut curr_id = 0;
-        
-                            for fetched_notif in fetched_notifs_array.iter() {
-                                if let (Some(title), Some(content), Some(type_notif)) = (
-                                    fetched_notif.get("title").and_then(|t| t.as_str()),
-                                    fetched_notif.get("content").and_then(|c| c.as_str()),
-                                    fetched_notif.get("type").and_then(|tt: &serde_json::Value| tt.as_str()),
-                                ) {
-                                    buf_notifs.push(Notif {
-                                        id: curr_id,
-                                        title: title.to_string(),
-                                        content: content.to_string(),
-                                        type_notif: NotifType::from_str(type_notif).unwrap(),
-                                    });
-                                    curr_id += 1;
-                                }
-                            }
-        
-                            if !buf_notifs.is_empty() {
-                                notifs.set(buf_notifs);
-                            }
-                        }
-                    }
-                    _ => {}
+
+                let mut buf_notifs: Vec<Notif> = vec![];
+                let mut curr_id = 0;
+
+                for fetched_notif in fetched_notifs.iter() {
+                    buf_notifs.push(Notif {
+                        id: curr_id,
+                        title: fetched_notif.title.to_string(),
+                        content: fetched_notif.content.to_string(),
+                        type_notif: fetched_notif.type_notif,
+                    });
+                    curr_id += 1;
+                }
+    
+                if !buf_notifs.is_empty() {
+                    notifs.set(buf_notifs);
                 }
             }
         });
@@ -73,15 +75,20 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
 
     let on_logout_click = {
         let navigator = navigator.clone();
-        let user_info = user_info.clone();
-
+        let is_logged = is_logged.clone();
         Callback::from(move |_| {
             // TODO logout
 
 
             add_delayed_notif("Déconnecté(e)", "Vous vous êtes déconnecté(e) avec succès de votre compte.", NotifType::Success);
 
-            user_info.logout();
+            if let Some(win) = window() {
+                if let Ok(Some(store)) = win.local_storage() {
+                    if let Ok(_item) = store.remove_item("loginToken") {
+                        is_logged.set(false);
+                    }
+                }
+            }
 
             navigator.push(&Route::Home)
         })
@@ -97,7 +104,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                             <h1 class="sm:text-5xl text-3xl text-white">{"Tournoix"}</h1>
                         </div>
                     </a>
-                    if user_info.is_logged() {
+                    if *is_logged {
                         <div class="ml-auto my-auto flex">
                             <Button class="sm:px-4 px-2 py-1 hover:scale-110 sm:text-base text-sm mr-6" onclick={on_tournoix_click}>{"Liste des tournoix"}</Button>
                             <Button class="sm:px-4 px-2 py-1 origin-right hover:scale-110 sm:text-base text-sm" onclick={on_logout_click}>{"Déconnexion"}</Button>
