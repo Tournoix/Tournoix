@@ -50,7 +50,7 @@ pub fn Teams(props: &TeamsProps) -> Html {
     html! {
         <div class="flex flex-col items-center bg-nutLighter p-3">
             <h3>{"Equipes"}</h3>
-            <ul class="flex flex-wrap gap-3">
+            <ul class="flex flex-wrap gap-3 justify-center items-center">
                 <li class="team-item team-selectable">
                     {if let Some(on_create) = on_create {
                         html! { <div class="team-name rounded text-center" onclick={on_create}>
