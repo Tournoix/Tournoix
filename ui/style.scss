@@ -137,6 +137,9 @@ html, body {
 	li + li {
 		margin-top: -4px;
 	}
+	a {
+		@apply underline hover:duration-[200ms] duration-[400ms] hover:tracking-wider transition-all;
+	}
 }
 
 .wavy {
