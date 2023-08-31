@@ -1,7 +1,7 @@
 use yew_router::prelude::*;
 use yew::prelude::*;
 
-use crate::{pages::{home::Home, tournoix::Tournoix, login::Login, register::Register, tournoix_edit::TournoixEdit, tournoix_view::TournoixView, tournoix_create::TournoixCreate}, components::user_provider::UserContext};
+use crate::{pages::{home::Home, tournoix::Tournoix, login::Login, register::Register, tournoix_edit::TournoixEdit, tournoix_view::TournoixView, tournoix_create::TournoixCreate, games_view::BetView}, components::user_provider::UserContext};
 
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {
@@ -15,6 +15,8 @@ pub enum Route {
     TournoixEdit { id: i32 },
     #[at("/tournoix/:id")]
     TournoixView { id: i32 },
+    #[at("/tournoix/bet/:id")]
+    BetView { id: i32 },
     #[at("/login")]
     Login,
     #[at("/register")]
@@ -31,6 +33,7 @@ pub fn router(routes: Route) -> Html {
         Route::TournoixView { id } => html! {<LoggedRoute><TournoixView id={id} /></LoggedRoute>},
         Route::TournoixEdit { id }=> html! {<LoggedRoute><TournoixEdit id={id} /></LoggedRoute>},
         Route::TournoixCreate => html! {<LoggedRoute><TournoixCreate /></LoggedRoute>},
+        Route::BetView { id }=> html! {<LoggedRoute><BetView id={id} /></LoggedRoute>},
         Route::Login => html! {<Login/>},
         Route::Register => html! {<Register/>},
         Route::NotFound => html! {<h1>{"404 Not Found"}</h1>}

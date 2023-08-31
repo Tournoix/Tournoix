@@ -5,3 +5,8 @@ pub mod backlink;
 pub mod notification;
 pub mod user_provider;
 pub mod teams;
+pub mod team_bet;
+pub mod results;
+pub mod eliminationPhase;
+pub mod qualificationPhase;
+pub mod groups;

@@ -1,8 +1,8 @@
 use wasm_bindgen::JsCast;
-use web_sys::{console, window, HtmlInputElement};
+use web_sys::{window, HtmlInputElement};
 use yew::prelude::*;
 
-use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team, self}}};
+use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team}}};
 use crate::routers::Route;
 
 #[derive(PartialEq, Properties)]
@@ -98,7 +98,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                 }
             }
 
-            if !gloo_dialogs::confirm(format!("Êtes vous sur de vouloir supprimer l'équipe \"{}\" ?", name).as_str()) {
+            if !gloo_dialogs::confirm(format!("Êtes-vous sûr de vouloir supprimer l'équipe \"{}\" ?", name).as_str()) {
                 return;
             }
             
