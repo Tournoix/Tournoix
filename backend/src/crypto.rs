@@ -76,7 +76,7 @@ pub fn verify_password(hash: &str, password: &str) -> bool {
 }
 
 // Generate uuid (Use as a temp user id alias i.e.)
-pub fn generate_uuid() -> String {
+pub fn generate_token() -> String {
     // Generate uuid
     let token = Uuid::new_v4().to_string();
 

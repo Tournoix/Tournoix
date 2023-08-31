@@ -2,12 +2,8 @@ use diesel::prelude::*;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use crate::MysqlConnection;
-use crate::models::token::{Token, self};
 use crate::models::tournament::{Tournament, NewTournament, PatchTournament};
-use crate::routes::auth::NetworkResponse;
-use crate::schema::tokens;
-use crate::schema::tournaments::{self, fk_users};
-use crate::routes::auth::JWT;
+use crate::schema::tournaments;
 
 
 #[get("/tournoix/<id>")]
@@ -121,6 +117,7 @@ pub async fn delete_tournoix(
     }
 }
 
+/*
 // Get all tournaments for a user (organizer) (GET /tournoix-by-organizer)
 #[get("/tournoix-by-organizer")]
 pub async fn get_tournoix_by_organizer(
@@ -161,3 +158,4 @@ pub async fn get_tournoix_by_organizer(
         }
     }
 }
+*/
