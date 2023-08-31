@@ -3,7 +3,10 @@ use rocket::http::Status;
 use rocket::serde::json::Json;
 use crate::MysqlConnection;
 use crate::models::tournament::{Tournament, NewTournament, PatchTournament};
-use crate::schema::tournaments;
+use crate::routes::auth::NetworkResponse;
+use crate::schema::tournaments::{self, fk_users};
+use crate::routes::auth::JWT;
+
 
 #[get("/tournoix/<id>")]
 pub async fn get_tournoix(
@@ -112,6 +115,31 @@ pub async fn delete_tournoix(
                 Status::InternalServerError,
                 "Internel Server Error".to_string()
             ))
+        }
+    }
+}
+
+// Get all tournaments for a user (organizer) (GET /tournoix-by-organizer)
+#[get("/tournoix-by-organizer")]
+pub async fn get_tournoix_by_organizer(
+    connection: MysqlConnection,
+    key: Result<JWT, NetworkResponse>
+) -> Result<Json<Vec<Tournament>>, NetworkResponse> {
+    // Check key validity and get user id
+    let id = match key {
+        Ok(key) => key.claims.id,
+        Err(e) => return Err(e),
+    };
+
+    match connection.run(
+        move |c| tournaments::table.filter(tournaments::fk_users.eq(id)).get_results::<Tournament>(c)
+    ).await.map(Json) {
+        Ok(tournoix) => {
+           return Ok(tournoix)
+        },
+
+        Err(_e) => {
+            return Err(NetworkResponse::NotFound("No tournament found".to_string()))
         }
     }
 }

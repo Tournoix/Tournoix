@@ -37,7 +37,8 @@ fn rocket() -> _ {
     rocket::build()
         .attach(MysqlConnection::fairing())
         .mount("/", routes![index, static_file])
-        .mount("/api", routes![get_user, get_tournoix, create_tournoix, update_tournoix, delete_tournoix, get_teams, create_team, update_team, delete_team, api_hole, login, logout, register])
+        .mount("/api", routes![get_user, get_tournoix, create_tournoix, update_tournoix, delete_tournoix, get_teams, create_team, update_team, delete_team, api_hole, login, logout, register,
+        get_tournoix_by_organizer])
 }
 
 async fn get_index() -> Result<NamedFile, NotFound<String>> {
