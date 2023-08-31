@@ -66,7 +66,7 @@ pub fn Notification(props: &NotificationProps) -> Html {
     };
 
     html! {
-        <div onclick={on_click} class={format!("m-2 p-3 text-white rounded drop-shadow-lg cursor-pointer pointer-events-auto notif-{}", {&notif.type_notif})}>
+        <div onclick={on_click} class={format!("m-2 p-3 text-white rounded drop-shadow-lg cursor-pointer pointer-events-auto notif-{}", {(&notif.type_notif).to_string().to_lowercase().as_str()})}>
             <h3>{&notif.title}</h3>
             {&notif.content}
         </div>
