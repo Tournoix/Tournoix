@@ -5,3 +5,6 @@ pub mod backlink;
 pub mod notification;
 pub mod user_provider;
 pub mod teams;
+pub mod bracket;
+pub mod bracket_match;
+pub mod bracket_round;

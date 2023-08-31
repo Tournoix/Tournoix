@@ -1,8 +1,8 @@
 use wasm_bindgen::JsCast;
-use web_sys::{console, window, HtmlInputElement};
+use web_sys::{window, HtmlInputElement};
 use yew::prelude::*;
 
-use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team, self}}};
+use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team}, bracket::Bracket}};
 use crate::routers::Route;
 
 #[derive(PartialEq, Properties)]
@@ -69,7 +69,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
     };
     let on_delete_team_click = Callback::from(move |_| { });
     let on_create_click = Callback::from(move |_| { });
-    
+
     html! {
         <HomeLayout>
             <div class="flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto relative">
@@ -100,6 +100,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                     <h2>{"Phase de qualifications"}</h2>
                     <hr/>
                     <h2>{"Phase d'éliminations"}</h2>
+                    <Bracket nb_teams={16} />
                     <hr/>
                     <Button class="sm:text-xl text-lg px-3 py-2 mx-auto mt-3 mb-16 hover:scale-110 bg-green-700" onclick={on_create_click}>{"Créer un tournoi"}</Button>
                 </form>

@@ -31,4 +31,15 @@ module.exports = {
     },
   },
   plugins: [],
+  safelist: [
+    {
+      pattern: /grid-cols-+/
+    },
+    {
+      pattern: /grid-rows-+/
+    },
+    {
+      pattern: /py-.+/
+    }
+  ]
 }
