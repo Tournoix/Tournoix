@@ -19,4 +19,3 @@ pub struct NewSubscription {
     pub fk_users: i32,
     pub fk_tournaments: i32,
 }
-

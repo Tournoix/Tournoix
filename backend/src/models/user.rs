@@ -7,7 +7,7 @@ pub struct User {
     pub id: i32,
     pub name: String,
     pub email: String,
-    pub password: String
+    pub password: String,
 }
 
 #[derive(Serialize, Deserialize, Queryable, Identifiable)]
@@ -15,7 +15,7 @@ pub struct User {
 pub struct UserInfo {
     pub id: i32,
     pub name: String,
-    pub email: String
+    pub email: String,
 }
 
 #[derive(Serialize, Deserialize, Insertable, Clone)]
@@ -23,5 +23,5 @@ pub struct UserInfo {
 pub struct NewUser {
     pub name: String,
     pub email: String,
-    pub password: String
+    pub password: String,
 }
