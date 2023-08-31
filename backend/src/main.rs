@@ -9,12 +9,13 @@ use std::path::{Path, PathBuf};
 use dotenv::dotenv;
 use rocket::{fs::NamedFile, response::status::NotFound, http::{Status, Header}, serde::json::Json, fairing::{Fairing, Info, Kind}, Request, Response};
 use rocket_sync_db_pools::database;
-use routes::{auth::*, tournoix::*, team::*, game::get_team_game};
+use routes::{auth::*, tournoix::*, team::*, game::get_team_game, nut::update_nut};
 use serde::Serialize;
 
 use crate::routes::users::get_user;
 use crate::routes::subscription::*;
 use crate::routes::game::*;
+use crate::routes::nut::*;
 
 mod routes;
 mod tests;
@@ -67,7 +68,8 @@ fn rocket() -> _ {
             get_user_tournoix, get_user_subscription, create_subsciption, delete_subscription,
             api_hole,
             login, logout, register,
-            get_tournoix_game, get_team_game, create_games, update_game])
+            get_tournoix_game, get_team_game, create_games, update_game,
+            get_nut, update_nut])
 }
 
 async fn get_index() -> Result<NamedFile, NotFound<String>> {

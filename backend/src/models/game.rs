@@ -30,7 +30,7 @@ pub struct NewGame {
 #[diesel(belongs_to(Team))]
 #[diesel(table_name = games)]
 pub struct PatchGame {
-    pub fk_team1: i32,
-    pub fk_team2: i32,
-    pub place: i32,
+    pub fk_team1: Option<i32>,
+    pub fk_team2: Option<i32>,
+    pub place: Option<i32>,
 }
