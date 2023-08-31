@@ -4,3 +4,4 @@ pub mod tournaments;
 pub mod backlink;
 pub mod notification;
 pub mod user_provider;
+pub mod teams;

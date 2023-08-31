@@ -83,6 +83,33 @@ hr {
 	@apply flex gap-4 w-full mt-2 justify-center;
 }
 
+/* Teams */
+.team-selectable {
+	@apply cursor-pointer hover:scale-[105%] hover:duration-[200ms] duration-[400ms] select-none;
+}
+
+.team-btn-icon {
+	@apply h-5 p-0.5 basis-0 grow hover:duration-[200ms] duration-[400ms] rounded select-none;
+}
+
+.team-btn-list {
+	@apply flex gap-2 w-full justify-center p-1 bg-white rounded-b;
+}
+
+.team-name {
+	@apply w-full p-2 bg-nutLight;
+
+	.add-btn {
+		@apply h-1/3 mb-1 w-1/3 mx-auto rounded-full duration-[200ms];
+	}
+
+	&:hover {
+		.add-btn {
+			@apply bg-[#6fcf6f] transition-all duration-[400ms];
+		}
+	}
+}
+
 /* Notifications */
 .notif-success {
 	@apply bg-green-600;

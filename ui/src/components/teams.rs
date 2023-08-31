@@ -1,0 +1,77 @@
+use yew::prelude::*;
+
+#[derive(PartialEq, Clone)]
+pub struct Team {
+    pub id: i32,
+    pub is_being_edited: bool,
+    pub name: String,
+}
+
+#[derive(PartialEq, Properties)]
+pub struct TeamsProps {
+    pub on_create: Option<Callback<MouseEvent>>,
+    pub on_edit: Option<Callback<i32>>,
+    pub on_delete: Option<Callback<MouseEvent>>,
+}
+
+#[function_component]
+pub fn Teams(props: &TeamsProps) -> Html {
+    let TeamsProps { on_create, on_edit, on_delete } = props;
+
+    let teams = use_context::<UseStateHandle<Vec<Team>>>().expect("Missing teams provider");
+
+    let on_edit_click = |id: i32| {
+        if let Some(on_edit) = on_edit {
+            let on_edit = on_edit.clone();
+
+            Callback::from(move |_| {
+                on_edit.emit(id);
+                ()
+            })
+        } else {
+            Callback::noop()
+        }
+    };
+
+    html! {
+        <div class="flex flex-col items-center bg-nutLighter p-3">
+            <h3>{"Equipes"}</h3>
+            <ul class="flex gap-3">
+                <li class="team-selectable">
+                    {if let Some(_on_create) = on_create {
+                        html! { <div class="team-name rounded text-center" onclick={_on_create}>
+                            <img src="/img/plus.svg" class="add-btn"/>
+                            {"Créer une équipe"}
+                        </div>}
+                    } else { html! {}}}
+                </li>
+                {
+                    teams.iter().map(|team| {
+                        html!{<li>
+                            <div class={format!("team-name {}", if let Some(_on_edit) = on_edit { "rounded-t" } else { "rounded" })}>
+                                <input id={format!("input-team-{}", team.id)} class={format!("w-full text-center {}", if team.is_being_edited { "bg-yellow-200" } else { "bg-transparent" })} disabled={!team.is_being_edited} type="text" value={team.name.clone()}/>
+                            </div>
+                            if let Some(_on_edit) = on_edit {
+                                <div class="team-btn-list">
+                                    // Edit
+                                    {if let Some(_on_edit) = on_edit {
+                                        html! { <a onclick={on_edit_click(team.id)}>
+                                            <img src={if team.is_being_edited { "/img/checkmark.svg" } else { "/img/pencil.svg" }} class={format!("team-btn-icon cursor-pointer hover:scale-110 {}", {if team.is_being_edited { "hover:bg-green-400" } else { "hover:bg-orange-400" }})}/>
+                                        </a> }
+                                    } else { html! {}}}
+        
+                                    // Delete
+                                    {if let Some(_on_delete) = on_delete {
+                                        html! { <a onclick={_on_delete}>
+                                            <img src="/img/trash.svg" class="team-btn-icon hover:bg-red-400 cursor-pointer hover:scale-110"/>
+                                        </a> }
+                                    } else { html! {}}}
+                                </div>
+                            }
+                        </li>}
+                    }).collect::<Html>()
+                }
+            </ul>
+        </div>
+    }
+}
