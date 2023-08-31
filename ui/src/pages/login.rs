@@ -108,7 +108,6 @@ pub fn Login(props: &LoginProps) -> Html {
                 <form class="flex flex-col sm:text-xl text-lg" id="login-form" onsubmit={on_login_submit}>
                     <FormInput id="email" label="E-mail" form_type="email" required={true} _ref={email_ref.clone()} />
                     <FormInput id="password" label="Mot de passe" form_type="password" required={true} _ref={password_ref.clone()} />
-                    <div class="mx-auto"><FormInput id="remember" label="Se rappeler de moi" form_type="checkbox" required={false}/></div>
                     <Button class={classes!("px-3", "py-2", "mx-auto", "mt-3", "mb-4", if *loading {"animate-pulse"} else {"hover:scale-110"})} disabled={*loading}>{"Connexion"}</Button>
                 </form>
                 <Button class="sm:text-xl text-lg px-3 py-2 mx-auto mt-3 mb-16 hover:scale-110" onclick={on_register_click}>{"Créer un compte"}</Button>
