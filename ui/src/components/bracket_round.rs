@@ -2,24 +2,28 @@ use yew::prelude::*;
 
 use crate::components::bracket_match::BracketMatch;
 
+use super::bracket::Match;
+
 #[derive(PartialEq, Properties)]
 pub struct BracketRoundProps {
-    pub nb_match: usize,
+    pub matches: Vec<Match>,
     pub round_id: u32
 }
 
 #[function_component]
 pub fn BracketRound(props: &BracketRoundProps) -> Html {
-    let BracketRoundProps {nb_match, round_id} = props;
+    let BracketRoundProps {matches, round_id} = props;
     let round_title = format!("Round {}", round_id+1);
+    let mut match_id = 0;
 
     html! {
         <ul class={" round"}>
-            {(0..nb_match.clone()).map(|i| {
+            {matches.iter().map(|game| {
+                match_id += 1;
                 html!(
                     <>
                         <li class={"spacer"}>
-                            {if i == 0 {
+                            {if match_id == 1 {
                                 html!(
                                     <div class={"bg-nutLight text-center border"}>{&round_title}</div>
                                 )
@@ -28,7 +32,7 @@ pub fn BracketRound(props: &BracketRoundProps) -> Html {
                             }}
                             {"\u{00a0}"}
                         </li>
-                        <BracketMatch />
+                        <BracketMatch game={game.clone()} />
                     </>
                 )
             }).collect::<Html>()}

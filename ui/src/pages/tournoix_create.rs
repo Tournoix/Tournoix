@@ -2,7 +2,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{window, HtmlInputElement};
 use yew::prelude::*;
 
-use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team}, bracket::Bracket}};
+use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team}, bracket::{Bracket, Match, BracketTeams}}};
 use crate::routers::Route;
 
 #[derive(PartialEq, Properties)]
@@ -20,7 +20,8 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
         Team { id: 3, is_being_edited: false, name: "NRG Esports".to_string() },
         Team { id: 4, is_being_edited: false, name: "G2 Esports".to_string() },
         Team { id: 5, is_being_edited: false, name: "fnatic".to_string() },
-        Team { id: 6, is_being_edited: false, name: "Team with a comically long name".to_string() }
+        Team { id: 6, is_being_edited: false, name: "Team with a comically long name".to_string() },
+        Team { id: 7, is_being_edited: false, name: "Team 42".to_string() }
     ]);
 
     let on_create_team_click = Callback::from(move |_| { });
@@ -70,6 +71,38 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
     let on_delete_team_click = Callback::from(move |_| { });
     let on_create_click = Callback::from(move |_| { });
 
+    // Generate bracket
+    let mut bracket_teams: BracketTeams = vec![];
+
+    if teams.len() >= 2 && (teams.len() & (teams.len()-1)) == 0 {
+        let nb_rounds = (teams.len() as f32).log2() as u32;
+
+        bracket_teams.push((0..teams.len()).step_by(2).map(|i| {
+            Match {
+                team1: teams[i].name.clone(),
+                score1: 0,
+                team2: teams[i+1].name.clone(),
+                score2: 0,
+                started: false,
+                finished: false
+            }
+        }).collect::<Vec<Match>>());
+
+        let mut nb_match = teams.len() / 4;
+        for _i in 1..nb_rounds {
+            bracket_teams.push((0..nb_match).map(|_| Match {
+                team1: "TBA".to_string(),
+                score1: 0,
+                team2: "TBA".to_string(),
+                score2: 0,
+                started: false,
+                finished: false
+            }).collect::<Vec<Match>>());
+
+            nb_match /= 2;
+        }
+    }
+
     html! {
         <HomeLayout>
             <div class="flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto relative">
@@ -100,7 +133,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                     <h2>{"Phase de qualifications"}</h2>
                     <hr/>
                     <h2>{"Phase d'éliminations"}</h2>
-                    <Bracket nb_teams={16} />
+                    <Bracket teams={bracket_teams} />
                     <hr/>
                     <Button class="sm:text-xl text-lg px-3 py-2 mx-auto mt-3 mb-16 hover:scale-110 bg-green-700" onclick={on_create_click}>{"Créer un tournoi"}</Button>
                 </form>
