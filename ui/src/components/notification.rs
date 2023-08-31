@@ -2,7 +2,7 @@ use std::{fmt, str::FromStr};
 
 use yew::prelude::*;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum NotifType {
     Success,
     Warning,
@@ -11,9 +11,9 @@ pub enum NotifType {
 impl fmt::Display for NotifType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            NotifType::Success => write!(f, "success"),
-            NotifType::Warning => write!(f, "warning"),
-            NotifType::Error => write!(f, "error"),
+            NotifType::Success => write!(f, "Success"),
+            NotifType::Warning => write!(f, "Warning"),
+            NotifType::Error => write!(f, "Error"),
         }
     }
 }
@@ -30,7 +30,7 @@ impl FromStr for NotifType {
     }
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Notif {
     pub id: i32,
     pub title: String,

@@ -24,5 +24,7 @@ fn App() -> Html {
 fn main() {
     dotenv().ok();
 
+    console_log::init_with_level(log::Level::Debug);
+
     yew::Renderer::<App>::new().render();
 }

@@ -111,15 +111,16 @@ hr {
 }
 
 /* Notifications */
-.notif-success {
+// ! Case is important here !
+.notif-Success {
 	@apply bg-green-600;
 }
 
-.notif-warning {
+.notif-Warning {
 	@apply bg-yellow-600;
 }
 
-.notif-error {
+.notif-Error {
 	@apply bg-red-600;
 }
 
