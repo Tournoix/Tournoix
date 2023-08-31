@@ -2,9 +2,10 @@ use diesel::prelude::*;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use crate::MysqlConnection;
+use crate::models::nut::{NewNut, Nut};
 use crate::models::subscription::{Subscription, NewSubscription};
 use crate::models::tournament::Tournament;
-use crate::schema::{tournaments, subscriptions};
+use crate::schema::{tournaments, subscriptions, nuts};
 
 
 #[get("/users/<id>/tournoix")]
@@ -79,6 +80,28 @@ pub async fn create_subsciption(
         fk_tournaments: tournament.id,
     };
 
+    // verify if the user allready have nut for this tournament
+    match connection.run(
+        move |c| nuts::table.filter(nuts::fk_users.eq(id)).filter(nuts::fk_tournaments.eq(tournament.id)).first::<Nut>(c)
+    ).await {
+        Ok(_) => return Err((Status::NotFound, "You allready have a nut for this tournament".to_string())),
+        Err(_) => {
+            // add the nuts to the user
+            let nut = NewNut {
+                fk_users: id,
+                fk_tournaments: tournament.id,
+                stock: 20,
+            };
+
+            match connection.run(
+                move |c| diesel::insert_into(nuts::table).values(nut).execute(c)
+            ).await {
+                Ok(_) => (),
+                Err(_) => return Err((Status::InternalServerError, "Internel Server Error".to_string()))
+            }
+        }
+    };
+
     // insert the subscription in the database
     match connection.run(
         move |c| c.transaction(|c| {
@@ -100,6 +123,7 @@ pub async fn create_subsciption(
                 Status::InternalServerError,
                 "Internel Server Error".to_string()
             ))
+
         }
     }
 }
