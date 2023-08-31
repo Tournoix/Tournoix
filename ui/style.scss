@@ -57,7 +57,7 @@ hr {
 }
 
 .backlink {
-	@apply float-left underline text-nut cursor-pointer hover:duration-[200ms] duration-[400ms] hover:tracking-wide transition-all sm:text-lg text-base;
+	@apply float-left underline text-nut cursor-pointer hover:duration-[200ms] duration-[400ms] hover:tracking-wide transition-all sm:text-lg text-base mb-4;
 }
 
 /* Tournaments */
@@ -84,6 +84,10 @@ hr {
 }
 
 /* Teams */
+.team-item {
+	@apply basis-[9rem];
+}
+
 .team-selectable {
 	@apply cursor-pointer hover:scale-[105%] hover:duration-[200ms] duration-[400ms] select-none;
 }
@@ -111,7 +115,6 @@ hr {
 }
 
 /* Notifications */
-// ! Case is important here !
 .notif-success {
 	@apply bg-green-600;
 }
