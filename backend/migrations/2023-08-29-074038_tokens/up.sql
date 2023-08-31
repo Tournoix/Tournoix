@@ -8,9 +8,11 @@ CREATE TABLE tokens (
     FOREIGN KEY (fk_users) REFERENCES users(id)
 );
 
+/*
 CREATE TRIGGER drop_trigger
-BEFORE INSERT ON tokens
+AFTER INSERT ON tokens
 FOR EACH ROW
 BEGIN
     DELETE FROM tokens WHERE expiration_date < NOW();
 END;
+*/

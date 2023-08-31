@@ -130,6 +130,12 @@ rustup target add wasm32-unknown-unknown
 cargo install --locked trunk
 ```
 
+(Optionel) Installer cargo-watch pour le hot reload du backend
+
+``bash
+cargo install --locked cargo-watch
+```
+
 4. Installer du moteur de base de donnée mariaDB via docker (recommandé)
 
 4.1. Installation de docker
@@ -170,17 +176,23 @@ diesel migration run
 
 ### Démarrage:
 
-- Démarrer le backend (API)
-
 - Démarrer la base de données
 
 ```bash
 docker start tournoix_db
 ```
 
+- Démarrer le backend (API)
+
 ```bash
 cd ./backend
 cargo run
+```
+
+Pour le hot reaload, on doit utiliser cette commande à la place:
+```bash
+cd ./backend
+cargo watch -x run
 ```
 
 - Démarrer le frontend en mode développement
@@ -190,7 +202,7 @@ cd ./ui
 npm run serve
 ```
 
-Pour le hot reaload:
+Pour le hot reaload, on doit avoir cette commande qui tourne à côté:
 ```bash
 cd ./ui
 npx npx tailwindcss --watch -i ./style.scss -o ./output.scss
@@ -204,4 +216,11 @@ npx npx tailwindcss --watch -i ./style.scss -o ./output.scss
 npm run build
 cd ./backend
 cargo run --release
+```
+
+### Autre:
+
+- Reset la base de données
+```bash
+diesel database reset
 ```
