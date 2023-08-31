@@ -33,7 +33,6 @@ pub fn Teams(props: &TeamsProps) -> Html {
         }
     };
 
-
     let on_delete_click = |id: i32| {
         if let Some(on_delete) = on_delete {
             let on_delete = on_delete.clone();

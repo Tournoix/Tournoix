@@ -136,10 +136,9 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                 <div class="layout-nav">
                     <div class="relative my-auto">
                         <h3 class="mt-1">{"A propos"}</h3>
-                        <ul class="leading-4 footer-links">
-                            <li><p>{"L'équipe"}</p></li>
-                            <li><p>{"Contact"}</p></li>
-                            <li><p>{"Localisation"}</p></li>
+                        <ul class="footer-links">
+                            <li><a href="https://heig-vd.ch" >{"HEIG-VD"}</a></li>
+                            <li><a href="https://github.com/Tournoix/Tournoix" >{"Code source"}</a></li>
                         </ul>
                     </div>
                     <div class="relative ml-auto text-right my-auto">
