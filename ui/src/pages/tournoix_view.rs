@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::{layouts::homelayout::HomeLayout, routers::Route, components::{backlink::Backlink, results::Results, qualificationPhase::QualificationPhase, eliminationPhase::EliminationPhase}};
+use crate::{layouts::homelayout::HomeLayout, routers::Route, components::{backlink::Backlink, results::Results, qualificationPhase::QualificationPhase, bracket::Bracket}};
 
 #[derive(PartialEq, Properties)]
 pub struct TournoixViewProps {
@@ -37,7 +37,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                 <QualificationPhase/>
                 <hr/>
                 <h2>{"Phase d'éliminations"}</h2>
-                <EliminationPhase/>
+                /*<Bracket/>*/
                 <hr/>
                 <h2>{"Résultats"}</h2>
                 <div class="text-red-500">{"AFFICHER UNIQUEMENT SI TOUT LES MATCHS DE CE TOURNOIS SONT TERMINÉS"}</div>

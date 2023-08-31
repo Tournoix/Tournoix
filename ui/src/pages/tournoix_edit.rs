@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::{layouts::homelayout::HomeLayout, components::{backlink::Backlink, eliminationPhase::EliminationPhase, qualificationPhase::QualificationPhase, groups::{Groups, Group}}, routers::Route};
+use crate::{layouts::homelayout::HomeLayout, components::{backlink::Backlink, bracket::Bracket, qualificationPhase::QualificationPhase, groups::{Groups, Group}, button::Button}, routers::Route};
 
 #[derive(PartialEq, Properties)]
 pub struct TournoixEditProps {
@@ -38,7 +38,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                 <Backlink route={Route::Tournoix} label="Retour à la liste des tournoix"/>
                 <h1 class="mb-5">{"Modification de tournoi"}</h1>
                 <h2>{"Id du tournoi : "}{ id }</h2>
-                <button class="m-3 bg-green-500 hover:bg-green-700 text-white font-bold p-2" onclick={on_click_view}>{"VOIR CE TOURNOI COMME UN UTILISATEUR"}</button>
+                <a onclick={on_click_view} class="underline text-nut cursor-pointer hover:duration-[200ms] duration-[400ms] hover:tracking-wide transition-all sm:text-base text-sm mb-4">{"Voir ce tournoi en mode affichage"}</a>
                 <h2>{"Général"}</h2>
                 <hr/>
                 <h2>{"Phase de qualifications"}</h2>
@@ -48,7 +48,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                 <QualificationPhase/>
                 <hr/>
                 <h2>{"Phase d'éliminations"}</h2>
-                <EliminationPhase/>
+                /*<Bracket/>*/
             </div>
         </HomeLayout>
     }
