@@ -27,6 +27,7 @@ use crate::routes::nut::*;
 use crate::routes::subscription::*;
 use crate::routes::team::*;
 use crate::routes::tournoix::*;
+use crate::routes::bet::*;
 
 pub mod crypto;
 mod models;
@@ -108,9 +109,18 @@ fn rocket() -> _ {
                 get_team_game,
                 create_games,
                 update_game,
+                close_game,
+                close_game_betting,
                 // Nuts
                 get_nut,
                 update_nut,
+                // Bets
+                get_game_bet,
+                get_user_game_bet,
+                get_user_game_bet_result,
+                create_bet,
+                update_bet,
+                delete_bet,
                 // Others
                 api_hole,
             ],

@@ -1,21 +1,22 @@
 use crate::models::nut::{NewNut, Nut};
 use crate::models::subscription::{NewSubscription, Subscription};
 use crate::models::tournament::Tournament;
+use crate::routes::auth::ApiAuth;
 use crate::schema::{nuts, subscriptions, tournaments};
 use crate::MysqlConnection;
 use diesel::prelude::*;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 
-#[get("/users/<id>/tournoix")]
+#[get("/users/@me/tournoix")]
 pub async fn get_user_tournoix(
     connection: MysqlConnection,
-    id: i32,
+    auth: ApiAuth
 ) -> Result<Json<Vec<Tournament>>, (Status, String)> {
     match connection
         .run(move |c| {
             tournaments::table
-                .filter(tournaments::fk_users.eq(id))
+                .filter(tournaments::fk_users.eq(auth.user.id))
                 .load::<Tournament>(c)
         })
         .await
@@ -27,16 +28,16 @@ pub async fn get_user_tournoix(
     }
 }
 
-#[get("/users/<id>/subscriptions")]
+#[get("/users/@me/subscriptions")]
 pub async fn get_user_subscription(
     connection: MysqlConnection,
-    id: i32,
+    auth: ApiAuth
 ) -> Result<Json<Vec<Tournament>>, (Status, String)> {
     // get all subsciptions for the user
     let tab_subscriber = match connection
         .run(move |c| {
             subscriptions::table
-                .filter(subscriptions::fk_users.eq(id))
+                .filter(subscriptions::fk_users.eq(auth.user.id))
                 .load::<Subscription>(c)
         })
         .await
@@ -69,11 +70,11 @@ pub async fn get_user_subscription(
     Ok(Json(tournoix_vec))
 }
 
-#[post("/users/<id>/subscription", data = "<code>")]
+#[post("/users/@me/subscription", data = "<code>")]
 pub async fn create_subsciption(
     connection: MysqlConnection,
     code: String,
-    id: i32,
+    auth: ApiAuth
 ) -> Result<Json<Subscription>, (Status, String)> {
     // verify the existance of the code in the database
     let tournament = match connection
@@ -90,7 +91,7 @@ pub async fn create_subsciption(
 
     // create the subscription
     let subscription = NewSubscription {
-        fk_users: id,
+        fk_users: auth.user.id,
         fk_tournaments: tournament.id,
     };
 
@@ -98,7 +99,7 @@ pub async fn create_subsciption(
     match connection
         .run(move |c| {
             nuts::table
-                .filter(nuts::fk_users.eq(id))
+                .filter(nuts::fk_users.eq(auth.user.id))
                 .filter(nuts::fk_tournaments.eq(tournament.id))
                 .first::<Nut>(c)
         })
@@ -113,7 +114,7 @@ pub async fn create_subsciption(
         Err(_) => {
             // add the nuts to the user
             let nut = NewNut {
-                fk_users: id,
+                fk_users: auth.user.id,
                 fk_tournaments: tournament.id,
                 stock: 20,
             };
@@ -143,7 +144,7 @@ pub async fn create_subsciption(
 
                 let subscription = subscriptions::table
                     .filter(subscriptions::fk_tournaments.eq(tournament.id))
-                    .filter(subscriptions::fk_users.eq(id))
+                    .filter(subscriptions::fk_users.eq(auth.user.id))
                     .first::<Subscription>(c)
                     .map(Json)?;
 
@@ -165,20 +166,25 @@ pub async fn create_subsciption(
     }
 }
 
-#[delete("/subscription/<id>")]
+// delete a subscription with the id of the tournament and the id of the user
+#[delete("/subscription/<id_tournament>")]
 pub async fn delete_subscription(
     connection: MysqlConnection,
-    id: i32,
+    id_tournament: i32,
+    auth: ApiAuth
 ) -> Result<Json<Subscription>, (Status, String)> {
     match connection
         .run(move |c| {
             c.transaction(|c| {
                 let sub = subscriptions::table
-                    .find(id)
+                    .filter(subscriptions::fk_tournaments.eq(id_tournament))
+                    .filter(subscriptions::fk_users.eq(auth.user.id))
                     .first::<Subscription>(c)
                     .map(Json)?;
 
-                diesel::delete(subscriptions::table.find(id)).execute(c)?;
+                diesel::delete(subscriptions::table
+                    .find(sub.id))
+                    .execute(c)?;
 
                 diesel::result::QueryResult::Ok(sub)
             })

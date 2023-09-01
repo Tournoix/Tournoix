@@ -12,6 +12,8 @@ pub struct Game {
     pub score2: i32,
     pub phase: i32,
     pub place: i32,
+    pub is_open: bool,
+    pub has_gained_nut: bool,
 }
 
 #[derive(Serialize, Deserialize, Insertable, Clone)]
@@ -33,4 +35,6 @@ pub struct PatchGame {
     pub fk_team1: Option<i32>,
     pub fk_team2: Option<i32>,
     pub place: Option<i32>,
+    pub is_open: Option<bool>,
+    pub has_gained_nut: Option<bool>,
 }
