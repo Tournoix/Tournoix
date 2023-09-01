@@ -1,4 +1,5 @@
 use crate::models::nut::{Nut, PatchNut};
+use crate::routes::auth::ApiAuth;
 use crate::schema::{games, bets};
 use crate::schema::nuts::{self, fk_tournaments, fk_users};
 use crate::MysqlConnection;
@@ -8,17 +9,17 @@ use rocket::http::Status;
 use rocket::serde::json::Json;
 
 // get the nut of a user for a tournament
-#[get("/tournoix/<id>/user/<id_user>/nut")]
+#[get("/tournoix/<id>/nut")]
 pub async fn get_nut(
     connection: MysqlConnection,
     id: i32,
-    id_user: i32,
+    auth: ApiAuth
 ) -> Result<Json<Nut>, (Status, String)> {
     match connection
         .run(move |c| {
             nuts::table
                 .filter(fk_tournaments.eq(id))
-                .filter(fk_users.eq(id_user))
+                .filter(fk_users.eq(auth.user.id))
                 .first::<Nut>(c)
         })
         .await
