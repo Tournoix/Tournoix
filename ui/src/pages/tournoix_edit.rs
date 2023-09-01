@@ -3,7 +3,7 @@ use web_sys::{HtmlInputElement, window};
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::{layouts::homelayout::HomeLayout, components::{backlink::Backlink, bracket::Bracket, qualificationPhase::QualificationPhase, groups::{Groups, Group}, button::Button, teams::{Teams, Team}, form_input::FormInput, join_code::JoinCode}, routers::Route, utils::utils::fetch_tournament};
+use crate::{layouts::homelayout::HomeLayout, components::{backlink::Backlink, bracket::Bracket, qualificationPhase::QualificationPhase, groups::{Groups, Group}, button::Button, teams::{Teams, Team}, form_input::FormInput, join_code::JoinCode, notification::NotifType}, routers::Route, utils::utils::{fetch_tournament, add_delayed_notif}};
 
 #[derive(PartialEq, Properties)]
 pub struct TournoixEditProps {
@@ -82,6 +82,18 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         Group { },
         Group { },
     ]);
+
+    let on_edit_click = {
+        let navigator = navigator.clone();
+        let id = id.clone();
+        let tournament = tournament.clone();
+
+        Callback::from(move |_| {
+            add_delayed_notif("Modification réussie", &format!("Vous avez modifié avec succès le tournoi \"{}\"", tournament.name), NotifType::Success);
+            
+            navigator.push(&Route::TournoixView{ id });
+        })
+    };
     
     html! {
         <HomeLayout>
@@ -99,8 +111,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                         <FormInput id="location" label="Lieu" form_type="text" required={true}/>
                         <FormInput id="description" label="Description" form_type="text" required={true}/>
                         <FormInput id="nb_team_per_group" label="Nombre d'équipes par groupe" form_type="text" required={true}/>
-                        <FormInput id="phase_qualifications" label="Phase de qualifications" form_type="checkbox" disabled={true} required={false}/>
-                        <FormInput id="phase_eliminations" label="Phase d'éliminations" form_type="checkbox" disabled={true} required={false}/>
+                        <FormInput id="phase_qualifications" label="Phase de qualifications" form_type="checkbox" checked={tournament.is_qualif} disabled={true} required={false}/>
+                        <FormInput id="phase_eliminations" label="Phase d'éliminations" form_type="checkbox" checked={tournament.is_elim} disabled={true} required={false}/>
                     </div>
                     <div class="w-1/2 m-4">
                         <ContextProvider<UseStateHandle<Vec<Team>>> context={teams.clone()}>
@@ -117,6 +129,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                 <hr/>
                 <h2>{"Phase d'éliminations"}</h2>
                 /*<Bracket/>*/
+                <hr/>
+                <Button class="sm:text-xl text-lg px-3 py-2 mx-auto mt-3 mb-16 hover:scale-110 bg-green-700" onclick={on_edit_click}>{"Modifier le tournoi"}</Button>
             </div>
         </HomeLayout>
     }

@@ -9,6 +9,8 @@ pub fn fetch_tournament(id: i32) -> Tournament {
         description: "Ne manquez pas le rendez-vous incontournable pour tout les amateurs de boules qui se respecte. Au programme, suze, grillades, bière et bien sûr pétanque.".to_string(),
         date: chrono::NaiveDateTime::new(chrono::NaiveDate::from_ymd(2023, 9, 9), chrono::NaiveTime::from_hms(0, 0, 0)),
         location: "1450 Sainte-Croix, Avenue de la Gare 14".to_string(),
+        is_qualif: true,
+        is_elim: true,
         phase: 0,
         code: "mCCx34d".to_string(),
     }
@@ -20,6 +22,8 @@ pub struct Tournament {
     pub description: String,
     pub date: chrono::NaiveDateTime,
     pub location: String,
+    pub is_qualif: bool,
+    pub is_elim: bool,
     pub phase: i32,
     pub code: String,
 }

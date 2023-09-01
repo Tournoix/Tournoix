@@ -2,7 +2,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{window, HtmlInputElement};
 use yew::prelude::*;
 
-use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team}, bracket::{Bracket, Match, BracketTeams}, groups::{Group, Groups}}};
+use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team}, bracket::{Bracket, Match, BracketTeams}, groups::{Group, Groups}, checkbox::CheckBox}};
 use crate::routers::Route;
 
 #[derive(PartialEq, Properties)]
@@ -12,6 +12,22 @@ pub struct TournoixCreateProps {
 #[function_component]
 pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
     let TournoixCreateProps {} = props;
+
+    let is_qualif = use_state(|| false);
+    let is_elim = use_state(|| false);
+
+    let on_elim_click = {
+        let is_elim = is_elim.clone();
+        Callback::from(move |_| {
+            is_elim.set(!*is_elim);
+        })
+    };
+    let on_qualif_click = {
+        let is_qualif = is_qualif.clone();
+        Callback::from(move |_| {
+            is_qualif.set(!*is_qualif);
+        })
+    };
 
     let groups: UseStateHandle<Vec<Group>> = use_state(|| vec![
         Group { },
@@ -197,8 +213,8 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                             <FormInput id="location" label="Lieu" form_type="text" required={true}/>
                             <FormInput id="description" label="Description" form_type="text" required={true}/>
                             <FormInput id="nb_team_per_group" label="Nombre d'équipes par groupe" form_type="text" required={true}/>
-                            <FormInput id="phase_qualifications" label="Phase de qualifications" form_type="checkbox" required={false}/>
-                            <FormInput id="phase_eliminations" label="Phase d'éliminations" form_type="checkbox" required={false}/>
+                            <CheckBox id="phase_qualifications" label="Phase de qualifications" checked={*is_qualif} on_click={on_qualif_click}/>
+                            <CheckBox id="phase_eliminations" label="Phase d'éliminations" checked={*is_elim} on_click={on_elim_click}/>
                         </div>
                         <div class="w-1/2 m-4">
                             <ContextProvider<UseStateHandle<Vec<Team>>> context={teams.clone()}>
@@ -206,16 +222,20 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                             </ContextProvider<UseStateHandle<Vec<Team>>>>
                         </div>
                     </div>
+                    if *is_qualif {
+                        <hr/>
+                        <h2>{"Phase de qualifications"}</h2>
+                        <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
+                            <Groups on_create={on_create_group_click} on_delete={on_delete_group_click}/>
+                        </ContextProvider<UseStateHandle<Vec<Group>>>>
+                    }
+                    if *is_elim {
+                        <hr/>
+                        <h2>{"Phase d'éliminations"}</h2>
+                        <Bracket teams={bracket_teams} />
+                    }
                     <hr/>
-                    <h2>{"Phase de qualifications"}</h2>
-                    <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
-                        <Groups on_create={on_create_group_click} on_delete={on_delete_group_click}/>
-                    </ContextProvider<UseStateHandle<Vec<Group>>>>
-                    <hr/>
-                    <h2>{"Phase d'éliminations"}</h2>
-                    <Bracket teams={bracket_teams} />
-                    <hr/>
-                    <Button class="sm:text-xl text-lg px-3 py-2 mx-auto mt-3 mb-16 hover:scale-110 bg-green-700" onclick={on_create_click}>{"Créer un tournoi"}</Button>
+                    <Button disabled={!*is_qualif && !*is_elim} class="sm:text-xl text-lg px-3 py-2 mx-auto mt-3 mb-16 hover:scale-110 bg-green-700" onclick={on_create_click}>{"Créer un tournoi"}</Button>
                 </form>
             </div>
         </HomeLayout>
