@@ -203,6 +203,3 @@ pub async fn delete_subscription(
         }
     }
 }
-
-// delete a tournament with the tournament id
-// todo
