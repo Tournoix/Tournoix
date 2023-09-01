@@ -61,7 +61,7 @@ impl<'r> FromRequest<'r> for ApiAuth {
                                 .ok();
 
                             return Outcome::Failure((
-                                Status::Forbidden,
+                                Status::Unauthorized,
                                 ApiAuthResponse::Unauthorized("Token expired".to_string()),
                             ));
                         }
@@ -83,7 +83,7 @@ impl<'r> FromRequest<'r> for ApiAuth {
                             Err(_e) => {
                                 // Erro while getting the user linked to the token => 401
                                 Outcome::Failure((
-                                    Status::Forbidden,
+                                    Status::Unauthorized,
                                     ApiAuthResponse::Unauthorized("Invalid token".to_string()),
                                 ))
                             }
@@ -93,7 +93,7 @@ impl<'r> FromRequest<'r> for ApiAuth {
                     Err(_e) => {
                         // Error while getting the token (either it doesn't exist or DB related error) => 401
                         Outcome::Failure((
-                            Status::Forbidden,
+                            Status::Unauthorized,
                             ApiAuthResponse::Unauthorized("Invalid token".to_string()),
                         ))
                     }
