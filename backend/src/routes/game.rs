@@ -133,3 +133,33 @@ pub async fn update_game(
         }
     }
 }
+
+// block the action of betting on a game
+#[patch("/game/<id>/close")]
+pub async fn close_game(
+    connection: MysqlConnection,
+    id: i32,
+) -> Result<Json<Game>, (Status, String)> {
+    let game = match connection.run(
+       move |c| c.transaction(|c| {
+            diesel::update(games::table.find(id))
+                .set(games::is_open.eq(false))
+                .execute(c)?;
+
+            let game = games::table.order(games::id.desc()).first::<Game>(c).map(Json)?;
+
+            diesel::result::QueryResult::Ok(game)
+        })
+    ).await {
+        Ok(game) => game,
+        Err(_e) => {
+            
+            return Err((
+                Status::InternalServerError,
+                "Internel Server Error".to_string()
+            ))
+        }
+    };
+
+    Ok(game)
+}

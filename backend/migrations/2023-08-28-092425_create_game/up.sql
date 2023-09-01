@@ -7,6 +7,7 @@ CREATE TABLE games (
   score2 INTEGER NOT NULL,
   phase INTEGER NOT NULL,
   place INTEGER NOT NULL,
+  is_open BOOLEAN NOT NULL DEFAULT TRUE,
 
   CONSTRAINT matchs_team1 FOREIGN KEY (fk_team1) REFERENCES teams(id),
   CONSTRAINT matchs_team2 FOREIGN KEY (fk_team2) REFERENCES teams(id)

@@ -5,3 +5,4 @@ pub mod team;
 pub mod subscription;
 pub mod game;
 pub mod nut;
+pub mod bet;

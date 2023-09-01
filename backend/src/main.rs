@@ -68,7 +68,7 @@ fn rocket() -> _ {
             get_user_tournoix, get_user_subscription, create_subsciption, delete_subscription,
             api_hole,
             login, logout, register,
-            get_tournoix_game, get_team_game, create_games, update_game,
+            get_tournoix_game, get_team_game, create_games, update_game, close_game,
             get_nut, update_nut])
 }
 
