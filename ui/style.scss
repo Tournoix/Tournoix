@@ -60,6 +60,10 @@ hr {
 	@apply float-left underline text-nut cursor-pointer hover:duration-[200ms] duration-[400ms] hover:tracking-wide transition-all sm:text-lg text-base mb-4;
 }
 
+.a_link {
+	@apply underline text-nut cursor-pointer hover:duration-[200ms] duration-[400ms] hover:tracking-wide transition-all sm:text-base text-sm;
+}
+
 /* Tournaments */
 .tournament-card {
 	@apply flex justify-center content-center p-3 bg-nutLighter rounded drop-shadow-lg cursor-pointer hover:scale-110 hover:duration-[200ms] duration-[400ms] w-32 h-32 origin-bottom select-none leading-5;

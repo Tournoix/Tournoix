@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::{layouts::homelayout::HomeLayout, routers::Route, components::{backlink::Backlink, results::Results, qualificationPhase::QualificationPhase, bracket::Bracket}};
+use crate::{layouts::homelayout::HomeLayout, routers::Route, components::{backlink::Backlink, results::Results, qualificationPhase::QualificationPhase, bracket::Bracket, join_code::JoinCode}};
 
 #[derive(PartialEq, Properties)]
 pub struct TournoixViewProps {
@@ -12,6 +12,11 @@ pub struct TournoixViewProps {
 pub fn TournoixView(props: &TournoixViewProps) -> Html {
     let TournoixViewProps { id } = props;
     let navigator = use_navigator().unwrap();
+
+    let super_secret = "mCCx34d";
+
+    // TODO Wheter or not the current user can edit this tournament
+    let can_edit_tournament = true;
 
     let on_click_edit = {
         let navigator = navigator.clone();
@@ -29,8 +34,8 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
             <div class="flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto relative">
                 <Backlink route={Route::Tournoix} label="Retour à la liste des tournoix"/>
                 <h1 class="mb-5">{"Affichage de tournoi"}</h1>
-                <h2>{"Id du tournoi : "}{ id }</h2>
-                <button class="m-3 bg-green-500 hover:bg-green-700 text-white font-bold p-2" onclick={on_click_edit}>{"MODIFIER CE TOURNOI (bouton affiché uniquement si on a les droits)"}</button>
+                {if can_edit_tournament { html! {<a onclick={on_click_edit} class="a_link mb-6">{"Modifier ce tournoi"}</a>}} else { html! {} }}
+                <JoinCode code={super_secret}/>
                 <button class="m-3 bg-green-500 hover:bg-green-700 text-white font-bold p-2" onclick={on_click_match}>{"AFFICHER UN MATCH DE TEST"}</button>
                 <hr/>
                 <h2>{"Phase de qualifications"}</h2>
