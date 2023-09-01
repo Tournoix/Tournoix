@@ -2,7 +2,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{window, HtmlInputElement};
 use yew::prelude::*;
 
-use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team}, bracket::{Bracket, Match, BracketTeams}}};
+use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team}, bracket::{Bracket, Match, BracketTeams}, groups::{Group, Groups}}};
 use crate::routers::Route;
 
 #[derive(PartialEq, Properties)]
@@ -22,6 +22,17 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
         Team { id: 5, is_being_edited: false, name: "fnatic".to_string() },
         Team { id: 6, is_being_edited: false, name: "Team with a comically long name".to_string() },
         Team { id: 7, is_being_edited: false, name: "Team 42".to_string() }
+    ]);
+
+    let groups: UseStateHandle<Vec<Group>> = use_state(|| vec![
+        Group { id: 0, name: "test0".to_string() },
+        Group { id: 1, name: "test1".to_string() },
+        Group { id: 2, name: "test2".to_string() },
+        Group { id: 3, name: "test3".to_string() },
+        Group { id: 4, name: "test4".to_string() },
+        Group { id: 5, name: "test5".to_string() },
+        Group { id: 6, name: "test6".to_string() },
+        Group { id: 7, name: "test7".to_string() },
     ]);
 
     let on_create_team_click = {
@@ -106,6 +117,9 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
             teams.set(teams_buf);
         })
     };
+
+    let on_create_group_click = Callback::from(|_| ());
+
     let on_create_click = Callback::from(move |_| { });
 
     // Generate bracket
@@ -146,7 +160,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                 <Backlink route={Route::Tournoix} label="Retour à la liste des tournoix"/>
                 <h1 class="mb-5">{"Création de tournoi"}</h1>
                 <form class="flex flex-col items-center w-full mx-auto relative">
-                    <h2>{"Général"}</h2>
+                    <h2>{"Informations"}</h2>
                     <div class="flex flex-row w-full justify-center gap-5 lg:flex-nowrap flex-wrap">
                         <div class="w-1/2">
                             <FormInput id="name" label="Nom" form_type="text" required={true}/>
@@ -165,6 +179,9 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                     </div>
                     <hr/>
                     <h2>{"Phase de qualifications"}</h2>
+                    <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
+                        <Groups on_create={on_create_group_click}/>
+                    </ContextProvider<UseStateHandle<Vec<Group>>>>
                     <hr/>
                     <h2>{"Phase d'éliminations"}</h2>
                     <Bracket teams={bracket_teams} />
