@@ -11,7 +11,7 @@ use rocket::{
     fairing::{Fairing, Info, Kind},
     fs::NamedFile,
     http::{Header, Status},
-    response::status::NotFound,
+    response::status::{NotFound, NoContent},
     serde::json::Json,
     Request, Response,
 };
@@ -112,9 +112,15 @@ fn rocket() -> _ {
                 get_nut,
                 update_nut,
                 // Others
+                all_options,
                 api_hole,
             ],
         )
+}
+
+#[options("/<_..>")]
+fn all_options() -> NoContent {
+	NoContent
 }
 
 async fn get_index() -> Result<NamedFile, NotFound<String>> {

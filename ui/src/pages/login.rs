@@ -1,31 +1,18 @@
 use yew::platform::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
-use dotenv_codegen::dotenv;
-use serde::{Serialize, Deserialize};
 
+use crate::api::{self, LoginRequest};
 use crate::components::notification::NotifType;
 use crate::components::user_provider::UserContext;
-use crate::routers::Route;
 use crate::components::{button::Button, form_input::FormInput};
 use crate::layouts::homelayout::HomeLayout;
+use crate::routers::Route;
 use crate::utils::utils::*;
 use web_sys::HtmlInputElement;
 
 #[derive(PartialEq, Properties)]
 pub struct LoginProps {}
-
-#[derive(Serialize, Default)]
-pub struct LoginForm {
-    pub email: String,
-    pub password: String
-}
-
-#[derive(Deserialize)]
-pub struct LoginResponse {
-    pub token: String,
-    pub expiration_date: chrono::NaiveDateTime
-}
 
 #[function_component]
 pub fn Login(props: &LoginProps) -> Html {
@@ -45,14 +32,11 @@ pub fn Login(props: &LoginProps) -> Html {
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
             loading.set(true);
-            
+
             let email = email_ref.cast::<HtmlInputElement>().unwrap().value();
             let password = password_ref.cast::<HtmlInputElement>().unwrap().value();
 
-            let login_request = LoginForm {
-                email,
-                password
-            };
+            let login_request = LoginRequest { email, password };
 
             {
                 let navigator = navigator.clone();
@@ -60,33 +44,23 @@ pub fn Login(props: &LoginProps) -> Html {
                 let user_info = user_info.clone();
 
                 spawn_local(async move {
-                    let client = reqwest::Client::new();
+                    match api::login(login_request).await {
+                        Ok(token_response) => {
+                            user_info.login(&token_response.token);
 
-                    match client.post(format!("{}/{}", dotenv!("API_ENDPOINT"), "auth/login"))
-                        .body(serde_json::to_string(&login_request).unwrap())
-                        .send()
-                        .await {
-                            Ok(r) => {
-                                match r.error_for_status_ref() {
-                                    Ok(_r) => {
-                                        let response = r.json::<LoginResponse>().await.unwrap();
+                            loading.set(false);
+                            add_delayed_notif(
+                                "Connecté(e)",
+                                "Vous vous êtes connecté(e) avec succès à votre compte.",
+                                NotifType::Success,
+                            );
+                            navigator.push(&Route::Home);
+                        }
 
-                                        user_info.login(&response.token);
-                                        
-                                        loading.set(false);
-                                        add_delayed_notif("Connecté(e)", "Vous vous êtes connecté(e) avec succès à votre compte.", NotifType::Success);
-                                        navigator.push(&Route::Home);
-                                    },
-
-                                    Err(_e) => {
-                                        loading.set(false);
-                                    }
-                                }
-                            },
-    
-                            Err(_e) => {
-                                loading.set(false);
-                            }
+                        Err(e) => {
+                            add_delayed_notif("Erreur", &e.error.description, NotifType::Error);
+                            loading.set(false);
+                        }
                     }
                 });
             }
@@ -95,10 +69,7 @@ pub fn Login(props: &LoginProps) -> Html {
 
     let on_register_click: Callback<MouseEvent> = {
         let navigator = navigator.clone();
-        Callback::from(move |_| {
-
-            navigator.push(&Route::Register)
-        })
+        Callback::from(move |_| navigator.push(&Route::Register))
     };
 
     html! {

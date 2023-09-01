@@ -1,8 +1,12 @@
+use log::info;
+use yew::platform::spawn_local;
 use yew::prelude::*;
 use yew_hooks::prelude::*;
 use yew_router::prelude::use_navigator;
 
+use crate::api;
 use crate::components::notification::{Notif, NotifType, Notification};
+use crate::components::user_provider::UserContext;
 use crate::{components::button::Button, routers::Route, utils::utils::*};
 use web_sys::window;
 
@@ -17,6 +21,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
     let navigator = use_navigator().unwrap();
     let is_logged = use_state(|| false);
     let notifs: UseStateHandle<Vec<Notif>> = use_state(|| Vec::new());
+    let user_info = use_context::<UserContext>().expect("Missing UserInfo contect provider");
 
     {
         let is_logged = is_logged.clone();
@@ -76,21 +81,27 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
     let on_logout_click = {
         let navigator = navigator.clone();
         let is_logged = is_logged.clone();
+        
         Callback::from(move |_| {
-            // TODO logout
+            let user_info = user_info.clone();
+            let is_logged = is_logged.clone();
+            let navigator = navigator.clone();
 
+            spawn_local(async move {
+                api::logout().await;
 
-            add_delayed_notif("Déconnecté(e)", "Vous vous êtes déconnecté(e) avec succès de votre compte.", NotifType::Success);
+                add_delayed_notif("Déconnecté(e)", "Vous vous êtes déconnecté(e) avec succès de votre compte.", NotifType::Success);
 
-            if let Some(win) = window() {
-                if let Ok(Some(store)) = win.local_storage() {
-                    if let Ok(_item) = store.remove_item("loginToken") {
-                        is_logged.set(false);
+                if let Some(win) = window() {
+                    if let Ok(Some(store)) = win.local_storage() {
+                        if let Ok(_item) = store.remove_item("loginToken") {
+                            is_logged.set(false);
+                        }
                     }
                 }
-            }
 
-            navigator.push(&Route::Home)
+                navigator.push(&Route::Home)
+            });
         })
     };
 

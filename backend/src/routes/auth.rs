@@ -1,6 +1,6 @@
 use crate::models::token::{NewToken, Token};
 use crate::models::user::{User, UserInfo};
-use crate::{crypto, MysqlConnection};
+use crate::{crypto, ErrorBody, ErrorResponse, MysqlConnection};
 use crate::{
     models::user::NewUser,
     schema::{
@@ -124,7 +124,7 @@ pub struct LoginResponse {
 pub async fn login(
     connection: MysqlConnection,
     data: Json<LoginRequest>,
-) -> Result<Json<LoginResponse>, (Status, String)> {
+) -> Result<Json<LoginResponse>, (Status, Json<ErrorResponse>)> {
     // Find user by email
     match connection
         .run({
@@ -164,14 +164,42 @@ pub async fn login(
                         return Ok(Json(reponse));
                     }
 
-                    Err(e) => return Err((Status::InternalServerError, e.to_string())),
+                    Err(_e) => {
+                        return Err((
+                            Status::InternalServerError,
+                            Json(ErrorResponse {
+                                error: ErrorBody {
+                                    code: 500,
+                                    description: "An error occured".into(),
+                                },
+                            }),
+                        ))
+                    }
                 }
             } else {
-                return Err((Status::Unauthorized, "incorrect login".to_string()));
+                return Err((
+                    Status::Unauthorized,
+                    Json(ErrorResponse {
+                        error: ErrorBody {
+                            code: 401,
+                            description: "Email or password incorrect".into(),
+                        },
+                    }),
+                ));
             }
         }
 
-        Err(_e) => return Err((Status::Unauthorized, "incorrect login".to_string())),
+        Err(_e) => {
+            return Err((
+                Status::Unauthorized,
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 401,
+                        description: "Email or password incorrect".into(),
+                    },
+                }),
+            ))
+        }
     }
 }
 
@@ -200,7 +228,7 @@ pub async fn logout(
 pub async fn register(
     connection: MysqlConnection,
     data: Json<NewUser>,
-) -> Result<Json<UserInfo>, (Status, String)> {
+) -> Result<Json<UserInfo>, (Status, Json<ErrorResponse>)> {
     // Check if email is already used
     match connection
         .run({
@@ -209,13 +237,33 @@ pub async fn register(
         })
         .await
     {
-        Ok(_user) => return Err((Status::Conflict, "email already used".to_string())),
+        Ok(_user) => {
+            return Err((
+                Status::Conflict,
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 409,
+                        description: "Email already used".to_string(),
+                    },
+                }),
+            ))
+        }
 
         Err(_e) => {
             // Hash password and check if return error
             let hashed_password = match crypto::hash_password(&data.password.as_str()) {
                 Ok(hashed_password) => hashed_password,
-                Err(e) => return Err((Status::InternalServerError, e.to_string())),
+                Err(_e) => {
+                    return Err((
+                        Status::InternalServerError,
+                        Json(ErrorResponse {
+                            error: ErrorBody {
+                                code: 500,
+                                description: "An error has occured".to_string(),
+                            },
+                        }),
+                    ))
+                }
             };
 
             // If no error, create user
@@ -247,7 +295,17 @@ pub async fn register(
             {
                 Ok(user) => return Ok(user),
 
-                Err(e) => return Err((Status::InternalServerError, e.to_string())),
+                Err(_e) => {
+                    return Err((
+                        Status::InternalServerError,
+                        Json(ErrorResponse {
+                            error: ErrorBody {
+                                code: 500,
+                                description: "An error has occured".to_string(),
+                            },
+                        }),
+                    ))
+                }
             }
         }
     }

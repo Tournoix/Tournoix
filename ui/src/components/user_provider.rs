@@ -9,7 +9,7 @@ pub struct UserInfo {
 }
 
 impl UserInfo {
-    pub fn token(&self) -> Option<String> {
+    pub fn get_token() -> Option<String> {
         if let Some(win) = window() {
             if let Ok(Some(store)) = win.local_storage() {
                 if let Ok(item) = store.get_item("loginToken") {
@@ -19,6 +19,10 @@ impl UserInfo {
         }
 
         None
+    }
+
+    pub fn token(&self) ->  Option<String> {
+        UserInfo::get_token()
     }
 
     pub fn login(&self, token: &str) -> bool {

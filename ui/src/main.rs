@@ -1,13 +1,17 @@
+use dotenv::dotenv;
 use yew::prelude::*;
 use yew_router::{BrowserRouter, Switch};
-use dotenv::dotenv;
 
-use crate::{routers::{Route, router}, components::user_provider::UserProvider};
+use crate::{
+    components::user_provider::UserProvider,
+    routers::{router, Route},
+};
 
+mod api;
+mod components;
+mod layouts;
 mod pages;
 mod routers;
-mod layouts;
-mod components;
 mod utils;
 
 #[function_component]

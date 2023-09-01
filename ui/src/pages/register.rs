@@ -5,9 +5,12 @@ use yew::prelude::*;
 use yew_router::prelude::use_navigator;
 use dotenv_codegen::dotenv;
 
+use crate::api::{self, RegisterRequest};
+use crate::components::notification::NotifType;
 use crate::components::{form_input::FormInput, button::Button};
 use crate::layouts::homelayout::HomeLayout;
 use crate::routers::Route;
+use crate::utils::utils::add_delayed_notif;
 
 #[derive(Serialize, Default)]
 pub struct RegisterForm {
@@ -50,7 +53,7 @@ pub fn Register(props: &RegisterProps) -> Html {
             let email = email_ref.cast::<HtmlInputElement>().unwrap().value();
             let password = password_ref.cast::<HtmlInputElement>().unwrap().value();
 
-            let register_request = RegisterForm {
+            let register_request = RegisterRequest {
                 name: username,
                 email,
                 password
@@ -61,30 +64,28 @@ pub fn Register(props: &RegisterProps) -> Html {
                 let loading = loading.clone();
 
                 spawn_local(async move {
-                    let client = reqwest::Client::new();
-    
-                    match client.post(format!("{}/{}", dotenv!("API_ENDPOINT"), "auth/register"))
-                        .body(serde_json::to_string(&register_request).unwrap())
-                        .send()
-                        .await {
-                            Ok(r) => {
-                                match r.error_for_status_ref() {
-                                    Ok(_r) => {
-                                        let _response = r.json::<RegisterResponse>().await.unwrap();
-                                        
-                                        loading.set(false);
-                                        navigator.push(&Route::Login);
-                                    },
+                    match api::register(register_request).await {
+                        Ok(_) => {
+                            loading.set(false);
 
-                                    Err(_e) => {
-                                        loading.set(false);
-                                    }
-                                }
-                            },
-    
-                            Err(_e) => {
-                                loading.set(false);
-                            }
+                            add_delayed_notif(
+                                "Compte créé !",
+                                "Votre compte à été créé !",
+                                NotifType::Success,
+                            );
+
+                            navigator.push(&Route::Login);
+                        },
+
+                        Err(e) => {
+                            loading.set(false);
+
+                            add_delayed_notif(
+                                "Erreur",
+                                &e.error.description,
+                                NotifType::Error,
+                            );
+                        }
                     }
                 });
             }

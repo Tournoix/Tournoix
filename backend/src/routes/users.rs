@@ -52,6 +52,6 @@ pub async fn get_user(
 }
 
 #[get("/users/@me")]
-pub async fn get_current_user(auth: ApiAuth) -> Result<Json<UserInfo>, (Status, String)> {
+pub async fn get_current_user(auth: ApiAuth) -> Result<Json<UserInfo>, (Status, Json<ErrorResponse>)> {
     Ok(Json(auth.user))
 }
