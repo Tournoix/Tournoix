@@ -11,7 +11,7 @@ pub struct Team {
 pub struct TeamsProps {
     pub on_create: Option<Callback<MouseEvent>>,
     pub on_edit: Option<Callback<i32>>,
-    pub on_delete: Option<Callback<MouseEvent>>,
+    pub on_delete: Option<Callback<i32>>,
 }
 
 #[function_component]
@@ -33,13 +33,26 @@ pub fn Teams(props: &TeamsProps) -> Html {
         }
     };
 
+    let on_delete_click = |id: i32| {
+        if let Some(on_delete) = on_delete {
+            let on_delete = on_delete.clone();
+
+            Callback::from(move |_| {
+                on_delete.emit(id);
+                ()
+            })
+        } else {
+            Callback::noop()
+        }
+    };
+
     html! {
         <div class="flex flex-col items-center bg-nutLighter p-3">
             <h3>{"Equipes"}</h3>
-            <ul class="flex gap-3">
-                <li class="team-selectable">
-                    {if let Some(_on_create) = on_create {
-                        html! { <div class="team-name rounded text-center" onclick={_on_create}>
+            <ul class="flex flex-wrap gap-3 justify-center items-center">
+                <li class="team-item team-selectable">
+                    {if let Some(on_create) = on_create {
+                        html! { <div class="team-name rounded text-center" onclick={on_create}>
                             <img src="/img/plus.svg" class="add-btn"/>
                             {"Créer une équipe"}
                         </div>}
@@ -47,7 +60,7 @@ pub fn Teams(props: &TeamsProps) -> Html {
                 </li>
                 {
                     teams.iter().map(|team| {
-                        html!{<li>
+                        html!{<li class="team-item">
                             <div class={format!("team-name {}", if let Some(_on_edit) = on_edit { "rounded-t" } else { "rounded" })}>
                                 <input id={format!("input-team-{}", team.id)} class={format!("w-full text-center {}", if team.is_being_edited { "bg-yellow-200" } else { "bg-transparent" })} disabled={!team.is_being_edited} type="text" value={team.name.clone()}/>
                             </div>
@@ -61,8 +74,8 @@ pub fn Teams(props: &TeamsProps) -> Html {
                                     } else { html! {}}}
         
                                     // Delete
-                                    {if let Some(_on_delete) = on_delete {
-                                        html! { <a onclick={_on_delete}>
+                                    {if let Some(on_delete) = on_delete {
+                                        html! { <a onclick={on_delete_click(team.id)}>
                                             <img src="/img/trash.svg" class="team-btn-icon hover:bg-red-400 cursor-pointer hover:scale-110"/>
                                         </a> }
                                     } else { html! {}}}

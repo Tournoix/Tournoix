@@ -1,4 +1,4 @@
-use argon2::{Config, Variant, Version, Error};
+use argon2::{Config, Error, Variant, Version};
 use rand::Rng;
 use uuid::Uuid;
 
@@ -75,11 +75,11 @@ pub fn verify_password(hash: &str, password: &str) -> bool {
     argon2::verify_encoded(hash, password.as_bytes()).unwrap()
 }
 
-// Generate token for user session (UUID v4)
+// Generate uuid (Use as a temp user id alias i.e.)
 pub fn generate_token() -> String {
-    // Generate token
+    // Generate uuid
     let token = Uuid::new_v4().to_string();
 
-    // Return token
+    // Return uuid
     token
 }

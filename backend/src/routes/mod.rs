@@ -1,8 +1,8 @@
 pub mod auth;
-pub mod tournoix;
-pub mod users;
-pub mod team;
-pub mod subscription;
+pub mod bet;
 pub mod game;
 pub mod nut;
-pub mod bet;
+pub mod subscription;
+pub mod team;
+pub mod tournoix;
+pub mod users;

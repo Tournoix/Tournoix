@@ -5,3 +5,4 @@ pub mod tournoix_edit;
 pub mod tournoix_view;
 pub mod login;
 pub mod register;
+pub mod games_view;

@@ -17,10 +17,24 @@ pub fn Tournoix(props: &TournoixProps) -> Html {
         let navigator = navigator.clone();
         Callback::from(move |_| navigator.push(&Route::TournoixCreate))
     };
-    let on_read_click = Callback::from(move |_| { });
-    let on_edit_click = Callback::from(move |_| { });
-    let on_delete_click = Callback::from(move |_| { });
-    let on_leave_click = Callback::from(move |_| { });
+    let on_read_click = {
+        let navigator = navigator.clone();
+        Callback::from(move |_| navigator.push(&Route::TournoixView { id: 42 }))
+    };
+    let on_edit_click = {
+        let navigator = navigator.clone();
+        Callback::from(move |_| navigator.push(&Route::TournoixEdit { id: 42 }))
+    };
+    let on_delete_click = Callback::from(move |_| {
+        if !gloo_dialogs::confirm("Êtes-vous sûr de vouloir supprimer ce tournoi ?") {
+            return;
+        }
+    });
+    let on_leave_click = Callback::from(move |_| {
+        if !gloo_dialogs::confirm("Êtes-vous sûr de vouloir quitter ce tournoi ?") {
+            return;
+        }
+    });
 
     // Test data
     let mut owned_tournaments: Vec<String> = Vec::new();

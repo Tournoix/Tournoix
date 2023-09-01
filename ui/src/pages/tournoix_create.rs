@@ -1,8 +1,8 @@
 use wasm_bindgen::JsCast;
-use web_sys::{console, window, HtmlInputElement};
+use web_sys::{window, HtmlInputElement};
 use yew::prelude::*;
 
-use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team, self}}};
+use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team}, bracket::{Bracket, Match, BracketTeams}}};
 use crate::routers::Route;
 
 #[derive(PartialEq, Properties)]
@@ -20,10 +20,30 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
         Team { id: 3, is_being_edited: false, name: "NRG Esports".to_string() },
         Team { id: 4, is_being_edited: false, name: "G2 Esports".to_string() },
         Team { id: 5, is_being_edited: false, name: "fnatic".to_string() },
-        Team { id: 6, is_being_edited: false, name: "Team with a comically long name".to_string() }
+        Team { id: 6, is_being_edited: false, name: "Team with a comically long name".to_string() },
+        Team { id: 7, is_being_edited: false, name: "Team 42".to_string() }
     ]);
 
-    let on_create_team_click = Callback::from(move |_| { });
+    let on_create_team_click = {
+        let teams = teams.clone();
+        Callback::from(move |_| {
+            // Deep copy the teams vector into a buffer
+            let mut teams_buf = vec![];
+            for team in teams.iter() {
+                let mut team = team.clone();
+                team.is_being_edited = false;
+                teams_buf.push(team);
+            }
+
+            teams_buf.push(Team {
+                id: teams.len() as i32,
+                is_being_edited: true,
+                name: "Sans nom".to_string()
+            });
+
+            teams.set(teams_buf);
+        })
+    };
 
     let on_edit_team_click = {
         let teams = teams.clone();
@@ -56,9 +76,6 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                     }
                     
                     team_to_edit.name = team_name;
-
-                    // TODO update name in DB
-
                 }
 
                 team_to_edit.is_being_edited = !team_to_edit.is_being_edited;
@@ -67,9 +84,62 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
             teams.set(teams_buf);
         })
     };
-    let on_delete_team_click = Callback::from(move |_| { });
+    let on_delete_team_click = {
+        let teams = teams.clone();
+        Callback::from(move |id| {
+            let mut name = "";
+
+            // Deep copy the teams vector into a buffer
+            let mut teams_buf = vec![];
+            for team in teams.iter() {
+                if team.id != id {
+                    teams_buf.push(team.clone());
+                } else {
+                    name = team.name.as_str();
+                }
+            }
+
+            if !gloo_dialogs::confirm(format!("Êtes-vous sûr de vouloir supprimer l'équipe \"{}\" ?", name).as_str()) {
+                return;
+            }
+            
+            teams.set(teams_buf);
+        })
+    };
     let on_create_click = Callback::from(move |_| { });
-    
+
+    // Generate bracket
+    let mut bracket_teams: BracketTeams = vec![];
+
+    if teams.len() >= 2 && (teams.len() & (teams.len()-1)) == 0 {
+        let nb_rounds = (teams.len() as f32).log2() as u32;
+
+        bracket_teams.push((0..teams.len()).step_by(2).map(|i| {
+            Match {
+                team1: teams[i].name.clone(),
+                score1: 0,
+                team2: teams[i+1].name.clone(),
+                score2: 0,
+                started: false,
+                finished: false
+            }
+        }).collect::<Vec<Match>>());
+
+        let mut nb_match = teams.len() / 4;
+        for _i in 1..nb_rounds {
+            bracket_teams.push((0..nb_match).map(|_| Match {
+                team1: "TBA".to_string(),
+                score1: 0,
+                team2: "TBA".to_string(),
+                score2: 0,
+                started: false,
+                finished: false
+            }).collect::<Vec<Match>>());
+
+            nb_match /= 2;
+        }
+    }
+
     html! {
         <HomeLayout>
             <div class="flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto relative">
@@ -77,8 +147,8 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                 <h1 class="mb-5">{"Création de tournoi"}</h1>
                 <form class="flex flex-col items-center w-full mx-auto relative">
                     <h2>{"Général"}</h2>
-                    <div class="flex flex-row w-full justify-center">
-                        <div>
+                    <div class="flex flex-row w-full justify-center gap-5 lg:flex-nowrap flex-wrap">
+                        <div class="w-1/2">
                             <FormInput id="name" label="Nom" form_type="text" required={true}/>
                             <FormInput id="date" label="Date" form_type="date" required={true}/>
                             <FormInput id="location" label="Lieu" form_type="text" required={true}/>
@@ -87,12 +157,9 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                             <FormInput id="phase_qualifications" label="Phase de qualifications" form_type="checkbox" required={false}/>
                             <FormInput id="phase_eliminations" label="Phase d'éliminations" form_type="checkbox" required={false}/>
                         </div>
-                        <div>
+                        <div class="w-1/2 m-4">
                             <ContextProvider<UseStateHandle<Vec<Team>>> context={teams.clone()}>
                                 <Teams on_create={on_create_team_click} on_edit={on_edit_team_click} on_delete={on_delete_team_click}/>
-                                <hr/>
-                                {"TEST with non editable team"}
-                                <Teams/>
                             </ContextProvider<UseStateHandle<Vec<Team>>>>
                         </div>
                     </div>
@@ -100,6 +167,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                     <h2>{"Phase de qualifications"}</h2>
                     <hr/>
                     <h2>{"Phase d'éliminations"}</h2>
+                    <Bracket teams={bracket_teams} />
                     <hr/>
                     <Button class="sm:text-xl text-lg px-3 py-2 mx-auto mt-3 mb-16 hover:scale-110 bg-green-700" onclick={on_create_click}>{"Créer un tournoi"}</Button>
                 </form>
