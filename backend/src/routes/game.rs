@@ -1,7 +1,9 @@
 use crate::models::game::Game;
 use crate::models::game::*;
+use crate::models::subscription::Subscription;
 use crate::models::tournament::Tournament;
-use crate::schema::{games, tournaments};
+use crate::routes::auth::ApiAuth;
+use crate::schema::{games, tournaments, subscriptions};
 use crate::MysqlConnection;
 use diesel::prelude::*;
 use rocket::http::Status;
@@ -14,7 +16,39 @@ use super::bet::calculate_gain;
 pub async fn get_tournoix_game(
     connection: MysqlConnection,
     id: i32,
+    auth: ApiAuth,
 ) -> Result<Json<Vec<Game>>, (Status, String)> {
+    // Check if the user is a subscriber/owner of the tournament
+    let is_owner = match connection
+        .run(move |c| {
+            tournaments::table
+                .filter(tournaments::id.eq(id))
+                .filter(tournaments::fk_users.eq(auth.user.id))
+                .first::<Tournament>(c)
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
+    let is_subscriber = match connection
+        .run(move |c| {
+            subscriptions::table
+                .filter(subscriptions::fk_tournaments.eq(id))
+                .filter(subscriptions::fk_users.eq(auth.user.id))
+                .first::<Subscription>(c)
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
+    if !is_owner && !is_subscriber {
+        return Err((Status::Forbidden, "Access Forbidden".to_string()));
+    }
+
     // get all team from a tournament
     let teams = match connection
         .run(move |c| tournaments::table.find(id).load::<Tournament>(c))
