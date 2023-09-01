@@ -75,14 +75,12 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
     };
 
     let groups: UseStateHandle<Vec<Group>> = use_state(|| vec![
-        Group { id: 0, name: "test0".to_string() },
-        Group { id: 1, name: "test1".to_string() },
-        Group { id: 2, name: "test2".to_string() },
-        Group { id: 3, name: "test3".to_string() },
-        Group { id: 4, name: "test4".to_string() },
-        Group { id: 5, name: "test5".to_string() },
-        Group { id: 6, name: "test6".to_string() },
-        Group { id: 7, name: "test7".to_string() },
+        Group { },
+        Group { },
+        Group { },
+        Group { },
+        Group { },
+        Group { },
     ]);
     
     html! {

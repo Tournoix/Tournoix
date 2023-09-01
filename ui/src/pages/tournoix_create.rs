@@ -13,6 +13,48 @@ pub struct TournoixCreateProps {
 pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
     let TournoixCreateProps {} = props;
 
+    let groups: UseStateHandle<Vec<Group>> = use_state(|| vec![
+        Group { },
+        Group { },
+        Group { },
+        Group { },
+        Group { },
+        Group { },
+    ]);
+
+    let on_create_group_click = {
+        let groups = groups.clone();
+        Callback::from(move |_| {
+            // Deep copy the groups vector into a buffer
+            let mut groups_buf = vec![];
+            for group in groups.iter() {
+                let mut group = group.clone();
+                groups_buf.push(group);
+            }
+
+            groups_buf.push(Group { });
+
+            groups.set(groups_buf);
+        })
+    };
+
+    let on_delete_group_click = {
+        let groups = groups.clone();
+        Callback::from(move |index| {
+            // Deep copy the groups vector into a buffer
+            let mut groups_buf = vec![];
+            for (_index, group) in groups.iter().enumerate() {
+                if _index != index {
+                    groups_buf.push(group.clone());
+                } else {
+                    // Check if the group is empty, otherwise cannot delete it
+                }
+            }
+            
+            groups.set(groups_buf);
+        })
+    };
+
     let teams: UseStateHandle<Vec<Team>> = use_state(|| vec![
         Team { id: 0, is_being_edited: false, name: "Cloud9".to_string() },
         Team { id: 1, is_being_edited: false, name: "FaZe Clan".to_string() },
@@ -22,17 +64,6 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
         Team { id: 5, is_being_edited: false, name: "fnatic".to_string() },
         Team { id: 6, is_being_edited: false, name: "Team with a comically long name".to_string() },
         Team { id: 7, is_being_edited: false, name: "Team 42".to_string() }
-    ]);
-
-    let groups: UseStateHandle<Vec<Group>> = use_state(|| vec![
-        Group { id: 0, name: "test0".to_string() },
-        Group { id: 1, name: "test1".to_string() },
-        Group { id: 2, name: "test2".to_string() },
-        Group { id: 3, name: "test3".to_string() },
-        Group { id: 4, name: "test4".to_string() },
-        Group { id: 5, name: "test5".to_string() },
-        Group { id: 6, name: "test6".to_string() },
-        Group { id: 7, name: "test7".to_string() },
     ]);
 
     let on_create_team_click = {
@@ -118,8 +149,6 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
         })
     };
 
-    let on_create_group_click = Callback::from(|_| ());
-
     let on_create_click = Callback::from(move |_| { });
 
     // Generate bracket
@@ -180,7 +209,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                     <hr/>
                     <h2>{"Phase de qualifications"}</h2>
                     <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
-                        <Groups on_create={on_create_group_click}/>
+                        <Groups on_create={on_create_group_click} on_delete={on_delete_group_click}/>
                     </ContextProvider<UseStateHandle<Vec<Group>>>>
                     <hr/>
                     <h2>{"Phase d'éliminations"}</h2>
