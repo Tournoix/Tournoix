@@ -1,18 +1,54 @@
 use crate::models::game::Game;
 use crate::models::game::*;
+use crate::models::subscription::Subscription;
 use crate::models::tournament::Tournament;
-use crate::schema::{games, tournaments};
+use crate::routes::auth::ApiAuth;
+use crate::schema::{games, tournaments, subscriptions};
 use crate::MysqlConnection;
 use diesel::prelude::*;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
 
+use super::bet::calculate_gain;
+
 #[get("/tournoix/<id>/games")]
 pub async fn get_tournoix_game(
     connection: MysqlConnection,
     id: i32,
+    auth: ApiAuth,
 ) -> Result<Json<Vec<Game>>, (Status, String)> {
+    // Check if the user is a subscriber/owner of the tournament
+    let is_owner = match connection
+        .run(move |c| {
+            tournaments::table
+                .filter(tournaments::id.eq(id))
+                .filter(tournaments::fk_users.eq(auth.user.id))
+                .first::<Tournament>(c)
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
+    let is_subscriber = match connection
+        .run(move |c| {
+            subscriptions::table
+                .filter(subscriptions::fk_tournaments.eq(id))
+                .filter(subscriptions::fk_users.eq(auth.user.id))
+                .first::<Subscription>(c)
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
+    if !is_owner && !is_subscriber {
+        return Err((Status::Forbidden, "Access Forbidden".to_string()));
+    }
+
     // get all team from a tournament
     let teams = match connection
         .run(move |c| tournaments::table.find(id).load::<Tournament>(c))
@@ -67,6 +103,16 @@ pub async fn get_team_game(
     };
 
     Ok(Json(matchs))
+}
+
+// validate the score of a game, lock it and give the nut to the winners / remove it from the losers
+#[get("/game/<id>/close")]
+pub async fn close_game(
+    connection: MysqlConnection,
+    id: i32,
+) -> Result<Status, (Status, String)> {
+    update_game_fn(&connection, Json(PatchGame { has_gained_nut: Some(false), fk_team1: None, fk_team2:None, place: None, is_open: None }), id).await?;
+    return calculate_gain(&connection, id).await;
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -124,13 +170,17 @@ pub async fn create_games(
     Ok(Json(games))
 }
 
-#[patch("/game/<id>", data = "<data>")]
-pub async fn update_game(
-    connection: MysqlConnection,
+async fn update_game_fn(
+    connection: &MysqlConnection,
     data: Json<PatchGame>,
     id: i32,
 ) -> Result<Json<Game>, (Status, String)> {
     let game = data.0;
+
+    // cannot update the game it the betting is closed
+    if game.is_open == Some(false) {
+        return Err((Status::BadRequest, "Betting is closed".to_string()));
+    }
 
     match connection
         .run(move |c| {
@@ -160,4 +210,43 @@ pub async fn update_game(
             ))
         }
     }
+}
+
+#[patch("/game/<id>", data = "<data>")]
+pub async fn update_game(
+    connection: MysqlConnection,
+    data: Json<PatchGame>,
+    id: i32,
+) -> Result<Json<Game>, (Status, String)> {
+    return update_game_fn(&connection, data, id).await;
+}
+
+// block the action of betting on a game
+#[patch("/game/<id>/closeBetting")]
+pub async fn close_game_betting(
+    connection: MysqlConnection,
+    id: i32,
+) -> Result<Json<Game>, (Status, String)> {
+    let game = match connection.run(
+       move |c| c.transaction(|c| {
+            diesel::update(games::table.find(id))
+                .set(games::is_open.eq(false))
+                .execute(c)?;
+
+            let game = games::table.order(games::id.desc()).first::<Game>(c).map(Json)?;
+
+            diesel::result::QueryResult::Ok(game)
+        })
+    ).await {
+        Ok(game) => game,
+        Err(_e) => {
+            
+            return Err((
+                Status::InternalServerError,
+                "Internel Server Error".to_string()
+            ))
+        }
+    };
+
+    Ok(game)
 }

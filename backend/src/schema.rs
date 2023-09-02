@@ -19,6 +19,8 @@ diesel::table! {
         score2 -> Integer,
         phase -> Integer,
         place -> Integer,
+        is_open -> Bool,
+        has_gained_nut -> Bool,
     }
 }
 

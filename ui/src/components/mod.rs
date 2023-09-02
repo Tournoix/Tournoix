@@ -12,3 +12,5 @@ pub mod groups;
 pub mod bracket;
 pub mod bracket_match;
 pub mod bracket_round;
+pub mod join_code;
+pub mod checkbox;

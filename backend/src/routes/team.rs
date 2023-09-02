@@ -1,5 +1,7 @@
+use crate::models::game::Game;
+use crate::models::tournament::Tournament;
 use crate::models::team::*;
-use crate::schema::teams;
+use crate::schema::{teams, games, tournaments};
 use crate::schema::teams::fk_tournaments;
 use crate::MysqlConnection;
 use diesel::prelude::*;
@@ -35,6 +37,11 @@ pub async fn create_team(
     data: Json<AddTeam>,
     id: i32,
 ) -> Result<Json<Team>, (Status, String)> {
+    // cannot create a team if the tournament is started
+    if tournament_is_started(&connection, id).await {
+        return Err((Status::BadRequest, "Cannot create a team".to_string()));
+    }
+
     let team = NewTeam {
         fk_tournaments: id,
         name: data.0.name,
@@ -79,6 +86,11 @@ pub async fn update_team(
 ) -> Result<Json<Team>, (Status, String)> {
     let team = data.0;
 
+    // if it s an update on the group, we cannot update it since there is games
+    if tournament_is_started(&connection, id).await && team.group.is_some() {
+        return Err((Status::BadRequest, "Cannot update the group".to_string()));
+    }
+
     match connection
         .run(move |c| {
             c.transaction(|c| {
@@ -115,6 +127,24 @@ pub async fn delete_team(
     connection: MysqlConnection,
     id: i32,
 ) -> Result<Json<Team>, (Status, String)> {
+    // if there is allready a match for this team, we can't delete it
+    match connection
+        .run(
+            move |c| games::table
+                .filter(games::fk_team1.eq(id))
+                .or_filter(games::fk_team2.eq(id))
+                .first::<Game>(c),
+    ).await{
+        Ok(_game) => {
+            return Err((
+                Status::InternalServerError,
+                "Cannot remove the team".to_string(),
+            ))
+
+        },
+        Err(_e) => {}
+    }
+
     match connection
         .run(move |c| {
             c.transaction(|c| {
@@ -129,7 +159,7 @@ pub async fn delete_team(
     {
         Ok(team) => {
             return Ok(team);
-        }
+        },
 
         Err(_e) => {
             return Err((
@@ -138,4 +168,18 @@ pub async fn delete_team(
             ))
         }
     }
+}
+
+async fn tournament_is_started(connection: &MysqlConnection, id: i32) -> bool {
+    // verify if the tournament has games
+    match connection.run(move |c| {
+        tournaments::table
+            .find(id)
+            .inner_join(teams::table.on(teams::fk_tournaments.eq(tournaments::id)))
+            .inner_join(games::table.on(games::fk_team1.eq(teams::id).or(games::fk_team2.eq(teams::id))))
+            .first::<(Tournament, Team, Game)>(c)
+    }).await{
+        Ok(_game) => return true,
+        Err(_e) => return false,
+    };
 }
