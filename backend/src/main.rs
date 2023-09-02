@@ -68,6 +68,7 @@ pub struct ErrorResponse {
 #[derive(Serialize)]
 pub struct ErrorBody {
     pub code: i32,
+    pub reason: String,
     pub description: String,
 }
 
@@ -160,6 +161,7 @@ async fn api_hole(_path: PathBuf) -> (Status, Json<ErrorResponse>) {
         Json(ErrorResponse {
             error: ErrorBody {
                 code: 404,
+                reason: "Not Found".into(),
                 description: "There is nothing here".to_string(),
             },
         }),

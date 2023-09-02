@@ -7,7 +7,7 @@ pub fn fetch_tournament(id: i32) -> Tournament {
         id,
         name: "World Championship pétanque 2023".to_string(),
         description: "Ne manquez pas le rendez-vous incontournable pour tout les amateurs de boules qui se respecte. Au programme, suze, grillades, bière et bien sûr pétanque.".to_string(),
-        date: chrono::NaiveDateTime::new(chrono::NaiveDate::from_ymd(2023, 9, 9), chrono::NaiveTime::from_hms(0, 0, 0)),
+        date: chrono::NaiveDateTime::new(chrono::NaiveDate::from_ymd_opt(2023, 9, 9).unwrap(), chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap()),
         location: "1450 Sainte-Croix, Avenue de la Gare 14".to_string(),
         is_qualif: true,
         is_elim: true,

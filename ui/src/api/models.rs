@@ -7,7 +7,7 @@ use super::{ErrorBody, ErrorResponse};
 
 // ---- User ----
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct User {
     pub id: usize,
     pub name: String,
@@ -108,7 +108,7 @@ impl User {
 
 // ---- Tournament ----
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct Tournament {
     pub id: usize,
     pub fk_users: i32,

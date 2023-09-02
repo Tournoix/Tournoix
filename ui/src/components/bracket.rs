@@ -29,8 +29,6 @@ pub fn Bracket(props: &BracketProps) -> Html {
             <div>{"Number of teams is invalid. Must be a power of 2"}</div>
         )
     } else {
-        let nb_rounds = (teams.get(0).unwrap().len() as f32).log2() as u32;
-        let mut nb_match = teams.get(0).unwrap().len() / 2;
         let mut round_id = 0;
 
         html! {

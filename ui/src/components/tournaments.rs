@@ -1,10 +1,12 @@
 use yew::prelude::*;
+use yew_router::prelude::use_navigator;
+
+use crate::{api::models::Tournament, routers::Route};
 
 #[derive(PartialEq, Properties)]
 pub struct TournamentsProps {
-    pub tournaments: Vec<String>,
+    pub tournaments: Vec<Tournament>,
     pub on_create: Option<Callback<MouseEvent>>,
-    pub on_read: Callback<MouseEvent>,
     pub on_edit: Option<Callback<MouseEvent>>,
     pub on_delete: Option<Callback<MouseEvent>>,
     pub nb_nuts: Option<i32>,
@@ -14,7 +16,13 @@ pub struct TournamentsProps {
 
 #[function_component]
 pub fn Tournaments(props: &TournamentsProps) -> Html {
-    let TournamentsProps { tournaments, on_create, on_read, on_delete, on_edit, nb_nuts, on_leave } = props;
+    let TournamentsProps { tournaments, on_create, on_delete, on_edit, nb_nuts, on_leave } = props;
+    let navigator = use_navigator().unwrap();
+
+    let on_read = {
+        let navigator = navigator.clone();
+        Callback::from(move |_| navigator.push(&Route::TournoixView { id: 42 }))
+    };
 
     html! {
         <ul class="flex gap-5 flex-wrap">
@@ -28,9 +36,9 @@ pub fn Tournaments(props: &TournamentsProps) -> Html {
             
             // List tournaments
             {
-                tournaments.into_iter().map(|tournament| {
+                tournaments.into_iter().map(move |tournament| {
                     html!{<li>
-                        <div class="tournament-card" onclick={on_read}>{ tournament }</div>
+                        <div class="tournament-card" onclick={on_read.clone()}>{ &tournament.name }</div>
                         <div class="tournament-btn-list">
 
                             // Edit

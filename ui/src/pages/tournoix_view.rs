@@ -1,7 +1,18 @@
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::{layouts::homelayout::HomeLayout, routers::Route, components::{backlink::Backlink, results::Results, qualificationPhase::QualificationPhase, bracket::Bracket, join_code::JoinCode, groups::{Groups, Group}}, utils::utils::fetch_tournament};
+use crate::{
+    components::{
+        backlink::Backlink,
+        groups::{Group, Groups},
+        join_code::JoinCode,
+        qualification_phase::QualificationPhase,
+        results::Results,
+    },
+    layouts::homelayout::HomeLayout,
+    routers::Route,
+    utils::utils::fetch_tournament,
+};
 
 #[derive(PartialEq, Properties)]
 pub struct TournoixViewProps {
@@ -12,32 +23,26 @@ pub struct TournoixViewProps {
 pub fn TournoixView(props: &TournoixViewProps) -> Html {
     let TournoixViewProps { id } = props;
     let navigator = use_navigator().unwrap();
-    
+
     let tournament = use_state(|| fetch_tournament(*id));
 
     // TODO Wheter or not the current user can edit this tournament
     let can_edit_tournament = true;
 
-    let groups: UseStateHandle<Vec<Group>> = use_state(|| vec![
-        Group { },
-        Group { },
-        Group { },
-        Group { },
-        Group { },
-        Group { },
-    ]);
+    let groups: UseStateHandle<Vec<Group>> =
+        use_state(|| vec![Group {}, Group {}, Group {}, Group {}, Group {}, Group {}]);
 
     let on_click_edit = {
         let navigator = navigator.clone();
         let id = id.clone();
-        Callback::from(move |_| navigator.push(&Route::TournoixEdit{ id }))
+        Callback::from(move |_| navigator.push(&Route::TournoixEdit { id }))
     };
 
     let on_click_match = {
         let navigator = navigator.clone();
-        Callback::from(move |_| navigator.push(&Route::BetView{ id: 42 }))
+        Callback::from(move |_| navigator.push(&Route::BetView { id: 42 }))
     };
-    
+
     html! {
         <HomeLayout>
             <div class="flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto relative">

@@ -1,4 +1,3 @@
-use log::info;
 use yew::platform::spawn_local;
 use yew::prelude::*;
 use yew_hooks::prelude::*;
@@ -19,9 +18,9 @@ pub struct HomeLayoutProps {
 pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
     let HomeLayoutProps { children } = props;
     let navigator = use_navigator().unwrap();
+    let user_info = use_context::<UserContext>().expect("Missing user context provider");
     let is_logged = use_state(|| false);
     let notifs: UseStateHandle<Vec<Notif>> = use_state(|| Vec::new());
-    let user_info = use_context::<UserContext>().expect("Missing UserInfo contect provider");
 
     {
         let is_logged = is_logged.clone();
@@ -42,7 +41,6 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
         let notifs = notifs.clone();
         use_effect(move || {
             if let Some(fetched_notifs) = consume_notifs() {
-
                 let mut buf_notifs: Vec<Notif> = vec![];
                 let mut curr_id = 0;
 
@@ -55,7 +53,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                     });
                     curr_id += 1;
                 }
-    
+
                 if !buf_notifs.is_empty() {
                     notifs.set(buf_notifs);
                 }
@@ -78,32 +76,21 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
         Callback::from(move |_| navigator.push(&Route::Tournoix))
     };
 
-    let on_logout_click = {
-        let navigator = navigator.clone();
-        let is_logged = is_logged.clone();
-        
-        Callback::from(move |_| {
-            let user_info = user_info.clone();
-            let is_logged = is_logged.clone();
-            let navigator = navigator.clone();
+    let on_logout_click = Callback::from(move |_| {
+        let user_info = user_info.clone();
 
-            spawn_local(async move {
-                api::logout().await;
+        spawn_local(async move {
+            api::auth::logout().await;
 
-                add_delayed_notif("Déconnecté(e)", "Vous vous êtes déconnecté(e) avec succès de votre compte.", NotifType::Success);
+            add_delayed_notif(
+                "Déconnecté(e)",
+                "Vous vous êtes déconnecté(e) avec succès de votre compte.",
+                NotifType::Success,
+            );
 
-                if let Some(win) = window() {
-                    if let Ok(Some(store)) = win.local_storage() {
-                        if let Ok(_item) = store.remove_item("loginToken") {
-                            is_logged.set(false);
-                        }
-                    }
-                }
-
-                navigator.push(&Route::Home)
-            });
-        })
-    };
+            user_info.logout();
+        });
+    });
 
     html! {
         <div class="font-bebas bg-[#fbfefb] min-h-full">

@@ -41,11 +41,11 @@ pub fn Groups(props: &GroupsProps) -> Html {
                     } else { html! {}}
                 }
                 {
-                    groups.iter().enumerate().map(|(index, group)| {
+                    groups.iter().enumerate().map(|(index, _group)| {
                         html!{<li class="group-item relative">
                             <div class="flex justify-center">
                                 <div>{"Groupe "}{index + 1}</div>
-                                if let Some(on_delete) = on_delete {
+                                if let Some(_on_delete) = on_delete {
                                     <div class="ml-2">
                                         <img onclick={on_delete_click(index)} src="/img/trash.svg" class="group-btn-icon absolute top-0 right-0 hover:bg-red-400 bg-white cursor-pointer hover:scale-110"/>
                                     </div>

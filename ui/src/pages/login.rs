@@ -2,7 +2,8 @@ use yew::platform::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::api::{self, LoginRequest};
+use crate::api;
+use crate::api::auth::LoginRequest;
 use crate::components::notification::NotifType;
 use crate::components::user_provider::UserContext;
 use crate::components::{button::Button, form_input::FormInput};
@@ -44,7 +45,7 @@ pub fn Login(props: &LoginProps) -> Html {
                 let user_info = user_info.clone();
 
                 spawn_local(async move {
-                    match api::login(login_request).await {
+                    match api::auth::login(login_request).await {
                         Ok(token_response) => {
                             user_info.login(&token_response.token);
 

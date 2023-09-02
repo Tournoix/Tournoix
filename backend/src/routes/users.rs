@@ -19,6 +19,7 @@ pub async fn get_user(
             Json(ErrorResponse {
                 error: ErrorBody {
                     code: 403,
+                    reason: "Forbidden".into(),
                     description: "Access Forbidden".into(),
                 },
             }),
@@ -43,6 +44,7 @@ pub async fn get_user(
                 Json(ErrorResponse {
                     error: ErrorBody {
                         code: 404,
+                        reason: "Not Found".into(),
                         description: "user not found".into(),
                     },
                 }),

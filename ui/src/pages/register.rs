@@ -3,9 +3,9 @@ use web_sys::HtmlInputElement;
 use yew::platform::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
-use dotenv_codegen::dotenv;
 
-use crate::api::{self, RegisterRequest};
+use crate::api::auth::RegisterRequest;
+use crate::api::{self};
 use crate::components::notification::NotifType;
 use crate::components::{form_input::FormInput, button::Button};
 use crate::layouts::homelayout::HomeLayout;
@@ -64,7 +64,7 @@ pub fn Register(props: &RegisterProps) -> Html {
                 let loading = loading.clone();
 
                 spawn_local(async move {
-                    match api::register(register_request).await {
+                    match api::auth::register(register_request).await {
                         Ok(_) => {
                             loading.set(false);
 

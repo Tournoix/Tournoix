@@ -2,12 +2,22 @@ use wasm_bindgen::JsCast;
 use web_sys::{window, HtmlInputElement};
 use yew::prelude::*;
 
-use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team}, bracket::{Bracket, Match, BracketTeams}, groups::{Group, Groups}, checkbox::CheckBox}};
 use crate::routers::Route;
+use crate::{
+    components::{
+        backlink::Backlink,
+        bracket::{Bracket, BracketTeams, Match},
+        button::Button,
+        checkbox::CheckBox,
+        form_input::FormInput,
+        groups::{Group, Groups},
+        teams::{Team, Teams},
+    },
+    layouts::homelayout::HomeLayout,
+};
 
 #[derive(PartialEq, Properties)]
-pub struct TournoixCreateProps {
-}
+pub struct TournoixCreateProps {}
 
 #[function_component]
 pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
@@ -29,14 +39,8 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
         })
     };
 
-    let groups: UseStateHandle<Vec<Group>> = use_state(|| vec![
-        Group { },
-        Group { },
-        Group { },
-        Group { },
-        Group { },
-        Group { },
-    ]);
+    let groups: UseStateHandle<Vec<Group>> =
+        use_state(|| vec![Group {}, Group {}, Group {}, Group {}, Group {}, Group {}]);
 
     let on_create_group_click = {
         let groups = groups.clone();
@@ -44,11 +48,11 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
             // Deep copy the groups vector into a buffer
             let mut groups_buf = vec![];
             for group in groups.iter() {
-                let mut group = group.clone();
+                let group = group.clone();
                 groups_buf.push(group);
             }
 
-            groups_buf.push(Group { });
+            groups_buf.push(Group {});
 
             groups.set(groups_buf);
         })
@@ -66,21 +70,55 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                     // Check if the group is empty, otherwise cannot delete it
                 }
             }
-            
+
             groups.set(groups_buf);
         })
     };
 
-    let teams: UseStateHandle<Vec<Team>> = use_state(|| vec![
-        Team { id: 0, is_being_edited: false, name: "Cloud9".to_string() },
-        Team { id: 1, is_being_edited: false, name: "FaZe Clan".to_string() },
-        Team { id: 2, is_being_edited: false, name: "NaVi".to_string() },
-        Team { id: 3, is_being_edited: false, name: "NRG Esports".to_string() },
-        Team { id: 4, is_being_edited: false, name: "G2 Esports".to_string() },
-        Team { id: 5, is_being_edited: false, name: "fnatic".to_string() },
-        Team { id: 6, is_being_edited: false, name: "Team with a comically long name".to_string() },
-        Team { id: 7, is_being_edited: false, name: "Team 42".to_string() }
-    ]);
+    let teams: UseStateHandle<Vec<Team>> = use_state(|| {
+        vec![
+            Team {
+                id: 0,
+                is_being_edited: false,
+                name: "Cloud9".to_string(),
+            },
+            Team {
+                id: 1,
+                is_being_edited: false,
+                name: "FaZe Clan".to_string(),
+            },
+            Team {
+                id: 2,
+                is_being_edited: false,
+                name: "NaVi".to_string(),
+            },
+            Team {
+                id: 3,
+                is_being_edited: false,
+                name: "NRG Esports".to_string(),
+            },
+            Team {
+                id: 4,
+                is_being_edited: false,
+                name: "G2 Esports".to_string(),
+            },
+            Team {
+                id: 5,
+                is_being_edited: false,
+                name: "fnatic".to_string(),
+            },
+            Team {
+                id: 6,
+                is_being_edited: false,
+                name: "Team with a comically long name".to_string(),
+            },
+            Team {
+                id: 7,
+                is_being_edited: false,
+                name: "Team 42".to_string(),
+            },
+        ]
+    });
 
     let on_create_team_click = {
         let teams = teams.clone();
@@ -96,7 +134,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
             teams_buf.push(Team {
                 id: teams.len() as i32,
                 is_being_edited: true,
-                name: "Sans nom".to_string()
+                name: "Sans nom".to_string(),
             });
 
             teams.set(teams_buf);
@@ -118,7 +156,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                     team.is_being_edited = false;
                 }
             }
-            
+
             let team_to_edit = teams_buf.iter_mut().find(|team| team.id == id);
 
             if let Some(team_to_edit) = team_to_edit {
@@ -127,18 +165,20 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
 
                     let window = window().unwrap();
                     let document = window.document().unwrap();
-                    let input_element = document.get_element_by_id(format!("input-team-{}", id).as_str()).unwrap();
+                    let input_element = document
+                        .get_element_by_id(format!("input-team-{}", id).as_str())
+                        .unwrap();
                     let input_element = input_element.dyn_into::<HtmlInputElement>().ok();
                     if let Some(input_element) = input_element {
                         team_name = input_element.value();
                     }
-                    
+
                     team_to_edit.name = team_name;
                 }
 
                 team_to_edit.is_being_edited = !team_to_edit.is_being_edited;
             }
-            
+
             teams.set(teams_buf);
         })
     };
@@ -157,43 +197,52 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                 }
             }
 
-            if !gloo_dialogs::confirm(format!("Êtes-vous sûr de vouloir supprimer l'équipe \"{}\" ?", name).as_str()) {
+            if !gloo_dialogs::confirm(
+                format!("Êtes-vous sûr de vouloir supprimer l'équipe \"{}\" ?", name).as_str(),
+            ) {
                 return;
             }
-            
+
             teams.set(teams_buf);
         })
     };
 
-    let on_create_click = Callback::from(move |_| { });
+    let on_create_click = Callback::from(move |_| {});
 
     // Generate bracket
     let mut bracket_teams: BracketTeams = vec![];
 
-    if teams.len() >= 2 && (teams.len() & (teams.len()-1)) == 0 {
+    if teams.len() >= 2 && (teams.len() & (teams.len() - 1)) == 0 {
         let nb_rounds = (teams.len() as f32).log2() as u32;
 
-        bracket_teams.push((0..teams.len()).step_by(2).map(|i| {
-            Match {
-                team1: teams[i].name.clone(),
-                score1: 0,
-                team2: teams[i+1].name.clone(),
-                score2: 0,
-                started: false,
-                finished: false
-            }
-        }).collect::<Vec<Match>>());
+        bracket_teams.push(
+            (0..teams.len())
+                .step_by(2)
+                .map(|i| Match {
+                    team1: teams[i].name.clone(),
+                    score1: 0,
+                    team2: teams[i + 1].name.clone(),
+                    score2: 0,
+                    started: false,
+                    finished: false,
+                })
+                .collect::<Vec<Match>>(),
+        );
 
         let mut nb_match = teams.len() / 4;
         for _i in 1..nb_rounds {
-            bracket_teams.push((0..nb_match).map(|_| Match {
-                team1: "TBA".to_string(),
-                score1: 0,
-                team2: "TBA".to_string(),
-                score2: 0,
-                started: false,
-                finished: false
-            }).collect::<Vec<Match>>());
+            bracket_teams.push(
+                (0..nb_match)
+                    .map(|_| Match {
+                        team1: "TBA".to_string(),
+                        score1: 0,
+                        team2: "TBA".to_string(),
+                        score2: 0,
+                        started: false,
+                        finished: false,
+                    })
+                    .collect::<Vec<Match>>(),
+            );
 
             nb_match /= 2;
         }

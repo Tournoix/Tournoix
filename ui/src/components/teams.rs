@@ -16,7 +16,11 @@ pub struct TeamsProps {
 
 #[function_component]
 pub fn Teams(props: &TeamsProps) -> Html {
-    let TeamsProps { on_create, on_edit, on_delete } = props;
+    let TeamsProps {
+        on_create,
+        on_edit,
+        on_delete,
+    } = props;
 
     let teams = use_context::<UseStateHandle<Vec<Team>>>().expect("Missing teams provider");
 
@@ -72,9 +76,9 @@ pub fn Teams(props: &TeamsProps) -> Html {
                                             <img src={if team.is_being_edited { "/img/checkmark.svg" } else { "/img/pencil.svg" }} class={format!("team-btn-icon cursor-pointer hover:scale-110 {}", {if team.is_being_edited { "hover:bg-green-400" } else { "hover:bg-orange-400" }})}/>
                                         </a> }
                                     } else { html! {}}}
-        
+
                                     // Delete
-                                    {if let Some(on_delete) = on_delete {
+                                    {if let Some(_on_delete) = on_delete {
                                         html! { <a onclick={on_delete_click(team.id)}>
                                             <img src="/img/trash.svg" class="team-btn-icon hover:bg-red-400 cursor-pointer hover:scale-110"/>
                                         </a> }

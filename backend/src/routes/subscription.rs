@@ -3,7 +3,7 @@ use crate::models::subscription::{NewSubscription, Subscription};
 use crate::models::tournament::Tournament;
 use crate::routes::auth::ApiAuth;
 use crate::schema::{nuts, subscriptions, tournaments};
-use crate::MysqlConnection;
+use crate::{ErrorBody, ErrorResponse, MysqlConnection};
 use diesel::prelude::*;
 use rocket::http::Status;
 use rocket::serde::json::Json;
@@ -11,8 +11,8 @@ use rocket::serde::json::Json;
 #[get("/users/@me/tournoix")]
 pub async fn get_user_tournoix(
     connection: MysqlConnection,
-    auth: ApiAuth
-) -> Result<Json<Vec<Tournament>>, (Status, String)> {
+    auth: ApiAuth,
+) -> Result<Json<Vec<Tournament>>, (Status, Json<ErrorResponse>)> {
     match connection
         .run(move |c| {
             tournaments::table
@@ -24,15 +24,26 @@ pub async fn get_user_tournoix(
     {
         Ok(tournoi) => return Ok(tournoi),
 
-        Err(_e) => return Err((Status::NotFound, "No created tournament found".to_string())),
+        Err(_e) => {
+            return Err((
+                Status::InternalServerError,
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 500,
+                        reason: "Internal Server Error".into(),
+                        description: "An error has occured".to_string(),
+                    },
+                }),
+            ))
+        }
     }
 }
 
 #[get("/users/@me/subscriptions")]
 pub async fn get_user_subscription(
     connection: MysqlConnection,
-    auth: ApiAuth
-) -> Result<Json<Vec<Tournament>>, (Status, String)> {
+    auth: ApiAuth,
+) -> Result<Json<Vec<Tournament>>, (Status, Json<ErrorResponse>)> {
     // get all subsciptions for the user
     let tab_subscriber = match connection
         .run(move |c| {
@@ -45,8 +56,14 @@ pub async fn get_user_subscription(
         Ok(subscribers) => subscribers,
         Err(_) => {
             return Err((
-                Status::NotFound,
-                "Subscription to tournament not found".to_string(),
+                Status::InternalServerError,
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 500,
+                        reason: "Internal Server Error".into(),
+                        description: "An error has occured".to_string(),
+                    },
+                }),
             ))
         }
     };
@@ -61,7 +78,18 @@ pub async fn get_user_subscription(
             .await
         {
             Ok(tournaments) => tournaments,
-            Err(_) => return Err((Status::NotFound, "Wrong tournament id".to_string())),
+            Err(_) => {
+                return Err((
+                    Status::NotFound,
+                    Json(ErrorResponse {
+                        error: ErrorBody {
+                            code: 404,
+                            reason: "Not Found".into(),
+                            description: "Wrong tournament id".to_string(),
+                        },
+                    }),
+                ))
+            }
         };
 
         tournoix_vec.extend(tournaments);
@@ -74,7 +102,7 @@ pub async fn get_user_subscription(
 pub async fn create_subsciption(
     connection: MysqlConnection,
     code: String,
-    auth: ApiAuth
+    auth: ApiAuth,
 ) -> Result<Json<Subscription>, (Status, String)> {
     // verify the existance of the code in the database
     let tournament = match connection
@@ -171,7 +199,7 @@ pub async fn create_subsciption(
 pub async fn delete_subscription(
     connection: MysqlConnection,
     id_tournament: i32,
-    auth: ApiAuth
+    auth: ApiAuth,
 ) -> Result<Json<Subscription>, (Status, String)> {
     match connection
         .run(move |c| {
@@ -182,9 +210,7 @@ pub async fn delete_subscription(
                     .first::<Subscription>(c)
                     .map(Json)?;
 
-                diesel::delete(subscriptions::table
-                    .find(sub.id))
-                    .execute(c)?;
+                diesel::delete(subscriptions::table.find(sub.id)).execute(c)?;
 
                 diesel::result::QueryResult::Ok(sub)
             })

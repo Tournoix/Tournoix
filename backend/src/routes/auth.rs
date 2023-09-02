@@ -170,6 +170,7 @@ pub async fn login(
                             Json(ErrorResponse {
                                 error: ErrorBody {
                                     code: 500,
+                                    reason: "Internal Server Error".into(),
                                     description: "An error occured".into(),
                                 },
                             }),
@@ -182,6 +183,7 @@ pub async fn login(
                     Json(ErrorResponse {
                         error: ErrorBody {
                             code: 401,
+                            reason: "Unauthorized".into(),
                             description: "Email or password incorrect".into(),
                         },
                     }),
@@ -195,6 +197,7 @@ pub async fn login(
                 Json(ErrorResponse {
                     error: ErrorBody {
                         code: 401,
+                        reason: "Unauthorized".into(),
                         description: "Email or password incorrect".into(),
                     },
                 }),
@@ -243,6 +246,7 @@ pub async fn register(
                 Json(ErrorResponse {
                     error: ErrorBody {
                         code: 409,
+                        reason: "Conflict".into(),
                         description: "Email already used".to_string(),
                     },
                 }),
@@ -259,6 +263,7 @@ pub async fn register(
                         Json(ErrorResponse {
                             error: ErrorBody {
                                 code: 500,
+                                reason: "Internal Server Error".into(),
                                 description: "An error has occured".to_string(),
                             },
                         }),
@@ -301,6 +306,7 @@ pub async fn register(
                         Json(ErrorResponse {
                             error: ErrorBody {
                                 code: 500,
+                                reason: "Internal Server Error".into(),
                                 description: "An error has occured".to_string(),
                             },
                         }),
