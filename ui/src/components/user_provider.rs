@@ -117,11 +117,25 @@ pub fn UserProvider(props: &UserProviderProps) -> Html {
 
         use_effect_once(move || {
             user_reducer.dispatch((Action::SetReducer, Some(user_reducer.clone()), None));
-            //executor::block_one();
 
             spawn_local(async move {
-                let user = api::me().await.ok();
-                user_reducer.dispatch((Action::SetUser, None, user));
+                if user_reducer.is_logged() {
+                    match api::me().await {
+                        Ok(user) => user_reducer.dispatch((Action::SetUser, None, Some(user))),
+                        Err(e) => match e.error.code {
+                            401 => {
+                                if let Some(win) = window() {
+                                    if let Ok(Some(store)) = win.local_storage() {
+                                        if store.remove_item("loginToken").is_ok() {
+                                            user_reducer.dispatch((Action::Refresh, None, None));
+                                        }
+                                    }
+                                }
+                            }
+                            _ => {}
+                        },
+                    };
+                }
             });
 
             || ()

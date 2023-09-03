@@ -21,6 +21,7 @@ pub fn Tournoix(props: &TournoixProps) -> Html {
     let loading_owned = use_state(|| true);
     let loading_joined = use_state(|| true);
 
+    // TODO: Should move component based features inside these components
     let on_create_click = {
         let navigator = navigator.clone();
         Callback::from(move |_| navigator.push(&Route::TournoixCreate))

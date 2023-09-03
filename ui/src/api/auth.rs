@@ -1,9 +1,7 @@
-use serde::{Serialize, Deserialize};
-use dotenv_codegen::dotenv;
+use reqwest::{header::HeaderMap, Method};
+use serde::{Deserialize, Serialize};
 
-use crate::components::user_provider::UserInfo;
-
-use super::{ErrorResponse, ErrorBody};
+use super::{api_call, ErrorResponse};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TokenResponse {
@@ -20,61 +18,20 @@ pub struct LoginRequest {
 /// Login to the API
 /// On success return the session token
 pub async fn login(login_request: LoginRequest) -> Result<TokenResponse, ErrorResponse> {
-    let client = reqwest::Client::new();
-
-    match client
-        .post(format!("{}/{}", dotenv!("API_ENDPOINT"), "auth/login"))
-        .header("Accept", "application/json")
-        .body(serde_json::to_string(&login_request).unwrap())
-        .send()
-        .await
-    {
-        Ok(r) => match r.error_for_status_ref() {
-            Ok(_r) => {
-                let response = r.json::<TokenResponse>().await.unwrap();
-
-                Ok(response)
-            }
-
-            Err(_e) => Err(r.json::<ErrorResponse>().await.unwrap()),
-        },
-
-        Err(_e) => Err(ErrorResponse {
-            error: ErrorBody {
-                code: 500,
-                reason: "Internal server error".into(),
-                description: "An error occured".into(),
-            },
-        }),
-    }
+    api_call::<TokenResponse>(
+        Method::POST,
+        "auth/login",
+        HeaderMap::new(),
+        serde_json::to_string(&login_request).unwrap(),
+    )
+    .await
 }
 
 /// Logout to the API
 /// Will revoke the session token
 pub async fn logout() -> bool {
-    let token = UserInfo::get_token();
-
-    if token.is_none() {
-        return false;
-    }
-
-    let token = token.unwrap();
-
-    let client = reqwest::Client::new();
-
-    match client
-        .post(format!("{}/{}", dotenv!("API_ENDPOINT"), "auth/logout"))
-        .header("Accept", "application/json")
-        .header("Authorization", format!("bearer {}", token))
-        .send()
-        .await
-    {
-        Ok(r) => match r.error_for_status_ref() {
-            Ok(_r) => true,
-
-            Err(_e) => false,
-        },
-
+    match api_call::<String>(Method::POST, "auth/logout", HeaderMap::new(), String::new()).await {
+        Ok(_) => true,
         Err(_e) => false,
     }
 }
@@ -96,31 +53,11 @@ pub struct RegisterResponse {
 pub async fn register(
     register_request: RegisterRequest,
 ) -> Result<RegisterResponse, ErrorResponse> {
-    let client = reqwest::Client::new();
-
-    match client
-        .post(format!("{}/{}", dotenv!("API_ENDPOINT"), "auth/register"))
-        .header("Accept", "application/json")
-        .body(serde_json::to_string(&register_request).unwrap())
-        .send()
-        .await
-    {
-        Ok(r) => match r.error_for_status_ref() {
-            Ok(_r) => {
-                let response = r.json::<RegisterResponse>().await.unwrap();
-
-                Ok(response)
-            }
-
-            Err(_e) => Err(r.json::<ErrorResponse>().await.unwrap()),
-        },
-
-        Err(_e) => Err(ErrorResponse {
-            error: ErrorBody {
-                code: 500,
-                reason: "Internal server error".into(),
-                description: "An error occured".into(),
-            },
-        }),
-    }
+    api_call::<RegisterResponse>(
+        Method::POST,
+        "auth/register",
+        HeaderMap::new(),
+        serde_json::to_string(&register_request).unwrap(),
+    )
+    .await
 }

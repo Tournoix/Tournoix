@@ -54,7 +54,7 @@ pub fn LoggedRoute(props: &LoggedRouteProps) -> Html {
         if user_info.is_logged() {
             {children.clone()}
         } else {
-            <Redirect<Route> to={Route::Home} />
+            <Redirect<Route> to={Route::Login} />
         }
     }
 }

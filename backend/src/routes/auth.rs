@@ -216,14 +216,25 @@ pub struct LogoutRequest {
 pub async fn logout(
     connection: MysqlConnection,
     auth: ApiAuth,
-) -> Result<Json<()>, (Status, String)> {
+) -> Result<Json<String>, (Status, Json<ErrorResponse>)> {
     // Delete token from db
     match connection
         .run(move |c| diesel::delete(tokens::table.find(auth.token)).execute(c))
         .await
     {
-        Ok(_) => return Ok(Json(())),
-        Err(e) => return Err((Status::InternalServerError, e.to_string())),
+        Ok(_) => return Ok(Json("Logout successfull".into())),
+        Err(_e) => {
+            return Err((
+                Status::InternalServerError,
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 500,
+                        reason: "Internal Server Error".into(),
+                        description: "An error occured".into(),
+                    },
+                }),
+            ))
+        }
     }
 }
 

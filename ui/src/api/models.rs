@@ -1,9 +1,7 @@
-use dotenv_codegen::dotenv;
+use reqwest::{header::HeaderMap, Method};
 use serde::{Deserialize, Serialize};
 
-use crate::components::user_provider::UserInfo;
-
-use super::{ErrorBody, ErrorResponse};
+use super::{api_call, ErrorResponse};
 
 // ---- User ----
 
@@ -16,87 +14,23 @@ pub struct User {
 
 impl User {
     pub async fn tournaments(&self) -> Result<Vec<Tournament>, ErrorResponse> {
-        let token = UserInfo::get_token();
-        if token.is_none() {
-            return Err(ErrorResponse {
-                error: ErrorBody {
-                    code: 400,
-                    reason: "Bad Request".into(),
-                    description: "User not authentified".into(),
-                },
-            });
-        }
-
-        let token = token.unwrap();
-        let client = reqwest::Client::new();
-
-        match client
-            .get(format!(
-                "{}/{}",
-                dotenv!("API_ENDPOINT"),
-                "users/@me/tournoix"
-            ))
-            .header("Accept", "application/json")
-            .header("Authorization", format!("bearer {}", token))
-            .send()
-            .await
-        {
-            Ok(r) => match r.error_for_status_ref() {
-                Ok(_r) => Ok(r.json::<Vec<Tournament>>().await.unwrap()),
-
-                Err(_e) => Err(r.json::<ErrorResponse>().await.unwrap()),
-            },
-
-            Err(_e) => Err(ErrorResponse {
-                error: ErrorBody {
-                    code: 500,
-                    reason: "Internal server error".into(),
-                    description: "An error occured".into(),
-                },
-            }),
-        }
+        api_call::<Vec<Tournament>>(
+            Method::GET,
+            "users/@me/tournoix",
+            HeaderMap::new(),
+            String::new(),
+        )
+        .await
     }
 
     pub async fn subscriptions(&self) -> Result<Vec<Tournament>, ErrorResponse> {
-        let token = UserInfo::get_token();
-        if token.is_none() {
-            return Err(ErrorResponse {
-                error: ErrorBody {
-                    code: 400,
-                    reason: "Bad Request".into(),
-                    description: "User not authentified".into(),
-                },
-            });
-        }
-
-        let token = token.unwrap();
-        let client = reqwest::Client::new();
-
-        match client
-            .get(format!(
-                "{}/{}",
-                dotenv!("API_ENDPOINT"),
-                "users/@me/subscriptions"
-            ))
-            .header("Accept", "application/json")
-            .header("Authorization", format!("bearer {}", token))
-            .send()
-            .await
-        {
-            Ok(r) => match r.error_for_status_ref() {
-                Ok(_r) => Ok(r.json::<Vec<Tournament>>().await.unwrap()),
-
-                Err(_e) => Err(r.json::<ErrorResponse>().await.unwrap()),
-            },
-
-            Err(_e) => Err(ErrorResponse {
-                error: ErrorBody {
-                    code: 500,
-                    reason: "Internal server error".into(),
-                    description: "An error occured".into(),
-                },
-            }),
-        }
+        api_call::<Vec<Tournament>>(
+            Method::GET,
+            "users/@me/subscriptions",
+            HeaderMap::new(),
+            String::new(),
+        )
+        .await
     }
 
     /*

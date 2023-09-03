@@ -11,8 +11,10 @@ pub struct TournamentsProps {
     pub on_delete: Option<Callback<MouseEvent>>,
     pub nb_nuts: Option<i32>,
     pub on_leave: Option<Callback<MouseEvent>>,
-}
+} // TODO: Stop passing function in props if functions are component specific
+
 // TODO when invoking a on_... function, pass the id of the tournament to it
+
 
 #[function_component]
 pub fn Tournaments(props: &TournamentsProps) -> Html {

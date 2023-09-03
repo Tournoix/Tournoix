@@ -1,12 +1,16 @@
 use dotenv_codegen::dotenv;
-use serde::{Deserialize, Serialize};
+use reqwest::{
+    header::{HeaderMap, HeaderValue},
+    Method,
+};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::components::user_provider::UserInfo;
 
 use self::models::User;
 
-pub mod models;
 pub mod auth;
+pub mod models;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ErrorBody {
@@ -20,36 +24,36 @@ pub struct ErrorResponse {
     pub error: ErrorBody,
 }
 
-pub async fn me() -> Result<User, ErrorResponse> {
-    let token = UserInfo::get_token();
+#[derive(Serialize, Deserialize, Debug)]
+pub struct EmptyResponse {}
 
-    if token.is_none() {
-        return Err(ErrorResponse {
-            error: ErrorBody {
-                code: 400,
-                reason: "Bad Request".into(),
-                description: "User not authentified".into(),
-            },
-        });
-    }
-
-    let token = token.unwrap();
+/// Make an API call to the backend  
+///
+/// **T**: The return type of the API in case of success <br>
+/// **method**: Method of the HTTP request <br>
+/// **route**: The route of the API (only the route not the full url -> "auth/login") <br>
+/// **headers**: Headers to be added to the request. **Note**: The Authorization token is automatically added if present in local storage <br>
+/// **body**: JSON body of the request  
+pub async fn api_call<T: DeserializeOwned>(
+    method: Method,
+    route: &str,
+    headers: HeaderMap<HeaderValue>,
+    body: String,
+) -> Result<T, ErrorResponse> {
     let client = reqwest::Client::new();
 
-    match client
-        .get(format!("{}/{}", dotenv!("API_ENDPOINT"), "users/@me"))
-        .header("Accept", "application/json")
-        .header("Authorization", format!("bearer {}", token))
-        .send()
-        .await
-    {
+    let mut request = client
+        .request(method, format!("{}/{}", dotenv!("API_ENDPOINT"), route))
+        .header("Accept", "application/json");
+
+    // Add token to request if exists
+    if let Some(token) = UserInfo::get_token() {
+        request = request.header("Authorization", format!("bearer {}", token));
+    }
+
+    match request.headers(headers).body(body).send().await {
         Ok(r) => match r.error_for_status_ref() {
-            Ok(_r) => {
-                let response = r.json::<User>().await.unwrap();
-
-                Ok(response)
-            }
-
+            Ok(_r) => Ok(r.json::<T>().await.unwrap()),
             Err(_e) => Err(r.json::<ErrorResponse>().await.unwrap()),
         },
 
@@ -61,4 +65,9 @@ pub async fn me() -> Result<User, ErrorResponse> {
             },
         }),
     }
+}
+
+/// Get current logged User Info
+pub async fn me() -> Result<User, ErrorResponse> {
+    api_call::<User>(Method::GET, "users/@me", HeaderMap::new(), "".to_string()).await
 }
