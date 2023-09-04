@@ -1,6 +1,7 @@
 use crate::models::nut::{Nut, PatchNut};
+use crate::models::tournament::Tournament;
 use crate::routes::auth::ApiAuth;
-use crate::schema::{games, bets};
+use crate::schema::{games, bets, tournaments};
 use crate::schema::nuts::{self, fk_tournaments, fk_users};
 use crate::MysqlConnection;
 use diesel::dsl::sum;
@@ -15,6 +16,30 @@ pub async fn get_nut(
     id: i32,
     auth: ApiAuth
 ) -> Result<Json<Nut>, (Status, String)> {
+    // Check if the caller is an owner of the tournament or the user himself
+    let is_owner = match connection
+        .run(move |c| {
+            tournaments::table
+                .filter(tournaments::id.eq(id))
+                .filter(tournaments::fk_users.eq(auth.user.id))
+                .first::<Tournament>(c)
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
+    let is_user = match id == auth.user.id {
+        true => true,
+        false => false,
+    };
+
+    if !is_owner && !is_user {
+        return Err((Status::Forbidden, "Access Forbidden".to_string()));
+    }
+
+
     match connection
         .run(move |c| {
             nuts::table
