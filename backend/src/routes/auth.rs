@@ -108,7 +108,7 @@ impl<'r> FromRequest<'r> for ApiAuth {
 }
 
 // Login user
-#[derive(Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct LoginRequest {
     pub email: String,
     pub password: String,
@@ -176,7 +176,7 @@ pub async fn login(
 }
 
 // Logout user
-#[derive(Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct LogoutRequest {
     pub token: String,
 }
