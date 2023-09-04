@@ -293,6 +293,7 @@ pub async fn update_game(
 pub async fn close_game_betting(
     connection: MysqlConnection,
     id: i32,
+    auth: ApiAuth,
 ) -> Result<Json<Game>, (Status, String)> {
     // the user is not the owner of the game
     if !is_owner_game(&connection, id, &auth).await {
