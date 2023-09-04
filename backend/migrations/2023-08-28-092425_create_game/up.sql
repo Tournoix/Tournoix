@@ -10,6 +10,6 @@ CREATE TABLE games (
   is_open BOOLEAN NOT NULL DEFAULT TRUE,
   has_gained_nut BOOLEAN NOT NULL DEFAULT FALSE,
 
-  CONSTRAINT matchs_team1 FOREIGN KEY (fk_team1) REFERENCES teams(id),
-  CONSTRAINT matchs_team2 FOREIGN KEY (fk_team2) REFERENCES teams(id)
+  CONSTRAINT matchs_team1 FOREIGN KEY (fk_team1) REFERENCES teams(id) ON DELETE CASCADE,
+  CONSTRAINT matchs_team2 FOREIGN KEY (fk_team2) REFERENCES teams(id) ON DELETE CASCADE
 )

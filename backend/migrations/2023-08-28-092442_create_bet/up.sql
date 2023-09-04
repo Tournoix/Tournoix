@@ -6,7 +6,7 @@ CREATE TABLE bets (
   fk_nuts INTEGER NOT NULL,
   nb_nut INTEGER NOT NULL,
 
-  CONSTRAINT bets_games FOREIGN KEY (fk_games) REFERENCES games(id),
-  CONSTRAINT bets_teams FOREIGN KEY (fk_teams) REFERENCES teams(id),
-  CONSTRAINT bets_nuts FOREIGN KEY (fk_nuts) REFERENCES nuts(id)
+  CONSTRAINT bets_games FOREIGN KEY (fk_games) REFERENCES games(id) ON DELETE CASCADE,
+  CONSTRAINT bets_teams FOREIGN KEY (fk_teams) REFERENCES teams(id) ON DELETE CASCADE,
+  CONSTRAINT bets_nuts FOREIGN KEY (fk_nuts) REFERENCES nuts(id) ON DELETE CASCADE
 )

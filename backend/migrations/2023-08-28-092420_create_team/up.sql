@@ -5,5 +5,5 @@ CREATE TABLE teams (
   name VARCHAR(255) NOT NULL,
   `group` INTEGER NOT NULL,
 
-  CONSTRAINT teams_tournaments FOREIGN KEY (fk_tournaments) REFERENCES tournaments(id)
+  CONSTRAINT teams_tournaments FOREIGN KEY (fk_tournaments) REFERENCES tournaments(id) ON DELETE CASCADE
 )

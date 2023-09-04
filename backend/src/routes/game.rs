@@ -12,6 +12,7 @@ use rocket::serde::{Deserialize, Serialize};
 
 use super::bet::calculate_gain;
 
+// get all match from a tournament
 #[get("/tournoix/<id>/games")]
 pub async fn get_tournoix_game(
     connection: MysqlConnection,
@@ -85,6 +86,7 @@ pub async fn get_tournoix_game(
     Ok(Json(games))
 }
 
+// get all match from a team
 #[get("/team/<id>/games")]
 pub async fn get_team_game(
     connection: MysqlConnection,
