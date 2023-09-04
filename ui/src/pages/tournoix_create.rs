@@ -317,8 +317,8 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                             <FormInput id="location" label="Lieu" form_type="text" required={true}/>
                             <FormInput id="description" label="Description" form_type="text" required={true}/>
                             <FormInput id="nb_team_per_group" label="Nombre d'équipes par groupe" form_type="text" required={true}/>
-                            <CheckBox id="phase_qualifications" label="Phase de qualifications" checked={*is_qualif} on_click={on_qualif_click}/>
-                            <CheckBox id="phase_eliminations" label="Phase d'éliminations" checked={*is_elim} on_click={on_elim_click}/>
+                            <CheckBox class="m-4" id="phase_qualifications" label="Phase de qualifications" checked={*is_qualif} on_click={on_qualif_click}/>
+                            <CheckBox class="m-4" id="phase_eliminations" label="Phase d'éliminations" checked={*is_elim} on_click={on_elim_click}/>
                         </div>
                         <div class="w-1/2 m-4">
                             <ContextProvider<UseStateHandle<Vec<Team>>> context={teams.clone()}>
