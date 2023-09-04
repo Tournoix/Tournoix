@@ -1,9 +1,10 @@
 use crate::models::game::Game;
 use crate::models::game::*;
 use crate::models::subscription::Subscription;
+use crate::models::team::Team;
 use crate::models::tournament::Tournament;
 use crate::routes::auth::ApiAuth;
-use crate::schema::{games, tournaments, subscriptions};
+use crate::schema::{games, tournaments, subscriptions, teams};
 use crate::MysqlConnection;
 use diesel::prelude::*;
 use rocket::http::Status;
@@ -11,6 +12,7 @@ use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
 
 use super::bet::calculate_gain;
+use super::tournoix::is_owner;
 
 // get all match from a tournament
 #[get("/tournoix/<id>/games")]
@@ -114,22 +116,10 @@ pub async fn close_game(
     id: i32,
     auth: ApiAuth,
 ) -> Result<Status, (Status, String)> {
-    // Check if the caller is an owner of the tournament
-    match connection
-        .run(move |c| {
-            tournaments::table
-                .filter(tournaments::id.eq(id))
-                .filter(tournaments::fk_users.eq(auth.user.id))
-                .first::<Tournament>(c)
-        })
-        .await
-    {
-        Ok(_) => (),
-        Err(_) => {
-            return Err((Status::Forbidden, "Access Forbidden".to_string()));
-        }
-    };
-
+    // the user is not the owner of the game
+    if !is_owner_game(&connection, id, &auth).await {
+        return Err((Status::Unauthorized, "Unauthorized".to_string()));
+    }
     update_game_fn(&connection, Json(PatchGame { has_gained_nut: Some(false), fk_team1: None, fk_team2:None, place: None, is_open: None }), id).await?;
     return calculate_gain(&connection, id).await;
 }
@@ -142,23 +132,81 @@ pub struct AddGame {
     pub place: i32,
 }
 
-#[post("/tournoix/qualif", data = "<data>")]
+// enum for the phase of the tournament
+#[derive(Serialize, Deserialize, Clone)]
+pub enum Phase {
+    Qualification = 0,
+    Elimination,
+}
+
+#[post("/tournoix/<id>/qualif")]
 pub async fn create_games(
     connection: MysqlConnection,
-    data: Json<Vec<AddGame>>,
+    id: i32,
+    auth: ApiAuth,
 ) -> Result<Json<Vec<Game>>, (Status, String)> {
-    let mut games = Vec::new();
+    // verify if the user is the owner of the tournament
+    if is_owner(&connection, id, &auth).await {
+        return Err((Status::Unauthorized, "Unauthorized".to_string()));
+    }
 
-    for game in data.0 {
-        let game = NewGame {
-            fk_team1: game.fk_team1,
-            fk_team2: game.fk_team2,
-            score1: 0,
-            score2: 0,
-            phase: game.phase,
-            place: game.place,
-        };
+    // get all team from a tournament
+    let teams = match connection
+        .run(move |c| teams::table.filter(teams::fk_tournaments.eq(id)).load::<Team>(c))
+        .await
+    {
+        Ok(teams) => teams,
+        Err(_) => {
+            return Err((
+                Status::NotFound,
+                "No team found for the tournament".to_string(),
+            ))
+        }
+    };
 
+    // group team by group
+    let mut groups: Vec<Vec<Team>> = Vec::new();
+    for team in teams {
+        groups[team.group as usize].push(team);
+    }
+
+    // generate the games for each group
+    let mut games: Vec<NewGame> = Vec::new();
+    for group in groups {
+        // not enough team in the group to play
+        if group.len() < 2 {
+            return Err((
+                Status::NotFound,
+                "Not enought team in a group to generate games".to_string(),
+            ))
+        }
+    
+        let mut nb_game_added = 0;
+
+        for i in 0..group.len() {
+            for j in i + 1..group.len() {
+                let game = NewGame {
+                    fk_team1: group[i].id,
+                    fk_team2: group[j].id,
+                    score1: 0,
+                    score2: 0,
+                    place: nb_game_added,
+                    phase: Phase::Qualification as i32,
+                };
+
+                // position of the game in the group
+                nb_game_added += 1;
+
+                games.push(game);
+            }
+        }
+    }
+
+    // all added games
+    let mut games_added: Vec<Game> = Vec::new();
+
+    // add all games to the database
+    for game in games {
         match connection
             .run(move |c| {
                 c.transaction(|c| {
@@ -174,7 +222,7 @@ pub async fn create_games(
             .await
         {
             Ok(game) => {
-                games.push(game);
+                games_added.push(game);
             }
 
             Err(_e) => {
@@ -186,7 +234,7 @@ pub async fn create_games(
         }
     }
 
-    Ok(Json(games))
+    Ok(Json(games_added))
 }
 
 async fn update_game_fn(
@@ -246,6 +294,11 @@ pub async fn close_game_betting(
     connection: MysqlConnection,
     id: i32,
 ) -> Result<Json<Game>, (Status, String)> {
+    // the user is not the owner of the game
+    if !is_owner_game(&connection, id, &auth).await {
+        return Err((Status::Unauthorized, "Unauthorized".to_string()));
+    }
+
     let game = match connection.run(
        move |c| c.transaction(|c| {
             diesel::update(games::table.find(id))
@@ -268,4 +321,25 @@ pub async fn close_game_betting(
     };
 
     Ok(game)
+}
+
+// verify if the user can edit a game
+async fn is_owner_game(connection: &MysqlConnection, id: i32, auth: &ApiAuth) -> bool {
+    let user_id = auth.user.id;
+    let game = match connection
+        .run(move |c| {
+            games::table
+                .filter(games::id.eq(id))
+                .inner_join(teams::table.on(games::fk_team1.eq(teams::id)))
+                .inner_join(tournaments::table.on(teams::fk_tournaments.eq(tournaments::id)))
+                .filter(tournaments::fk_users.eq(user_id))
+                .first::<(Game, Team, Tournament)>(c)
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
+    return game;
 }
