@@ -112,7 +112,24 @@ pub async fn get_team_game(
 pub async fn close_game(
     connection: MysqlConnection,
     id: i32,
+    auth: ApiAuth,
 ) -> Result<Status, (Status, String)> {
+    // Check if the caller is an owner of the tournament
+    match connection
+        .run(move |c| {
+            tournaments::table
+                .filter(tournaments::id.eq(id))
+                .filter(tournaments::fk_users.eq(auth.user.id))
+                .first::<Tournament>(c)
+        })
+        .await
+    {
+        Ok(_) => (),
+        Err(_) => {
+            return Err((Status::Forbidden, "Access Forbidden".to_string()));
+        }
+    };
+
     update_game_fn(&connection, Json(PatchGame { has_gained_nut: Some(false), fk_team1: None, fk_team2:None, place: None, is_open: None }), id).await?;
     return calculate_gain(&connection, id).await;
 }
