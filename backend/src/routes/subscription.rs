@@ -8,6 +8,7 @@ use diesel::prelude::*;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 
+// get all tournament created by the user
 #[get("/users/@me/tournoix")]
 pub async fn get_user_tournoix(
     connection: MysqlConnection,
@@ -28,6 +29,7 @@ pub async fn get_user_tournoix(
     }
 }
 
+// get all tournament subscribed by the user
 #[get("/users/@me/subscriptions")]
 pub async fn get_user_subscription(
     connection: MysqlConnection,
@@ -70,6 +72,8 @@ pub async fn get_user_subscription(
     Ok(Json(tournoix_vec))
 }
 
+// create a subscription for a tournament with the code of the tournament and the id of the user
+// + add the nuts to the user for the tournament if he doesn't have one allready
 #[post("/users/@me/subscription", data = "<code>")]
 pub async fn create_subsciption(
     connection: MysqlConnection,
@@ -95,7 +99,7 @@ pub async fn create_subsciption(
         fk_tournaments: tournament.id,
     };
 
-    // verify if the user allready have nut for this tournament
+    // verify if the user allready has/had nuts for this tournament
     match connection
         .run(move |c| {
             nuts::table
