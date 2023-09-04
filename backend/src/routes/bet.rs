@@ -248,7 +248,7 @@ pub async fn get_user_game_bet_result(
 }
 
 
-
+// change the stock of a player
 async fn set_stock(connection: &MysqlConnection, id: i32, stock: i32) -> Result<Nut, (Status, String)> {
     match connection
     .run(move |c| {
@@ -277,6 +277,7 @@ async fn set_stock(connection: &MysqlConnection, id: i32, stock: i32) -> Result<
     }
 }
 
+// get the nut of a user for a game
 async fn get_user_nut(connection: &MysqlConnection, id_user: i32, id_game: i32) -> Result<Nut, (Status, String)> {
     match connection.run(
         move |c| games::table
@@ -307,6 +308,7 @@ async fn get_user_nut(connection: &MysqlConnection, id_user: i32, id_game: i32) 
     }
 }
 
+// check if the game is open
 async fn is_game_open(connection: &MysqlConnection, id: i32) -> Result<bool, (Status, String)> {
     match connection.run(
         move |c| games::table.find(id).select(games::is_open).first::<bool>(c)
@@ -403,6 +405,7 @@ pub async fn create_bet(
     };
 }
 
+// update a bet
 #[patch("/game/<id>/bet", data = "<data>")]
 pub async fn update_bet(
     connection: MysqlConnection,
