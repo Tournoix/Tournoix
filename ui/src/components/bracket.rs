@@ -9,19 +9,23 @@ pub struct Match {
     pub team2: String,
     pub score2: i32,
     pub started: bool,
-    pub finished: bool
+    pub finished: bool,
 }
 
 pub type BracketTeams = Vec<Vec<Match>>;
 
 #[derive(PartialEq, Properties)]
 pub struct BracketProps {
-    pub teams: BracketTeams
+    pub teams: BracketTeams,
+    pub on_started_click: Option<Callback<i32>>,
+    pub on_finished_click: Option<Callback<i32>>,
+    pub on_score1_change: Option<Callback<(i32, i32)>>,
+    pub on_score2_change: Option<Callback<(i32, i32)>>,
 }
 
 #[function_component]
 pub fn Bracket(props: &BracketProps) -> Html {
-    let BracketProps {teams} = props;
+    let BracketProps {teams, on_started_click, on_finished_click, on_score1_change, on_score2_change} = props;
 
     let is_nb_valid = teams.len() > 0 && (teams[0].len() & (teams[0].len() - 1)) == 0;
 
@@ -39,7 +43,7 @@ pub fn Bracket(props: &BracketProps) -> Html {
                 {teams.iter().map(|round| {
                     round_id += 1;
                     html!(
-                        <BracketRound round_id={round_id} matches={round.clone()} />
+                        <BracketRound round_id={round_id} matches={round.clone()} on_started_click={on_started_click} on_finished_click={on_finished_click} on_score1_change={on_score1_change} on_score2_change={on_score2_change}  />
                     )
                 }).collect::<Html>()}
                 <div class="round">

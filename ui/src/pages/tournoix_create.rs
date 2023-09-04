@@ -123,8 +123,41 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
         ]
     ]);
 
-    let on_started_click = {
-        let group_matches = group_matches.clone();
+    let elim_matches = use_state(|| vec![
+        vec![
+            Match {
+                id: 0,
+                team1: "Cloud9".to_string(),
+                score1: 0,
+                team2: "FaZe Clan".to_string(),
+                score2: 0,
+                started: false,
+                finished: false
+            },
+            Match {
+                id: 1,
+                team1: "NaVi".to_string(),
+                score1: 0,
+                team2: "NRG Esports".to_string(),
+                score2: 0,
+                started: true,
+                finished: false
+            },
+        ],
+        vec! [
+            Match {
+                id: 2,
+                team1: "G2 Esports".to_string(),
+                score1: 0,
+                team2: "fnatic".to_string(),
+                score2: 0,
+                started: true,
+                finished: true
+            },
+        ]
+    ]);
+
+    let on_started_click = |group_matches: UseStateHandle<Vec<Vec<Match>>>| {
         Callback::from(move |match_id| {
             // Deep copy the group_matches vector into a buffer
             let mut group_matches_buf = vec![];
@@ -137,6 +170,9 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
 
                     if match_id == _match.id {
                         _match.started = !_match.started;
+
+                        // TODO DB
+                        // UPDATE match SET started = _match.started WHERE id = _match.id
                     }
 
                     _group_match.push(_match);
@@ -148,8 +184,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
             group_matches.set(group_matches_buf);
         })
     };
-    let on_finished_click = {
-        let group_matches = group_matches.clone();
+    let on_finished_click = |group_matches: UseStateHandle<Vec<Vec<Match>>>| {
         Callback::from(move |match_id| {
             // Deep copy the group_matches vector into a buffer
             let mut group_matches_buf = vec![];
@@ -164,6 +199,9 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                         _match.finished = !_match.finished;
                     }
 
+                    // TODO DB
+                    // UPDATE match SET finished = _match.finished WHERE id = _match.id
+
                     _group_match.push(_match);
                 }
 
@@ -173,8 +211,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
             group_matches.set(group_matches_buf);
         })
     };
-    let on_score1_change = {
-        let group_matches = group_matches.clone();
+    let on_score1_change = |group_matches: UseStateHandle<Vec<Vec<Match>>>| {
         Callback::from(move |(match_id, val)| {
             // Deep copy the group_matches vector into a buffer
             let mut group_matches_buf = vec![];
@@ -189,6 +226,9 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                         _match.score1 = val;
                     }
 
+                    // TODO DB
+                    // UPDATE match SET score1 = _match.score1 WHERE id = _match.id
+
                     _group_match.push(_match);
                 }
 
@@ -198,8 +238,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
             group_matches.set(group_matches_buf);
         })
     };
-    let on_score2_change = {
-        let group_matches = group_matches.clone();
+    let on_score2_change = |group_matches: UseStateHandle<Vec<Vec<Match>>>| {
         Callback::from(move |(match_id, val)| {
             // Deep copy the group_matches vector into a buffer
             let mut group_matches_buf = vec![];
@@ -213,6 +252,9 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                     if match_id == _match.id {
                         _match.score2 = val;
                     }
+
+                    // TODO DB
+                    // UPDATE match SET score2 = _match.score2 WHERE id = _match.id
 
                     _group_match.push(_match);
                 }
@@ -383,13 +425,13 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                             <Groups on_create={on_create_group_click} on_delete={on_delete_group_click}/>
                         </ContextProvider<UseStateHandle<Vec<Group>>>>
                         <ContextProvider<UseStateHandle<Vec<Vec<Match>>>> context={group_matches.clone()}>
-                            <QualificationPhase on_started_click={on_started_click} on_finished_click={on_finished_click} on_score1_change={on_score1_change} on_score2_change={on_score2_change}/>
+                            <QualificationPhase on_started_click={on_started_click(group_matches.clone())} on_finished_click={on_finished_click(group_matches.clone())} on_score1_change={on_score1_change(group_matches.clone())} on_score2_change={on_score2_change(group_matches.clone())}/>
                         </ContextProvider<UseStateHandle<Vec<Vec<Match>>>>>
                     }
                     if *is_elim {
                         <hr/>
                         <h2>{"Phase d'éliminations"}</h2>
-                        <Bracket teams={bracket_teams} />
+                        <Bracket teams={(*elim_matches).clone()} on_started_click={on_started_click(elim_matches.clone())} on_finished_click={on_finished_click(elim_matches.clone())} on_score1_change={on_score1_change(elim_matches.clone())} on_score2_change={on_score2_change(elim_matches.clone())} />
                     }
                     <hr/>
                     <Button disabled={!*is_qualif && !*is_elim} class="sm:text-xl text-lg px-3 py-2 mx-auto mt-3 mb-16 hover:scale-110 bg-green-700" onclick={on_create_click}>{"Créer un tournoi"}</Button>

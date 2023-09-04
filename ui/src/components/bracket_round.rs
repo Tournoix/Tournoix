@@ -7,13 +7,17 @@ use super::bracket::Match;
 #[derive(PartialEq, Properties)]
 pub struct BracketRoundProps {
     pub matches: Vec<Match>,
-    pub round_id: u32
+    pub round_id: u32,
+    pub on_started_click: Option<Callback<i32>>,
+    pub on_finished_click: Option<Callback<i32>>,
+    pub on_score1_change: Option<Callback<(i32, i32)>>,
+    pub on_score2_change: Option<Callback<(i32, i32)>>,
 }
 
 #[function_component]
 pub fn BracketRound(props: &BracketRoundProps) -> Html {
-    let BracketRoundProps {matches, round_id} = props;
-    let round_title = format!("Round {}", round_id+1);
+    let BracketRoundProps {matches, round_id, on_started_click, on_finished_click, on_score1_change, on_score2_change} = props;
+    let round_title = format!("Round {}", round_id);
     let mut match_id = 0;
 
     html! {
@@ -32,7 +36,7 @@ pub fn BracketRound(props: &BracketRoundProps) -> Html {
                             }}
                             {"\u{00a0}"}
                         </li>
-                        <BracketMatch game={game.clone()} />
+                        <BracketMatch game={game.clone()} on_started_click={on_started_click} on_finished_click={on_finished_click} on_score1_change={on_score1_change} on_score2_change={on_score2_change} />
                     </>
                 )
             }).collect::<Html>()}

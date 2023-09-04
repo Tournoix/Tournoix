@@ -135,6 +135,40 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         ]
     ]);
 
+    let elim_matches = use_state(|| vec![
+        vec![
+            Match {
+                id: 0,
+                team1: "Cloud9".to_string(),
+                score1: 0,
+                team2: "FaZe Clan".to_string(),
+                score2: 0,
+                started: false,
+                finished: false
+            },
+            Match {
+                id: 1,
+                team1: "NaVi".to_string(),
+                score1: 0,
+                team2: "NRG Esports".to_string(),
+                score2: 0,
+                started: true,
+                finished: false
+            },
+        ],
+        vec! [
+            Match {
+                id: 2,
+                team1: "G2 Esports".to_string(),
+                score1: 0,
+                team2: "fnatic".to_string(),
+                score2: 0,
+                started: true,
+                finished: true
+            },
+        ]
+    ]);
+
     let on_edit_click = {
         let navigator = navigator.clone();
         let id = id.clone();
@@ -182,7 +216,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                 </ContextProvider<UseStateHandle<Vec<Vec<Match>>>>>
                 <hr/>
                 <h2>{"Phase d'éliminations"}</h2>
-                /*<Bracket/>*/
+                <Bracket teams={(*elim_matches).clone()}/>
                 <hr/>
                 <Button class="sm:text-xl text-lg px-3 py-2 mx-auto mt-3 mb-16 hover:scale-110 bg-green-700" onclick={on_edit_click}>{"Modifier le tournoi"}</Button>
             </div>
