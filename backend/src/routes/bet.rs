@@ -6,14 +6,50 @@ use crate::MysqlConnection;
 use crate::models::bet::{Bet, NewBet, PathBet};
 use crate::models::game::Game;
 use crate::models::nut::Nut;
+use crate::models::subscription::Subscription;
+use crate::models::tournament::Tournament;
 use crate::routes::auth::ApiAuth;
-use crate::schema::{bets, games, teams, tournaments, nuts};
+use crate::schema::{bets, games, teams, tournaments, nuts, subscriptions};
 
+// Get all bets of a game
 #[get("/game/<id>/bet")]
 pub async fn get_game_bet(
     connection: MysqlConnection,
     id: i32,
+    auth: ApiAuth,
 ) -> Result<Json<Vec<Bet>>, (Status, String)> {
+    // Check if the user is a subscriber/owner of the tournament
+    let is_owner = match connection
+        .run(move |c| {
+            tournaments::table
+                .filter(tournaments::id.eq(id))
+                .filter(tournaments::fk_users.eq(auth.user.id))
+                .first::<Tournament>(c)
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+    
+    let is_subscriber = match connection
+        .run(move |c| {
+            subscriptions::table
+                .filter(subscriptions::fk_tournaments.eq(id))
+                .filter(subscriptions::fk_users.eq(auth.user.id))
+                .first::<Subscription>(c)
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
+    if !is_owner && !is_subscriber {
+        return Err((Status::Forbidden, "Access Forbidden".to_string()));
+    }
+
+    
     match connection.run(
         move |c| bets::table.filter(bets::fk_games.eq(id)).get_results::<Bet>(c)
     ).await.map(Json) {
@@ -34,8 +70,27 @@ pub async fn get_user_game_bet(
     connection: MysqlConnection,
     id: i32,
     id_user: i32,
+    auth: ApiAuth,
 ) -> Result<Json<Bet>, (Status, String)> {
-    // get the tournoix id
+    
+    // Check if the caller is an owner of the tournament
+    match connection
+        .run(move |c| {
+            tournaments::table
+                .filter(tournaments::id.eq(id))
+                .filter(tournaments::fk_users.eq(auth.user.id))
+                .first::<Tournament>(c)
+        })
+        .await
+    {
+        Ok(_) => (),
+        Err(_) => {
+            return Err((Status::Forbidden, "Access Forbidden".to_string()));
+        }
+    };
+
+    
+    // get the nut of the player for this game
     let nut_id = match connection.run(
         move |c| games::table
         .inner_join(teams::table.on(teams::id.eq(games::fk_team1)))
