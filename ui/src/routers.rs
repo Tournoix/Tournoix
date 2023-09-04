@@ -1,7 +1,13 @@
-use yew_router::prelude::*;
 use yew::prelude::*;
+use yew_router::prelude::*;
 
-use crate::{pages::{home::Home, tournoix::Tournoix, login::Login, register::Register, tournoix_edit::TournoixEdit, tournoix_view::TournoixView, games_view::BetView, tournoix_create::TournoixCreate}, components::user_provider::UserContext};
+use crate::{
+    components::user_provider::UserContext,
+    pages::{
+        games_view::BetView, home::Home, login::Login, register::Register, tournoix::Tournoix,
+        tournoix_create::TournoixCreate, tournoix_edit::TournoixEdit, tournoix_view::TournoixView,
+    },
+};
 
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {
@@ -31,12 +37,12 @@ pub fn router(routes: Route) -> Html {
         Route::Home => html! {<Home/> },
         Route::Tournoix => html! {<LoggedRoute><Tournoix/></LoggedRoute>},
         Route::TournoixView { id } => html! {<LoggedRoute><TournoixView id={id} /></LoggedRoute>},
-        Route::TournoixEdit { id }=> html! {<LoggedRoute><TournoixEdit id={id} /></LoggedRoute>},
+        Route::TournoixEdit { id } => html! {<LoggedRoute><TournoixEdit id={id} /></LoggedRoute>},
         Route::TournoixCreate => html! {<LoggedRoute><TournoixCreate /></LoggedRoute>},
-        Route::BetView { id }=> html! {<LoggedRoute><BetView id={id} /></LoggedRoute>},
+        Route::BetView { id } => html! {<LoggedRoute><BetView id={id} /></LoggedRoute>},
         Route::Login => html! {<Login/>},
         Route::Register => html! {<Register/>},
-        Route::NotFound => html! {<h1>{"404 Not Found"}</h1>}
+        Route::NotFound => html! {<h1>{"404 Not Found"}</h1>},
     }
 }
 
@@ -50,7 +56,7 @@ pub fn LoggedRoute(props: &LoggedRouteProps) -> Html {
     let LoggedRouteProps { children } = props;
     let user_info = use_context::<UserContext>().expect("Missing user context provider");
 
-    html ! {
+    html! {
         if user_info.is_logged() {
             {children.clone()}
         } else {

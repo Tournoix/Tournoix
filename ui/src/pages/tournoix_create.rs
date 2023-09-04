@@ -6,9 +6,13 @@ use yew::prelude::*;
 use yew_router::prelude::use_navigator;
 
 use crate::{
-    components::{backlink::Backlink, button::Button, form_input::FormInput, notification::NotifType},
+    api::{self, tournoix::CreateTournoixRequest},
+    components::{
+        backlink::Backlink, button::Button, form_input::FormInput, notification::NotifType,
+    },
     layouts::homelayout::HomeLayout,
-    routers::Route, api::{tournoix::CreateTournoixRequest, self}, utils::utils::add_delayed_notif,
+    routers::Route,
+    utils::utils::add_delayed_notif,
 };
 
 #[derive(PartialEq, Properties)]
@@ -38,14 +42,14 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
             let date = date_ref.cast::<HtmlInputElement>().unwrap().value();
             let location = location_ref.cast::<HtmlInputElement>().unwrap().value();
             let description = description_ref.cast::<HtmlInputElement>().unwrap().value();
-            
+
             let date = chrono::NaiveDateTime::from_str(&format!("{}:00", date)).unwrap();
 
             let create_request = CreateTournoixRequest {
                 name,
                 date,
                 description,
-                location
+                location,
             };
 
             spawn_local(async move {
@@ -57,8 +61,10 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                             NotifType::Success,
                         );
 
-                        navigator.push(&Route::TournoixEdit { id: tournoix.id as i32 });
-                    },
+                        navigator.push(&Route::TournoixEdit {
+                            id: tournoix.id as i32,
+                        });
+                    }
                     Err(e) => {
                         add_delayed_notif(
                             &format!("Erreur: {}", e.error.reason),

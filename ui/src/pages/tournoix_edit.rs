@@ -11,13 +11,15 @@ use crate::{
     api::{self, models::Tournament, tournoix::UpdateTournoixRequest},
     components::{
         backlink::Backlink,
+        bracket::{Bracket, Match},
         button::Button,
         form_input::FormInput,
         groups::{Group, Groups},
         join_code::JoinCode,
+        loading_circle::LoadingCircle,
         notification::NotifType,
         qualification_phase::QualificationPhase,
-        teams::{Team, Teams}, loading_circle::LoadingCircle,
+        teams::{Team, Teams},
     },
     layouts::homelayout::HomeLayout,
     routers::Route,
@@ -45,7 +47,6 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
     let qualif_ref = use_node_ref();
     let elim_ref = use_node_ref();
 
-
     {
         let tournament = tournament.clone();
         let loading = loading.clone();
@@ -56,7 +57,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                 tournament.set(api::tournoix::get(id).await.ok());
                 loading.set(false);
             });
-    
+
             || ()
         });
     }
@@ -157,6 +158,94 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
     let groups: UseStateHandle<Vec<Group>> =
         use_state(|| vec![Group {}, Group {}, Group {}, Group {}, Group {}, Group {}]);
 
+    let group_matches = use_state(|| {
+        vec![
+            vec![
+                Match {
+                    id: 0,
+                    team1: "Cloud9".to_string(),
+                    score1: 0,
+                    team2: "FaZe Clan".to_string(),
+                    score2: 0,
+                    started: false,
+                    finished: false,
+                },
+                Match {
+                    id: 1,
+                    team1: "NaVi".to_string(),
+                    score1: 0,
+                    team2: "NRG Esports".to_string(),
+                    score2: 0,
+                    started: true,
+                    finished: false,
+                },
+                Match {
+                    id: 2,
+                    team1: "G2 Esports".to_string(),
+                    score1: 0,
+                    team2: "fnatic".to_string(),
+                    score2: 0,
+                    started: true,
+                    finished: true,
+                },
+            ],
+            vec![
+                Match {
+                    id: 3,
+                    team1: "Team with a comically long name".to_string(),
+                    score1: 0,
+                    team2: "Team 42".to_string(),
+                    score2: 0,
+                    started: false,
+                    finished: false,
+                },
+                Match {
+                    id: 4,
+                    team1: "TBA".to_string(),
+                    score1: 0,
+                    team2: "TBA".to_string(),
+                    score2: 0,
+                    started: false,
+                    finished: false,
+                },
+            ],
+        ]
+    });
+
+    let elim_matches = use_state(|| {
+        vec![
+            vec![
+                Match {
+                    id: 0,
+                    team1: "Cloud9".to_string(),
+                    score1: 0,
+                    team2: "FaZe Clan".to_string(),
+                    score2: 0,
+                    started: false,
+                    finished: false,
+                },
+                Match {
+                    id: 1,
+                    team1: "NaVi".to_string(),
+                    score1: 0,
+                    team2: "NRG Esports".to_string(),
+                    score2: 0,
+                    started: true,
+                    finished: false,
+                },
+            ],
+            vec![Match {
+                id: 2,
+                team1: "G2 Esports".to_string(),
+                score1: 0,
+                team2: "fnatic".to_string(),
+                score2: 0,
+                started: true,
+                finished: true,
+            }],
+        ]
+    });
+
     let on_submit = {
         let tournament = tournament.clone();
 
@@ -181,7 +270,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
 
             let groupe_size = match groupe_size.is_empty() {
                 true => None,
-                false => Some(groupe_size.parse().unwrap())
+                false => Some(groupe_size.parse().unwrap()),
             };
 
             let date = chrono::NaiveDateTime::from_str(&format!("{}:00", date)).unwrap();
@@ -208,7 +297,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                                 ),
                                 NotifType::Success,
                             );
-                        },
+                        }
 
                         Err(e) => {
                             add_delayed_notif(
@@ -261,10 +350,12 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                             <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
                                 <Groups/>
                             </ContextProvider<UseStateHandle<Vec<Group>>>>
-                            <QualificationPhase/>
+                            <ContextProvider<UseStateHandle<Vec<Vec<Match>>>> context={group_matches.clone()}>
+                                <QualificationPhase/>
+                            </ContextProvider<UseStateHandle<Vec<Vec<Match>>>>>
                             <hr/>
                             <h2>{"Phase d'éliminations"}</h2>
-                            /*<Bracket/>*/
+                            <Bracket teams={(*elim_matches).clone()}/>
                             <hr/>
                             <Button class="sm:text-xl text-lg px-3 py-2 mx-auto mt-3 mb-16 hover:scale-110 bg-green-700">{"Modifier le tournoi"}</Button>
                         </form>

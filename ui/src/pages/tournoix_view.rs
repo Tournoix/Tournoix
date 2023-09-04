@@ -8,7 +8,6 @@ use crate::{
         backlink::Backlink,
         groups::{Group, Groups},
         join_code::JoinCode,
-        qualification_phase::QualificationPhase,
         results::Results, loading_circle::LoadingCircle,
     },
     layouts::homelayout::HomeLayout,
@@ -85,7 +84,6 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
                             <Groups/>
                         </ContextProvider<UseStateHandle<Vec<Group>>>>
-                        <QualificationPhase/>
                         <hr/>
                         <h2>{"Phase d'éliminations"}</h2>
                         /*<Bracket/>*/

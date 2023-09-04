@@ -172,6 +172,11 @@ pub async fn update_tournoix(
     id: i32,
     auth: ApiAuth,
 ) -> Result<Json<Tournament>, (Status, String)> {
+    // verify if the user is the owner of the tournament
+    if !is_owner(&connection, id, &auth).await {
+        return Err((Status::Unauthorized, "Unauthorized".to_string()));
+    }
+
     let tournoix = data.0;
 
     match connection
@@ -214,6 +219,11 @@ pub async fn delete_tournoix(
     id: i32,
     auth: ApiAuth,
 ) -> Result<Json<Tournament>, (Status, String)> {
+    // verify if the user is the owner of the tournament
+    if !is_owner(&connection, id, &auth).await {
+        return Err((Status::Unauthorized, "Unauthorized".to_string()));
+    }
+
     match connection
         .run(move |c| {
             c.transaction(|c| {
@@ -247,5 +257,22 @@ pub async fn delete_tournoix(
                 "Internel Server Error".to_string(),
             ))
         }
+    }
+}
+
+// verify if the user is the owner of the tournament
+pub async fn is_owner(connection: &MysqlConnection, id: i32, auth: &ApiAuth) -> bool {
+    let auth_id = auth.user.id;
+    match connection
+        .run(move |c| {
+            tournaments::table
+                .find(id)
+                .filter(tournaments::fk_users.eq(auth_id))
+                .first::<Tournament>(c)
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(_) => false,
     }
 }
