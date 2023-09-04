@@ -11,6 +11,7 @@ use self::models::User;
 
 pub mod auth;
 pub mod models;
+pub mod tournoix;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ErrorBody {

@@ -1,7 +1,7 @@
 use yew_router::prelude::*;
 use yew::prelude::*;
 
-use crate::{pages::{home::Home, tournoix::Tournoix, login::Login, register::Register, tournoix_edit::TournoixEdit, tournoix_view::TournoixView, tournoix_create::TournoixCreate, games_view::BetView}, components::user_provider::UserContext};
+use crate::{pages::{home::Home, tournoix::Tournoix, login::Login, register::Register, tournoix_edit::TournoixEdit, tournoix_view::TournoixView, games_view::BetView, tournoix_create::TournoixCreate}, components::user_provider::UserContext};
 
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {

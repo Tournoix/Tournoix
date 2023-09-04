@@ -1,6 +1,7 @@
 use crate::models::tournament::{NewTournament, PatchTournament, Tournament};
+use crate::routes::auth::ApiAuth;
 use crate::schema::tournaments;
-use crate::MysqlConnection;
+use crate::{ErrorBody, ErrorResponse, MysqlConnection};
 use diesel::prelude::*;
 use diesel::result::Error;
 use rand::distributions::Alphanumeric;
@@ -8,36 +9,60 @@ use rand::Rng;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
-use crate::routes::auth::ApiAuth;
-
 
 #[get("/tournoix/<id>")]
 pub async fn get_tournoix(
     connection: MysqlConnection,
     id: i32,
     auth: ApiAuth,
-) -> Result<Json<Tournament>, (Status, String)> {
+) -> Result<Json<Tournament>, (Status, Json<ErrorResponse>)> {
     match connection
-        .run(move |c| tournaments::table.find(id).filter(tournaments::fk_users.eq(auth.user.id)).first::<Tournament>(c))
+        .run(move |c| {
+            tournaments::table
+                .find(id)
+                .first::<Tournament>(c)
+        })
         .await
-        .map(Json)
     {
-        Ok(tournoi) => return Ok(tournoi),
+        Ok(tournoi) => {
+            if tournoi.user_has_rights(&connection, auth.user).await {
+                Ok(Json(tournoi))
+            } else {
+                Err((
+                    Status::Forbidden,
+                    Json(ErrorResponse {
+                        error: ErrorBody {
+                            code: 403,
+                            reason: "Forbidden".into(),
+                            description: "Access forbidden".into(),
+                        },
+                    }),
+                ))
+            }
+        },
 
-        Err(_e) => return Err((Status::NotFound, "Tournament not found".to_string())),
+        Err(_e) => {
+            return Err((
+                Status::NotFound,
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 404,
+                        reason: "Not Found".into(),
+                        description: "Tournament with given id does not exists".into(),
+                    },
+                }),
+            ))
+        }
     }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AddTournament {
-    pub fk_users: i32,
     pub name: String,
-    pub description: String,
+    pub description: Option<String>,
     pub date: Option<chrono::NaiveDateTime>,
     pub location: Option<String>,
-    pub phase: i32,
     pub size_group: Option<i32>,
-    pub code: String,
 }
 
 #[post("/tournoix", data = "<data>")]
@@ -45,7 +70,7 @@ pub async fn create_tournoix(
     connection: MysqlConnection,
     data: Json<AddTournament>,
     auth: ApiAuth,
-) -> Result<Json<Tournament>, (Status, String)> {
+) -> Result<Json<Tournament>, (Status, Json<ErrorResponse>)> {
     let mut generated_code = String::new();
     let mut code_exist = true;
 
@@ -76,7 +101,18 @@ pub async fn create_tournoix(
                 // The code doesn't exist, break the loop
                 code_exist = false;
             }
-            Err(_) => return Err((Status::InternalServerError, "Database error".to_string())),
+            Err(_) => {
+                return Err((
+                    Status::InternalServerError,
+                    Json(ErrorResponse {
+                        error: ErrorBody {
+                            code: 500,
+                            reason: "Internal Server Error".into(),
+                            description: "An error occured".into(),
+                        },
+                    }),
+                ))
+            }
         };
     }
 
@@ -88,7 +124,7 @@ pub async fn create_tournoix(
         description: add_tournoix.description,
         date: add_tournoix.date,
         location: add_tournoix.location,
-        phase: add_tournoix.phase,
+        phase: 0,
         size_group: add_tournoix.size_group,
         code: generated_code, // Use the generated code
     };
@@ -117,7 +153,13 @@ pub async fn create_tournoix(
         Err(_e) => {
             return Err((
                 Status::InternalServerError,
-                "Internel Server Error".to_string(),
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 500,
+                        reason: "Internal Server Error".into(),
+                        description: "An error occured".into(),
+                    },
+                }),
             ))
         }
     }
@@ -135,9 +177,13 @@ pub async fn update_tournoix(
     match connection
         .run(move |c| {
             c.transaction(|c| {
-                diesel::update(tournaments::table.find(id).filter(tournaments::fk_users.eq(auth.user.id)))
-                    .set(tournoix.clone())
-                    .execute(c)?;
+                diesel::update(
+                    tournaments::table
+                        .find(id)
+                        .filter(tournaments::fk_users.eq(auth.user.id)),
+                )
+                .set(tournoix.clone())
+                .execute(c)?;
 
                 let tournoix = tournaments::table
                     .order(tournaments::id.desc())
@@ -166,7 +212,7 @@ pub async fn update_tournoix(
 pub async fn delete_tournoix(
     connection: MysqlConnection,
     id: i32,
-    auth: ApiAuth
+    auth: ApiAuth,
 ) -> Result<Json<Tournament>, (Status, String)> {
     match connection
         .run(move |c| {
@@ -177,8 +223,12 @@ pub async fn delete_tournoix(
                     .first::<Tournament>(c)
                     .map(Json)?;
 
-                diesel::delete(tournaments::table.find(id).filter(tournaments::fk_users.eq(auth.user.id)))
-                    .execute(c)?;
+                diesel::delete(
+                    tournaments::table
+                        .find(id)
+                        .filter(tournaments::fk_users.eq(auth.user.id)),
+                )
+                .execute(c)?;
 
                 diesel::result::QueryResult::Ok(tournoix)
             })
@@ -189,9 +239,7 @@ pub async fn delete_tournoix(
             return Ok(tournoix);
         }
 
-        Err(Error::NotFound) => {
-            return Err((Status::NotFound, "Tournament not found".to_string()))
-        }
+        Err(Error::NotFound) => return Err((Status::NotFound, "Tournament not found".to_string())),
 
         Err(_e) => {
             return Err((

@@ -2,32 +2,6 @@ use web_sys::window;
 
 use crate::components::notification::{Notif, NotifType};
 
-pub fn fetch_tournament(id: i32) -> Tournament {
-    Tournament {
-        id,
-        name: "World Championship pétanque 2023".to_string(),
-        description: "Ne manquez pas le rendez-vous incontournable pour tout les amateurs de boules qui se respecte. Au programme, suze, grillades, bière et bien sûr pétanque.".to_string(),
-        date: chrono::NaiveDateTime::new(chrono::NaiveDate::from_ymd_opt(2023, 9, 9).unwrap(), chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap()),
-        location: "1450 Sainte-Croix, Avenue de la Gare 14".to_string(),
-        is_qualif: true,
-        is_elim: true,
-        phase: 0,
-        code: "mCCx34d".to_string(),
-    }
-}
-
-pub struct Tournament {
-    pub id: i32,
-    pub name: String,
-    pub description: String,
-    pub date: chrono::NaiveDateTime,
-    pub location: String,
-    pub is_qualif: bool,
-    pub is_elim: bool,
-    pub phase: i32,
-    pub code: String,
-}
-
 pub fn fetch_notifs() -> Option<Vec<Notif>> {
     let store = window()?.local_storage().ok().flatten()?;
     let notifs = store.get_item("notifs").ok().flatten()?;

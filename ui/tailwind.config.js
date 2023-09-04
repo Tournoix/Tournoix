@@ -40,6 +40,12 @@ module.exports = {
     },
     {
       pattern: /py-.+/
+    },
+    {
+      pattern: /w-.+/
+    },
+    {
+      pattern: /h-.+/
     }
   ]
 }

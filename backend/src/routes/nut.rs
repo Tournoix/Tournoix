@@ -1,9 +1,7 @@
 use crate::models::nut::{Nut, PatchNut};
 use crate::routes::auth::ApiAuth;
-use crate::schema::{games, bets};
 use crate::schema::nuts::{self, fk_tournaments, fk_users};
-use crate::MysqlConnection;
-use diesel::dsl::sum;
+use crate::{ErrorBody, ErrorResponse, MysqlConnection};
 use diesel::prelude::*;
 use rocket::http::Status;
 use rocket::serde::json::Json;
@@ -13,8 +11,8 @@ use rocket::serde::json::Json;
 pub async fn get_nut(
     connection: MysqlConnection,
     id: i32,
-    auth: ApiAuth
-) -> Result<Json<Nut>, (Status, String)> {
+    auth: ApiAuth,
+) -> Result<Json<Nut>, (Status, Json<ErrorResponse>)> {
     match connection
         .run(move |c| {
             nuts::table
@@ -24,29 +22,19 @@ pub async fn get_nut(
         })
         .await
     {
-        Ok(mut nut) => {
-            // add the nut placed on bet open
-            let bets = match connection
-                .run(move |c| {
-                    bets::table
-                        .inner_join(games::table.on(games::id.eq(bets::fk_games)))
-                        .filter(bets::fk_nuts.eq(nut.id))
-                        .filter(games::is_open.eq(true))
-                        .select(sum(bets::nb_nut))
-                        .first::<Option<i64>>(c)
-                })
-                .await
-            {
-                Ok(bets) => bets,
-                Err(_e) => return Err((Status::NotFound, "Bets not found".to_string())),
-            };
-
-            // add the nut placed on bet open to the stock of the nut
-            nut.stock += bets.unwrap_or(0) as i32;
-
-            return Ok(Json(nut));
+        Ok(nut) => Ok(Json(nut)),
+        Err(_e) => {
+            return Err((
+                Status::NotFound,
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 404,
+                        reason: "Not Found".into(),
+                        description: "Nuts not found".into(),
+                    },
+                }),
+            ))
         }
-        Err(_e) => return Err((Status::NotFound, "Nuts not found".to_string())),
     }
 }
 
