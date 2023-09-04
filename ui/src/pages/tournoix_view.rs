@@ -94,7 +94,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                 <script src="https://cdn.jsdelivr.net/npm/ol@v7.2.2/dist/ol.js"></script>
                 <div id="map" class="h-56 w-80"></div>
                 <script>
-                {format!("const LOCATION = '{}'", tournament.location.to_string())}
+                {format!("LOCATION = '{}'", tournament.location.to_string())}
                 </script>
                 <script defer={true}>
 {r#"
