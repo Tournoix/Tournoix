@@ -2,7 +2,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{window, HtmlInputElement};
 use yew::prelude::*;
 
-use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team}, bracket::{Bracket, Match, BracketTeams}, groups::{Group, Groups}, checkbox::CheckBox}};
+use crate::{layouts::homelayout::HomeLayout, components::{form_input::FormInput, button::Button, backlink::Backlink, teams::{Teams, Team}, bracket::{Bracket, Match, BracketTeams}, groups::{Group, Groups}, checkbox::CheckBox, qualificationPhase::QualificationPhase}};
 use crate::routers::Route;
 
 #[derive(PartialEq, Properties)]
@@ -71,6 +71,109 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
         })
     };
 
+    let group_matches = use_state(|| vec![
+        vec![
+            Match {
+                id: 0,
+                team1: "Cloud9".to_string(),
+                score1: 0,
+                team2: "FaZe Clan".to_string(),
+                score2: 0,
+                started: false,
+                finished: false
+            },
+            Match {
+                id: 1,
+                team1: "NaVi".to_string(),
+                score1: 0,
+                team2: "NRG Esports".to_string(),
+                score2: 0,
+                started: true,
+                finished: false
+            },
+            Match {
+                id: 2,
+                team1: "G2 Esports".to_string(),
+                score1: 0,
+                team2: "fnatic".to_string(),
+                score2: 0,
+                started: true,
+                finished: true
+            },
+        ],
+        vec! [
+            Match {
+                id: 3,
+                team1: "Team with a comically long name".to_string(),
+                score1: 0,
+                team2: "Team 42".to_string(),
+                score2: 0,
+                started: false,
+                finished: false
+            },
+            Match {
+                id: 4,
+                team1: "TBA".to_string(),
+                score1: 0,
+                team2: "TBA".to_string(),
+                score2: 0,
+                started: false,
+                finished: false
+            },
+        ]
+    ]);
+
+    let on_started_click = {
+        let group_matches = group_matches.clone();
+        Callback::from(move |match_id| {
+            // Deep copy the group_matches vector into a buffer
+            let mut group_matches_buf = vec![];
+            for group_match in group_matches.iter() {
+                let mut _group_match = vec![];
+                let group_match = group_match.clone();
+
+                for mut _match in group_match.iter() {
+                    let mut _match = _match.clone();
+
+                    if match_id == _match.id {
+                        _match.started = !_match.started;
+                    }
+
+                    _group_match.push(_match);
+                }
+
+                group_matches_buf.push(_group_match);
+            }
+
+            group_matches.set(group_matches_buf);
+        })
+    };
+    let on_finished_click = {
+        let group_matches = group_matches.clone();
+        Callback::from(move |match_id| {
+            // Deep copy the group_matches vector into a buffer
+            let mut group_matches_buf = vec![];
+            for group_match in group_matches.iter() {
+                let mut _group_match = vec![];
+                let group_match = group_match.clone();
+
+                for mut _match in group_match.iter() {
+                    let mut _match = _match.clone();
+
+                    if match_id == _match.id {
+                        _match.finished = !_match.finished;
+                    }
+
+                    _group_match.push(_match);
+                }
+
+                group_matches_buf.push(_group_match);
+            }
+
+            group_matches.set(group_matches_buf);
+        })
+    };
+
     let teams: UseStateHandle<Vec<Team>> = use_state(|| vec![
         Team { id: 0, is_being_edited: false, name: "Cloud9".to_string() },
         Team { id: 1, is_being_edited: false, name: "FaZe Clan".to_string() },
@@ -102,7 +205,6 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
             teams.set(teams_buf);
         })
     };
-
     let on_edit_team_click = {
         let teams = teams.clone();
         Callback::from(move |id| {
@@ -175,6 +277,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
 
         bracket_teams.push((0..teams.len()).step_by(2).map(|i| {
             Match {
+                id: 0,
                 team1: teams[i].name.clone(),
                 score1: 0,
                 team2: teams[i+1].name.clone(),
@@ -187,6 +290,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
         let mut nb_match = teams.len() / 4;
         for _i in 1..nb_rounds {
             bracket_teams.push((0..nb_match).map(|_| Match {
+                id: 0,
                 team1: "TBA".to_string(),
                 score1: 0,
                 team2: "TBA".to_string(),
@@ -228,6 +332,9 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                         <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
                             <Groups on_create={on_create_group_click} on_delete={on_delete_group_click}/>
                         </ContextProvider<UseStateHandle<Vec<Group>>>>
+                        <ContextProvider<UseStateHandle<Vec<Vec<Match>>>> context={group_matches.clone()}>
+                            <QualificationPhase on_started_click={on_started_click} on_finished_click={on_finished_click}/>
+                        </ContextProvider<UseStateHandle<Vec<Vec<Match>>>>>
                     }
                     if *is_elim {
                         <hr/>

@@ -3,7 +3,7 @@ use web_sys::{HtmlInputElement, window};
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::{layouts::homelayout::HomeLayout, components::{backlink::Backlink, bracket::Bracket, qualificationPhase::QualificationPhase, groups::{Groups, Group}, button::Button, teams::{Teams, Team}, form_input::FormInput, join_code::JoinCode, notification::NotifType}, routers::Route, utils::utils::{fetch_tournament, add_delayed_notif}};
+use crate::{layouts::homelayout::HomeLayout, components::{backlink::Backlink, bracket::{Bracket, Match}, qualificationPhase::QualificationPhase, groups::{Groups, Group}, button::Button, teams::{Teams, Team}, form_input::FormInput, join_code::JoinCode, notification::NotifType}, routers::Route, utils::{utils::{fetch_tournament, add_delayed_notif}}};
 
 #[derive(PartialEq, Properties)]
 pub struct TournoixEditProps {
@@ -83,6 +83,58 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         Group { },
     ]);
 
+    let group_matches = use_state(|| vec![
+        vec![
+            Match {
+                id: 0,
+                team1: "Cloud9".to_string(),
+                score1: 0,
+                team2: "FaZe Clan".to_string(),
+                score2: 0,
+                started: false,
+                finished: false
+            },
+            Match {
+                id: 1,
+                team1: "NaVi".to_string(),
+                score1: 0,
+                team2: "NRG Esports".to_string(),
+                score2: 0,
+                started: true,
+                finished: false
+            },
+            Match {
+                id: 2,
+                team1: "G2 Esports".to_string(),
+                score1: 0,
+                team2: "fnatic".to_string(),
+                score2: 0,
+                started: true,
+                finished: true
+            },
+        ],
+        vec! [
+            Match {
+                id: 3,
+                team1: "Team with a comically long name".to_string(),
+                score1: 0,
+                team2: "Team 42".to_string(),
+                score2: 0,
+                started: false,
+                finished: false
+            },
+            Match {
+                id: 4,
+                team1: "TBA".to_string(),
+                score1: 0,
+                team2: "TBA".to_string(),
+                score2: 0,
+                started: false,
+                finished: false
+            },
+        ]
+    ]);
+
     let on_edit_click = {
         let navigator = navigator.clone();
         let id = id.clone();
@@ -125,7 +177,9 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                 <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
                     <Groups/>
                 </ContextProvider<UseStateHandle<Vec<Group>>>>
-                <QualificationPhase/>
+                <ContextProvider<UseStateHandle<Vec<Vec<Match>>>> context={group_matches.clone()}>
+                    <QualificationPhase/>
+                </ContextProvider<UseStateHandle<Vec<Vec<Match>>>>>
                 <hr/>
                 <h2>{"Phase d'éliminations"}</h2>
                 /*<Bracket/>*/
