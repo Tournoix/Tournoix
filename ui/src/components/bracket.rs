@@ -3,6 +3,7 @@ use crate::components::bracket_round::BracketRound;
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct Match {
+    pub id: i32,
     pub team1: String,
     pub score1: i32,
     pub team2: String,
