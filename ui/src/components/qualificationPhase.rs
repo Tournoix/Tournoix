@@ -1,3 +1,5 @@
+use wasm_bindgen::JsCast;
+use web_sys::{EventTarget, HtmlInputElement};
 use yew::prelude::*;
 
 use crate::components::{bracket::Match, checkbox::CheckBox};
@@ -6,11 +8,13 @@ use crate::components::{bracket::Match, checkbox::CheckBox};
 pub struct QualificationPhaseProps {
     pub on_started_click: Option<Callback<i32>>,
     pub on_finished_click: Option<Callback<i32>>,
+    pub on_score1_change: Option<Callback<(i32, i32)>>,
+    pub on_score2_change: Option<Callback<(i32, i32)>>,
 }
 
 #[function_component]
 pub fn QualificationPhase(props: &QualificationPhaseProps) -> Html {
-    let QualificationPhaseProps { on_started_click, on_finished_click } = props;
+    let QualificationPhaseProps { on_started_click, on_finished_click, on_score1_change, on_score2_change } = props;
 
     let group_matches = use_context::<UseStateHandle<Vec<Vec<Match>>>>().expect("Missing group_matches provider");
 
@@ -40,6 +44,41 @@ pub fn QualificationPhase(props: &QualificationPhaseProps) -> Html {
         }
     };
 
+    let change_score1 = |id| {
+        let on_score1_change = on_score1_change.clone();
+        Callback::from(move |e: Event| {
+            let target: EventTarget = e
+                .target()
+                .expect("Event should have a target when dispatched");
+
+            // You must KNOW target is a HtmlInputElement, otherwise
+            // the call to value would be Undefined Behaviour (UB).
+            // Here we are sure that this is input element so we can convert it to the appropriate type without checking
+            if let Ok(val) = target.unchecked_into::<HtmlInputElement>().value().parse::<i32>() {
+                if let Some(on_score1_change) = &on_score1_change {
+                    on_score1_change.emit((id, val));
+                }
+            }
+        })
+    };
+    let change_score2 = |id| {
+        let on_score2_change = on_score2_change.clone();
+        Callback::from(move |e: Event| {
+            let target: EventTarget = e
+                .target()
+                .expect("Event should have a target when dispatched");
+
+            // You must KNOW target is a HtmlInputElement, otherwise
+            // the call to value would be Undefined Behaviour (UB).
+            // Here we are sure that this is input element so we can convert it to the appropriate type without checking
+            if let Ok(val) = target.unchecked_into::<HtmlInputElement>().value().parse::<i32>() {
+                if let Some(on_score2_change) = &on_score2_change {
+                    on_score2_change.emit((id, val));
+                }
+            }
+        })
+    };
+
     html! {
         <div class="w-full mt-4">
             <ul class="flex flex-wrap gap-3 justify-center items-center">
@@ -56,9 +95,9 @@ pub fn QualificationPhase(props: &QualificationPhaseProps) -> Html {
                                                 <div class="p-2 m-2 rounded bg-nutLight w-24">
                                                     {_match.team1.clone()}
                                                 </div>
-                                                <input type="number" class="mr-1 w-8 h-5" />
+                                                <input type="number" value={_match.score1.to_string()} disabled={if let Some(on_score1_change) = on_score1_change { false } else { true }} onchange={(change_score1.clone())(_match.id.clone())} class="mr-1 w-8 h-5 bg-white" />
                                                 {" - "}
-                                                <input type="number" class="ml-1 w-8 h-5" />
+                                                <input type="number" value={_match.score2.to_string()} disabled={if let Some(on_score2_change) = on_score2_change { false } else { true }} onchange={(change_score2.clone())(_match.id.clone())} class="ml-1 w-8 h-5 bg-white" />
                                                 <div class="p-2 m-2 rounded bg-nutLight w-24">
                                                     {_match.team2.clone()}
                                                 </div>

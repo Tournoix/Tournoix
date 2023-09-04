@@ -173,6 +173,56 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
             group_matches.set(group_matches_buf);
         })
     };
+    let on_score1_change = {
+        let group_matches = group_matches.clone();
+        Callback::from(move |(match_id, val)| {
+            // Deep copy the group_matches vector into a buffer
+            let mut group_matches_buf = vec![];
+            for group_match in group_matches.iter() {
+                let mut _group_match = vec![];
+                let group_match = group_match.clone();
+
+                for mut _match in group_match.iter() {
+                    let mut _match = _match.clone();
+
+                    if match_id == _match.id {
+                        _match.score1 = val;
+                    }
+
+                    _group_match.push(_match);
+                }
+
+                group_matches_buf.push(_group_match);
+            }
+
+            group_matches.set(group_matches_buf);
+        })
+    };
+    let on_score2_change = {
+        let group_matches = group_matches.clone();
+        Callback::from(move |(match_id, val)| {
+            // Deep copy the group_matches vector into a buffer
+            let mut group_matches_buf = vec![];
+            for group_match in group_matches.iter() {
+                let mut _group_match = vec![];
+                let group_match = group_match.clone();
+
+                for mut _match in group_match.iter() {
+                    let mut _match = _match.clone();
+
+                    if match_id == _match.id {
+                        _match.score2 = val;
+                    }
+
+                    _group_match.push(_match);
+                }
+
+                group_matches_buf.push(_group_match);
+            }
+
+            group_matches.set(group_matches_buf);
+        })
+    };
 
     let teams: UseStateHandle<Vec<Team>> = use_state(|| vec![
         Team { id: 0, is_being_edited: false, name: "Cloud9".to_string() },
@@ -333,7 +383,7 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                             <Groups on_create={on_create_group_click} on_delete={on_delete_group_click}/>
                         </ContextProvider<UseStateHandle<Vec<Group>>>>
                         <ContextProvider<UseStateHandle<Vec<Vec<Match>>>> context={group_matches.clone()}>
-                            <QualificationPhase on_started_click={on_started_click} on_finished_click={on_finished_click}/>
+                            <QualificationPhase on_started_click={on_started_click} on_finished_click={on_finished_click} on_score1_change={on_score1_change} on_score2_change={on_score2_change}/>
                         </ContextProvider<UseStateHandle<Vec<Vec<Match>>>>>
                     }
                     if *is_elim {
