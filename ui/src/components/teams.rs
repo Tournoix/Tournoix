@@ -1,5 +1,7 @@
 use yew::prelude::*;
 
+use crate::utils::utils::team_color_wrapper;
+
 #[derive(PartialEq, Clone)]
 pub struct Team {
     pub id: i32,
@@ -47,7 +49,7 @@ pub fn Teams(props: &TeamsProps) -> Html {
     };
 
     html! {
-        <div class="flex flex-col items-center bg-nutLighter p-3">
+        <div class="flex flex-col items-center bg-nutLighter p-3 rounded">
             <h3>{"Equipes"}</h3>
             <ul class="flex flex-wrap gap-3 justify-center items-center">
                 {if let Some(on_create) = on_create {
@@ -61,7 +63,7 @@ pub fn Teams(props: &TeamsProps) -> Html {
                 {
                     teams.iter().map(|team| {
                         html!{<li class="team-item">
-                            <div class={format!("team-name {}", if let Some(_on_edit) = on_edit { "rounded-t" } else { "rounded" })}>
+                            <div style={team_color_wrapper(team.name.clone())} class={format!("team-border-color border-b-4 team-name {}", if let Some(_on_edit) = on_edit { "rounded-t" } else { "rounded" })}>
                                 <input id={format!("input-team-{}", team.id)} class={format!("w-full text-center {}", if team.is_being_edited { "bg-yellow-200" } else { "bg-transparent" })} disabled={!team.is_being_edited} type="text" value={team.name.clone()}/>
                             </div>
                             if let Some(_on_edit) = on_edit {

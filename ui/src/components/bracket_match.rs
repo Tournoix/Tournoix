@@ -2,7 +2,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{EventTarget, HtmlInputElement};
 use yew::prelude::*;
 
-use crate::components::checkbox::CheckBox;
+use crate::{components::checkbox::CheckBox, utils::utils::team_color_wrapper};
 
 use super::bracket::Match;
 
@@ -83,8 +83,8 @@ pub fn BracketMatch(props: &BracketMatchProps) -> Html {
     html! {
         <>
             <li class={"game game-top"}>
-                <div class={classes!("flex", "bg-nutLighter", "pl-2", if game.finished && game.score1 > game.score2 {"font-bold"} else {""})}>
-                    {game.team1.clone()}
+                <div style={team_color_wrapper(game.team2.clone())} class={classes!("border-l-4", "team-border-color", "flex", "bg-nutLighter", "pl-2", if game.finished && game.score1 > game.score2 {"font-bold"} else {""})}>
+                    <span>{game.team1.clone()}</span>
                     <input type="number" disabled={if let Some(on_score1_change) = on_score1_change { false } else { true }} onchange={change_score1(game.id)} value={game.score1.to_string()} class={classes!("game-input-score", if game.finished {if game.score2 < game.score1 {"bg-green-300"} else {"bg-red-300"}} else {""})}/>
                 </div>
             </li>
@@ -106,8 +106,8 @@ pub fn BracketMatch(props: &BracketMatchProps) -> Html {
                 }
             </li>
             <li class={"game game-bottom"}>
-                <div class={classes!("flex", "bg-nutLighter", "pl-2", if game.finished && game.score2 > game.score1 {"font-bold"} else {""})}>
-                    {game.team2.clone()}
+                <div style={team_color_wrapper(game.team2.clone())} class={classes!("border-l-4", "team-border-color", "flex", "bg-nutLighter", "pl-2", if game.finished && game.score2 > game.score1 {"font-bold"} else {""})}>
+                    <span>{game.team2.clone()}</span>
                     <input type="number" disabled={if let Some(on_score2_change) = on_score2_change { false } else { true }} onchange={change_score2(game.id)} value={game.score2.to_string()} class={classes!("game-input-score", if game.finished {if game.score2 > game.score1 {"bg-green-300"} else {"bg-red-300"}} else {""})}/>
                 </div>
             </li>
