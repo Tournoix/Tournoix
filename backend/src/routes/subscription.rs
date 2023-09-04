@@ -109,12 +109,7 @@ pub async fn create_subsciption(
         })
         .await
     {
-        Ok(_) => {
-            return Err((
-                Status::NotFound,
-                "You allready have a nut for this tournament".to_string(),
-            ))
-        }
+        Ok(_) => (), // User already has received nuts for this tournament
         Err(_) => {
             // add the nuts to the user
             let nut = NewNut {
