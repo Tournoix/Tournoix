@@ -30,10 +30,7 @@ pub async fn get_nut(
         Err(_) => false,
     };
 
-    let is_user = match id == auth.user.id {
-        true => true,
-        false => false,
-    };
+    let is_user = id == auth.user.id;
 
     if !is_owner && !is_user {
         return Err((Status::Forbidden, "Access Forbidden".to_string()));
