@@ -1,7 +1,7 @@
 use wasm_bindgen::JsCast;
 use web_sys::{window, HtmlInputElement};
 use yew::prelude::*;
-use crate::{layouts::homelayout::HomeLayout, routers::Route, components::{backlink::Backlink, form_input::FormInput, button::Button, team_bet::{Bet, TeamBet}}, utils::utils::team_color_wrapper};
+use crate::{layouts::homelayout::HomeLayout, routers::Route, components::{backlink::Backlink, form_input::FormInput, button::Button, team_bet::{Bet, TeamBet}, bracket::Match}, utils::utils::team_color_wrapper};
 
 #[derive(PartialEq, Properties)]
 pub struct MatchViewProps {
@@ -12,11 +12,21 @@ pub struct MatchViewProps {
 pub fn MatchView(props: &MatchViewProps) -> Html {
     let MatchViewProps { id } = props;
 
+    let game = use_state(|| {
+        Match {
+            id: 42,
+            started: true,
+            finished: false,
+            team1: "Cloud9".to_string(),
+            team2: "fnatic".to_string(),
+            score1: 0,
+            score2: 0,
+        }
+    });
     let user_nut = use_state(|| 42);
     let bet_made: UseStateHandle<Option<Bet>> = use_state(|| None);
 
     // BET 1
-    let team_name_1 = use_state(|| "Cloud9".to_string());
     let bets_1 = use_state(|| {
         let mut bets = vec![
             Bet { name: "SasuKey".to_string(), bet_value: 48 },
@@ -36,7 +46,7 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
     }
     let on_bet_1_click = {
         let bet_made = bet_made.clone();
-        let team_name_1 = team_name_1.clone();
+        let game = game.clone();
 
         Callback::from(move |_| {
             let window = window().unwrap();
@@ -46,7 +56,7 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
             if let Some(input_element) = input_element {
                 if let Ok(bet_value) = input_element.value().parse() {
                     if bet_value > 0 {
-                        bet_made.set(Some(Bet { name: (*team_name_1).clone(), bet_value }));
+                        bet_made.set(Some(Bet { name: game.team1.clone(), bet_value }));
                     }
                 }
             }
@@ -54,7 +64,6 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
     };
 
     // BET 2
-    let team_name_2 = use_state(|| "fnatic".to_string());
     let bets_2 = use_state(|| {
         let mut bets = vec![
             Bet { name: "JackJack".to_string(), bet_value: 41 },
@@ -85,7 +94,7 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
     }
     let on_bet_2_click = {
         let bet_made = bet_made.clone();
-        let team_name_2 = team_name_2.clone();
+        let game = game.clone();
 
         Callback::from(move |_| {
             let window = window().unwrap();
@@ -95,7 +104,7 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
             if let Some(input_element) = input_element {
                 if let Ok(bet_value) = input_element.value().parse() {
                     if bet_value > 0 {
-                        bet_made.set(Some(Bet { name: (*team_name_2).clone(), bet_value }));
+                        bet_made.set(Some(Bet { name: game.team2.clone(), bet_value }));
                     }
                 }
             }
@@ -130,13 +139,23 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                 <div class="relative font-bebas flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto z-10">
                     <Backlink route={Route::TournoixView{ id: 42 }} label="Retour au tournoi"/>
                     <div class="flex gap-5">
-                        <TeamBet total={(*total_1).clone()} is_left={true} team_name={(*team_name_1).clone()} bets={(*bets_1).clone()}/>
-                        <div class="flex flex-col">
-                            <img src="/img/versus_big.png" class="h-60"/>
+                        <TeamBet total={(*total_1).clone()} is_left={true} team_name={game.team1.clone()} bets={(*bets_1).clone()}/>
+                        <div class="flex flex-col w-96">
+                            <img src="/img/versus_big.png" class="w-72 mx-auto"/>
+                            <div class="flex justify-center items-center mb-2">
+                                <span class="mr-1">{"Ce match est "}</span>
+                                if game.started && game.finished {
+                                    <div class="font-bebas px-2 py-1 text-xs rounded m-1 text-center text-white bg-green-600">{"TERMINÉ"}</div>
+                                } else if game.started {
+                                    <div class="font-bebas px-2 py-1 text-xs rounded m-1 text-center text-white bg-yellow-600">{"EN COURS"}</div>
+                                } else {
+                                    <div class="font-bebas px-2 py-1 text-xs rounded m-1 text-center text-white bg-orange-600">{"EN ATTENTE"}</div>
+                                }
+                            </div>
                             <div class="text-xl text-center">{(*ratio).clone()}</div>
                             <div class="text-xl text-center">{format!("Vous avez {} noix", *user_nut)}</div>
                             if let Some(bet_made) = (*bet_made).clone() {
-                                <div class="text-xl text-center my-3">{format!("Vous avez misé {} noix sur \"{}\"", bet_made.bet_value, bet_made.name)}</div>
+                                <div class="text-xl text-center my-[0.92rem]">{format!("Vous avez misé {} noix sur \"{}\"", bet_made.bet_value, bet_made.name)}</div>
                                 <div style={team_color_wrapper((*bet_made.name).to_string())} class="flex rounded team-bg-color">
                                     <Button class="bg-transparent px-4 py-3 w-full" onclick={on_revert_bet_click}>
                                         {"Annuler la mise"}
@@ -145,20 +164,20 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                             } else {
                                 <FormInput id="nut_bet" label="Nombre de noix à miser" form_type="number" min_num={1} required={true}/>
                                 <div class="flex relative drop-shadow-lg">
-                                    <div style={team_color_wrapper((*team_name_1).clone())} class="flex grow-[1] hover:duration-[200ms] duration-[600ms] hover:grow-[3] rounded-l team-bg-color">
+                                    <div style={team_color_wrapper(game.team1.clone())} class="flex grow-[1] hover:duration-[200ms] duration-[600ms] hover:grow-[3] rounded-l team-bg-color">
                                         <Button class="bg-transparent px-4 py-3 text-right w-full" onclick={on_bet_1_click}>
-                                            {format!("Miser sur \"{}\"", (*team_name_1).clone())}
+                                            {format!("Miser sur \"{}\"", game.team1.clone())}
                                         </Button>
                                     </div>
-                                    <div style={team_color_wrapper((*team_name_2).clone())} class="flex grow-[1] hover:duration-[200ms] duration-[600ms] hover:grow-[3] rounded-r team-bg-color">
+                                    <div style={team_color_wrapper(game.team2.clone())} class="flex grow-[1] hover:duration-[200ms] duration-[600ms] hover:grow-[3] rounded-r team-bg-color">
                                         <Button class="bg-transparent px-4 py-3 text-left w-full" onclick={on_bet_2_click}>
-                                            {format!("Miser sur \"{}\"", (*team_name_2).clone())}
+                                            {format!("Miser sur \"{}\"", game.team2.clone())}
                                         </Button>
                                     </div>
                                 </div>
                             }
                         </div>
-                        <TeamBet total={(*total_2).clone()} is_left={false} team_name={(*team_name_2).clone()} bets={(*bets_2).clone()}/>
+                        <TeamBet total={(*total_2).clone()} is_left={false} team_name={game.team2.clone()} bets={(*bets_2).clone()}/>
                     </div>
                 </div>
             </div>
