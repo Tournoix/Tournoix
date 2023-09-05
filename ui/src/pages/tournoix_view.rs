@@ -72,17 +72,11 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
         let id = id.clone();
         Callback::from(move |_| navigator.push(&Route::TournoixEdit{ id }))
     };
-
-    let on_click_match = {
-        let navigator = navigator.clone();
-        Callback::from(move |_| navigator.push(&Route::BetView{ id: 42 }))
-    };
     
     html! {
         <HomeLayout>
             <div class="flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto relative">
                 <Backlink route={Route::Tournoix} label="Retour à la liste des tournoix"/>
-                <button class="m-3 bg-green-500 hover:bg-green-700 text-white font-bold p-2" onclick={on_click_match}>{"AFFICHER UN MATCH DE TEST"}</button>
                 <h1 class="mb-5">{tournament.name.to_string()}</h1>
                 {if can_edit_tournament { html! {<a onclick={on_click_edit} class="a_link mb-6">{"Modifier ce tournoi"}</a>}} else { html! {} }}
                 <JoinCode code={tournament.code.to_string()}/>

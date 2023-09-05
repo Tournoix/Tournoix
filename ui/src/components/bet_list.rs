@@ -16,7 +16,7 @@ pub fn BetList(props: &BetListProps) -> Html {
     let navigator = use_navigator().unwrap();
 
     let on_click_bet = |id| {
-        Callback::from(move |_| navigator.push(&Route::BetView{ id }))
+        Callback::from(move |_| navigator.push(&Route::MatchView{ id }))
     };
 
     html! {
