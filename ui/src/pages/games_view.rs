@@ -22,6 +22,14 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
         bets.sort_by(|a, b| b.bet_value.cmp(&a.bet_value));
         bets
     });
+    let total_1 = use_state(|| 0);
+    {
+        let bets_1_clone = bets_1.clone();
+        let total_1 = total_1.clone();
+        use_effect_with_deps(move |_| {
+            total_1.set(bets_1_clone.iter().fold(0, |acc, bet| acc + bet.bet_value));
+        }, bets_1.clone());
+    }
 
     let team_name_2 = use_state(|| "fnatic".to_string());
     let bets_2 = use_state(|| {
@@ -44,6 +52,29 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
         bets.sort_by(|a, b| b.bet_value.cmp(&a.bet_value));
         bets
     });
+    let total_2 = use_state(|| 0);
+    {
+        let bets_2_clone = bets_2.clone();
+        let total_2 = total_2.clone();
+        use_effect_with_deps(move |_| {
+            total_2.set(bets_2_clone.iter().fold(0, |acc, bet| acc + bet.bet_value));
+        }, bets_2.clone());
+    }
+
+    let ratio = use_state(|| "".to_string());
+    {
+        let ratio = ratio.clone();
+        use_effect_with_deps(move |(total_1, total_2)| {
+            let total_1 = (**total_1) as f64;
+            let total_2 = (**total_2) as f64;
+            let total = total_1 + total_2;
+            if (total_1 < total_2) {
+                ratio.set(format!("1 : {:.2}", total_2 / total_1));
+            } else {
+                ratio.set(format!("{:.2} : 1", total_1 / total_2));
+            }
+        }, (total_1.clone(), total_2.clone()));
+    }
 
     let on_bet_1_click = Callback::from(|_| {
         log::info!("Bet on team A");
@@ -59,11 +90,11 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                 <img src="/img/bullets_texture.svg" class="absolute opacity-[2%] sm:w-9/12 w-11/12 pointer-events-none left-[12.5%] max-h-full"/>
                 <div class="relative font-bebas flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto z-10">
                     <Backlink route={Route::TournoixView{ id: 42 }} label="Retour au tournoi"/>
-                    <div class="flex">
-                        <TeamBet team_name={(*team_name_1).clone()} bets={(*bets_1).clone()}/>
+                    <div class="flex gap-5">
+                        <TeamBet total={(*total_1).clone()} is_left={true} team_name={(*team_name_1).clone()} bets={(*bets_1).clone()}/>
                         <form class="flex flex-col">
                             <img src="/img/versus_big.png" class="h-60"/>
-                            <div class="text-xl text-center">{"1.44 : 0.69"}</div>
+                            <div class="text-xl text-center">{(*ratio).clone()}</div>
                             <div class="text-xl text-center">{format!("Vous avez {} noix", *user_nut)}</div>
                             <FormInput id="nut_bet" label="Nombre de noix à miser" form_type="number" min_num={1} required={true}/>
                             <div class="flex relative drop-shadow-lg">
@@ -79,7 +110,7 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                                 </div>
                             </div>
                         </form>
-                        <TeamBet team_name={(*team_name_2).clone()} bets={(*bets_2).clone()}/>
+                        <TeamBet total={(*total_2).clone()} is_left={false} team_name={(*team_name_2).clone()} bets={(*bets_2).clone()}/>
                     </div>
                 </div>
             </div>
