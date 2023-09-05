@@ -42,6 +42,7 @@ pub fn Teams(props: &TeamsProps) -> Html {
                         // Need to empty teams vec or else there is a weird behavior in rendering when adding/deleting team
                         teams.set(vec![]); 
                     }
+                    loading.set(false);
                 });
 
                 || ()
@@ -54,12 +55,10 @@ pub fn Teams(props: &TeamsProps) -> Html {
     // This way teams vec is first rendered as empty and then updated with values
     {
         let teams = teams.clone();
-        let loading = loading.clone();
 
         use_effect_with_deps(
             move |teams_tmp| {
                 teams.set((**teams_tmp).clone());
-                loading.set(false);
             },
             teams_tmp,
         );
@@ -110,8 +109,8 @@ pub fn Teams(props: &TeamsProps) -> Html {
                     <LoadingCircle />
                 </div>
             }
-            <h3>{"Equipes"}</h3>
-            <ul class="flex flex-wrap gap-3 justify-center items-center">
+            <h3>{"Equipes ("}{teams.len()}{")"}</h3>
+            <ul class="flex flex-wrap gap-3 justify-start items-center">
                 <li class="team-item team-selectable">
                     <div class="team-name rounded text-center" onclick={on_create}>
                         <img src="/img/plus.svg" class="add-btn"/>
