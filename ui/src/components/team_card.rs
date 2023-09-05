@@ -29,9 +29,11 @@ pub fn TeamCard(props: &TeamCardProps) -> Html {
         let is_being_edited = is_being_edited.clone();
         let name_ref = name_ref.clone();
         let team = team.clone();
+        let update_trigger = update_trigger.clone();
 
         Callback::from(move |_| {
             let team = team.clone();
+            let update_trigger = update_trigger.clone();
 
             if *is_being_edited {
                 let new_name = name_ref.cast::<HtmlInputElement>().unwrap().value();
@@ -53,6 +55,8 @@ pub fn TeamCard(props: &TeamCardProps) -> Html {
                                 &format!("L'équipe [{}] à été modifiée", team.name),
                                 NotifType::Success,
                             );
+
+                            update_trigger.set(!*update_trigger);
                         }
 
                         Err(e) => {

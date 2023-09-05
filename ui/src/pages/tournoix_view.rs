@@ -8,7 +8,7 @@ use crate::{
         backlink::Backlink,
         groups::{Group, Groups},
         join_code::JoinCode,
-        results::Results, loading_circle::LoadingCircle, bracket::Match,
+        results::Results, loading_circle::LoadingCircle,
     },
     layouts::homelayout::HomeLayout,
     routers::Route,
@@ -45,46 +45,6 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
     
     // TODO Wheter or not the current user can edit this tournament
     let can_edit_tournament = true;
-    let user_nut = 20;
-
-    let matches: UseStateHandle<Vec<Match>> = use_state(|| vec![
-        Match {
-            id: 0,
-            team1: "Cloud9".to_string(),
-            score1: 0,
-            team2: "FaZe Clan".to_string(),
-            score2: 0,
-            started: false,
-            finished: false
-        },
-        Match {
-            id: 1,
-            team1: "NaVi".to_string(),
-            score1: 0,
-            team2: "NRG Esports".to_string(),
-            score2: 0,
-            started: true,
-            finished: false
-        },
-        Match {
-            id: 2,
-            team1: "G2 Esports".to_string(),
-            score1: 0,
-            team2: "fnatic".to_string(),
-            score2: 0,
-            started: true,
-            finished: true
-        },
-        Match {
-            id: 3,
-            team1: "Team with a comically long name".to_string(),
-            score1: 0,
-            team2: "Team 42".to_string(),
-            score2: 0,
-            started: false,
-            finished: false
-        }
-    ]);
 
     let groups: UseStateHandle<Vec<Group>> =
         use_state(|| vec![Group {}, Group {}, Group {}, Group {}, Group {}, Group {}]);
@@ -184,7 +144,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         <hr/>
                         <h2>{"Phase de qualifications"}</h2>
                         <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
-                            <Groups/>
+                            <Groups tournament={tournament.as_ref().unwrap().clone()}/>
                         </ContextProvider<UseStateHandle<Vec<Group>>>>
                         <hr/>
                         <h2>{"Phase d'éliminations"}</h2>

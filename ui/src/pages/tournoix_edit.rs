@@ -15,7 +15,7 @@ use crate::{
         bracket::{Bracket, Match},
         button::Button,
         form_input::FormInput,
-        groups::{Group, Groups},
+        groups::Groups,
         join_code::JoinCode,
         loading_circle::LoadingCircle,
         notification::NotifType,
@@ -38,6 +38,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
     let navigator = use_navigator().unwrap();
     let tournament: UseStateHandle<Option<Tournament>> = use_state(|| None);
     let loading = use_state(|| true);
+    let should_update = use_state(|| false);
 
     // Form inputs
     let name_ref = use_node_ref();
@@ -89,53 +90,6 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         let id = id.clone();
         Callback::from(move |_| navigator.push(&Route::TournoixView { id }))
     };
-
-    /*
-    let on_edit_team_click = {
-        let teams = teams.clone();
-        Callback::from(move |id: i32| {
-            // Deep copy the teams vector into a buffer
-            let mut teams_buf = vec![];
-            for team in teams.iter() {
-                teams_buf.push(team.clone());
-            }
-
-            // Mark all other team as not being edited
-            for team in teams_buf.iter_mut() {
-                if team.id != id {
-                    team.is_being_edited = false;
-                }
-            }
-
-            let team_to_edit = teams_buf.iter_mut().find(|team| team.id == id);
-
-            if let Some(team_to_edit) = team_to_edit {
-                if team_to_edit.is_being_edited {
-                    let mut team_name = "".to_string();
-
-                    let window = window().unwrap();
-                    let document = window.document().unwrap();
-                    let input_element = document
-                        .get_element_by_id(format!("input-team-{}", id).as_str())
-                        .unwrap();
-                    let input_element = input_element.dyn_into::<HtmlInputElement>().ok();
-                    if let Some(input_element) = input_element {
-                        team_name = input_element.value();
-                    }
-
-                    team_to_edit.name = team_name;
-                }
-
-                team_to_edit.is_being_edited = !team_to_edit.is_being_edited;
-            }
-
-            teams.set(teams_buf);
-        })
-    };
-    */
-
-    let groups: UseStateHandle<Vec<Group>> =
-        use_state(|| vec![Group {}, Group {}, Group {}, Group {}, Group {}, Group {}]);
 
     let group_matches = use_state(|| {
         vec![
@@ -294,36 +248,10 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         })
     };
 
-    let on_create_group_click = {
-        let groups = groups.clone();
+    let on_teams_update = {
+        let should_update = should_update.clone();
         Callback::from(move |_| {
-            // Deep copy the groups vector into a buffer
-            let mut groups_buf = vec![];
-            for group in groups.iter() {
-                let group = group.clone();
-                groups_buf.push(group);
-            }
-
-            groups_buf.push(Group { });
-
-            groups.set(groups_buf);
-        })
-    };
-
-    let on_delete_group_click = {
-        let groups = groups.clone();
-        Callback::from(move |index| {
-            // Deep copy the groups vector into a buffer
-            let mut groups_buf = vec![];
-            for (_index, group) in groups.iter().enumerate() {
-                if _index != index {
-                    groups_buf.push(group.clone());
-                } else {
-                    // Check if the group is empty, otherwise cannot delete it
-                }
-            }
-            
-            groups.set(groups_buf);
+            should_update.set(!*should_update);
         })
     };
 
@@ -464,18 +392,13 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                                 </form>
                             </div>
                             <div class="w-1/2 m-4">
-                                <Teams tournament={tournament.clone()} />
-                                //<ContextProvider<UseStateHandle<Vec<Team>>> context={teams.clone()}>
-                                    //
-                                //</ContextProvider<UseStateHandle<Vec<Team>>>>
+                                <Teams tournament={tournament.clone()} on_update={on_teams_update} />
                             </div>
                         </div>
                         if *is_qualif {
                             <hr/>
                             <h2>{"Phase de qualifications"}</h2>
-                            <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
-                                <Groups on_create={on_create_group_click} on_delete={on_delete_group_click}/>
-                            </ContextProvider<UseStateHandle<Vec<Group>>>>
+                            <Groups tournament={tournament.clone()} should_update={should_update} />
                             <ContextProvider<UseStateHandle<Vec<Vec<Match>>>> context={group_matches.clone()}>
                                 <QualificationPhase on_started_click={on_started_click(group_matches.clone())} on_finished_click={on_finished_click(group_matches.clone())} on_score1_change={on_score1_change(group_matches.clone())} on_score2_change={on_score2_change(group_matches.clone())}/>
                             </ContextProvider<UseStateHandle<Vec<Vec<Match>>>>>
@@ -485,7 +408,6 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                             <h2>{"Phase d'éliminations"}</h2>
                             <Bracket teams={(*elim_matches).clone()} on_started_click={on_started_click(elim_matches.clone())} on_finished_click={on_finished_click(elim_matches.clone())} on_score1_change={on_score1_change(elim_matches.clone())} on_score2_change={on_score2_change(elim_matches.clone())} />
                         }
-                        <hr/>
                     } else {
                         <div>{"Oups, ce tournoi n'existe pas :("}</div>
                     }

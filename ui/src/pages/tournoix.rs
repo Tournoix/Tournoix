@@ -1,3 +1,4 @@
+use log::info;
 use yew::platform::spawn_local;
 use yew::prelude::*;
 
@@ -58,6 +59,7 @@ pub fn Tournoix(props: &TournoixProps) -> Html {
     }
 
     let on_tournament_delete = Callback::from(move |_| {
+        info!("on delete");
         trigger.set(!*trigger);
     });
 

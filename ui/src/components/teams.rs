@@ -10,16 +10,13 @@ use crate::{
 #[derive(PartialEq, Properties)]
 pub struct TeamsProps {
     pub tournament: Tournament,
-    /*
-    pub on_create: Option<Callback<MouseEvent>>,
-    pub on_edit: Option<Callback<i32>>,
-    pub on_delete: Option<Callback<i32>>,
-    */
+    #[prop_or_default]
+    pub on_update: Callback<()>,
 }
 
 #[function_component]
 pub fn Teams(props: &TeamsProps) -> Html {
-    let TeamsProps { tournament } = props;
+    let TeamsProps { tournament, on_update } = props;
 
     let teams: UseStateHandle<Vec<Team>> = use_state(|| Vec::new());
     let teams_tmp: UseStateHandle<Vec<Team>> = use_state(|| Vec::new());
@@ -32,6 +29,7 @@ pub fn Teams(props: &TeamsProps) -> Html {
         let loading = loading.clone();
         let teams = teams.clone();
         let teams_tmp = teams_tmp.clone();
+        let on_update = on_update.clone();
 
         use_effect_with_deps(
             move |_| {
@@ -45,7 +43,7 @@ pub fn Teams(props: &TeamsProps) -> Html {
                     loading.set(false);
                 });
 
-                || ()
+                on_update.emit(());
             },
             trigger.clone(),
         );

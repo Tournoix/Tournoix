@@ -1,7 +1,7 @@
 use crate::models::tournament::{NewTournament, PatchTournament, Tournament};
 use crate::routes::auth::ApiAuth;
 use crate::schema::tournaments;
-use crate::{ErrorBody, ErrorResponse, MysqlConnection};
+use crate::{ErrorBody, ErrorResponse, MysqlConnection, EmptyResponse};
 use diesel::prelude::*;
 use diesel::result::Error;
 use rand::distributions::Alphanumeric;
@@ -214,7 +214,7 @@ pub async fn delete_tournoix(
     connection: MysqlConnection,
     id: i32,
     auth: ApiAuth,
-) -> Result<Status, (Status, Json<ErrorResponse>)> {
+) -> Result<Json<EmptyResponse>, (Status, Json<ErrorResponse>)> {
     // verify if the user is the owner of the tournament
     if !is_owner(&connection, id, &auth).await {
         return Err((
@@ -233,7 +233,7 @@ pub async fn delete_tournoix(
         .run(move |c| diesel::delete(tournaments::table.find(id)).execute(c))
         .await
     {
-        Ok(_r) => Ok(Status::NoContent),
+        Ok(_r) => Ok(Json(EmptyResponse())),
 
         Err(_e) => Err((
             Status::InternalServerError,

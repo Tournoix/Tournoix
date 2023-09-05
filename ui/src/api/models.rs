@@ -109,7 +109,7 @@ pub struct AddTeamRequest {
 
 impl Team {
     pub async fn update(&self, update_request: TeamUpdate) -> Result<Team, ErrorResponse> {
-        api_call::<Team>(Method::PATCH, &format!("teams/{}", self.id), HeaderMap::new(), serde_json::to_string(&update_request).unwrap()).await
+        super::teams::update(self.id, update_request).await
     }
 
     pub async fn delete(&self) -> Result<EmptyResponse, ErrorResponse> {

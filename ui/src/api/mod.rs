@@ -12,6 +12,7 @@ use self::models::User;
 pub mod auth;
 pub mod models;
 pub mod tournoix;
+pub mod teams;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ErrorBody {
