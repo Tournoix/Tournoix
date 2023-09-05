@@ -66,6 +66,9 @@ pub struct ErrorResponse {
 }
 
 #[derive(Serialize)]
+pub struct EmptyResponse();
+
+#[derive(Serialize)]
 pub struct ErrorBody {
     pub code: i32,
     pub reason: String,

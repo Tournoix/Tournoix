@@ -85,7 +85,7 @@ pub fn BracketMatch(props: &BracketMatchProps) -> Html {
             <li class={"game game-top"}>
                 <div style={team_color_wrapper(game.team2.clone())} class={classes!("border-l-4", "team-border-color", "flex", "bg-nutLighter", "pl-2", if game.finished && game.score1 > game.score2 {"font-bold"} else {""})}>
                     <span>{game.team1.clone()}</span>
-                    <input type="number" disabled={if let Some(on_score1_change) = on_score1_change { false } else { true }} onchange={change_score1(game.id)} value={game.score1.to_string()} class={classes!("game-input-score", if game.finished {if game.score2 < game.score1 {"bg-green-300"} else {"bg-red-300"}} else {""})}/>
+                    <input type="number" disabled={if on_score1_change.is_some() { false } else { true }} onchange={change_score1(game.id)} value={game.score1.to_string()} class={classes!("game-input-score", if game.finished {if game.score2 < game.score1 {"bg-green-300"} else {"bg-red-300"}} else {""})}/>
                 </div>
             </li>
             <li class={"game game-spacer"}>
@@ -98,17 +98,17 @@ pub fn BracketMatch(props: &BracketMatchProps) -> Html {
                         html!{<div class="font-bebas ml-auto px-3 text-xs rounded m-1 text-center text-white bg-orange-600">{"EN ATTENTE"}</div>}
                     }
                 }
-                if let Some(on_started_click) = on_started_click {
+                if on_started_click.is_some() {
                     <CheckBox class="ml-auto text-xs" id={format!("elim_started_{}", game.id.clone())} label="Started" checked={game.started.clone()} on_click={on_click_started(game.id)}/>
                 }
-                if let Some(on_finished_click) = on_finished_click {
+                if on_finished_click.is_some() {
                     <CheckBox class="ml-auto text-xs" id={format!("elim_finished_{}", game.id.clone())} label="Finished" checked={game.finished.clone()} on_click={on_click_finished(game.id)}/>
                 }
             </li>
             <li class={"game game-bottom"}>
                 <div style={team_color_wrapper(game.team2.clone())} class={classes!("border-l-4", "team-border-color", "flex", "bg-nutLighter", "pl-2", if game.finished && game.score2 > game.score1 {"font-bold"} else {""})}>
                     <span>{game.team2.clone()}</span>
-                    <input type="number" disabled={if let Some(on_score2_change) = on_score2_change { false } else { true }} onchange={change_score2(game.id)} value={game.score2.to_string()} class={classes!("game-input-score", if game.finished {if game.score2 > game.score1 {"bg-green-300"} else {"bg-red-300"}} else {""})}/>
+                    <input type="number" disabled={if on_score2_change.is_some() { false } else { true }} onchange={change_score2(game.id)} value={game.score2.to_string()} class={classes!("game-input-score", if game.finished {if game.score2 > game.score1 {"bg-green-300"} else {"bg-red-300"}} else {""})}/>
                 </div>
             </li>
         </>

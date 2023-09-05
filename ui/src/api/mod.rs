@@ -26,7 +26,7 @@ pub struct ErrorResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct EmptyResponse {}
+pub struct EmptyResponse();
 
 /// Make an API call to the backend  
 ///

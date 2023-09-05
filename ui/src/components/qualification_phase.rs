@@ -88,16 +88,16 @@ pub fn QualificationPhase(props: &QualificationPhaseProps) -> Html {
                             <h3 class="text-center">{"Groupe "}{index + 1}</h3>
                             <ul>
                                 {
-                                    group_match.iter().enumerate().map(|(index_2, _match)| {
+                                    group_match.iter().enumerate().map(|(_index_2, _match)| {
                                         html!{<div>
                                             <hr class="m-0 border-nutLight drop-shadow-none"/>
                                             <li class="rounded relative flex justify-center items-center">
                                                 <div style={team_color_wrapper(_match.team1.clone())} class="team-border-color border-r-4 px-2 m-2 rounded-l bg-nutLight w-24 text-right">
                                                     {_match.team1.clone()}
                                                 </div>
-                                                <input type="number" value={_match.score1.to_string()} disabled={if let Some(on_score1_change) = on_score1_change { false } else { true }} onchange={(change_score1.clone())(_match.id.clone())} class="mr-1 w-8 h-5 bg-white text-center" />
+                                                <input type="number" value={_match.score1.to_string()} disabled={if on_score1_change.is_some() { false } else { true }} onchange={(change_score1.clone())(_match.id.clone())} class="mr-1 w-8 h-5 bg-white text-center" />
                                                 {" - "}
-                                                <input type="number" value={_match.score2.to_string()} disabled={if let Some(on_score2_change) = on_score2_change { false } else { true }} onchange={(change_score2.clone())(_match.id.clone())} class="ml-1 w-8 h-5 bg-white text-center" />
+                                                <input type="number" value={_match.score2.to_string()} disabled={if on_score2_change.is_some() { false } else { true }} onchange={(change_score2.clone())(_match.id.clone())} class="ml-1 w-8 h-5 bg-white text-center" />
                                                 <div style={team_color_wrapper(_match.team2.clone())} class="team-border-color border-l-4 px-2 m-2 rounded-r bg-nutLight w-24">
                                                     {_match.team2.clone()}
                                                 </div>
@@ -111,10 +111,10 @@ pub fn QualificationPhase(props: &QualificationPhaseProps) -> Html {
                                                             html!{<div class="font-bebas w-full text-xs rounded m-1 text-center text-white bg-orange-600">{"EN ATTENTE"}</div>}
                                                         }
                                                     }
-                                                    if let Some(on_started_click) = on_started_click {
+                                                    if on_started_click.is_some() {
                                                         <CheckBox class="m-0 text-xs" id={format!("started_{}", _match.id.clone())} label="Started" checked={_match.started.clone()} on_click={on_click_started(_match.id)}/>
                                                     }
-                                                    if let Some(on_finished_click) = on_finished_click {
+                                                    if on_finished_click.is_some() {
                                                         <CheckBox class="m-0 text-xs" id={format!("finished_{}", _match.id.clone())} label="Finished" checked={_match.finished.clone()} on_click={on_click_finished(_match.id)}/>
                                                     }
                                                 </div>

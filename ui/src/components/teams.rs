@@ -1,106 +1,128 @@
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
-use yew_hooks::use_effect_once;
 
-#[derive(PartialEq, Clone)]
-pub struct Team {
-    pub id: i32,
-    pub is_being_edited: bool,
-    pub name: String,
-}
+use crate::{
+    api::models::{AddTeamRequest, Team, Tournament},
+    components::{loading_circle::LoadingCircle, notification::NotifType, team_card::TeamCard},
+    utils::utils::add_delayed_notif,
+};
 
 #[derive(PartialEq, Properties)]
 pub struct TeamsProps {
-    pub tournoix_id: i32,
+    pub tournament: Tournament,
+    /*
     pub on_create: Option<Callback<MouseEvent>>,
     pub on_edit: Option<Callback<i32>>,
     pub on_delete: Option<Callback<i32>>,
+    */
 }
 
 #[function_component]
 pub fn Teams(props: &TeamsProps) -> Html {
-    let TeamsProps {
-        tournoix_id,
-        on_create,
-        on_edit,
-        on_delete
-    } = props;
+    let TeamsProps { tournament } = props;
 
-    let teams = use_context::<UseStateHandle<Vec<Team>>>().expect("Missing teams provider");
+    let teams: UseStateHandle<Vec<Team>> = use_state(|| Vec::new());
+    let teams_tmp: UseStateHandle<Vec<Team>> = use_state(|| Vec::new());
+
+    let loading = use_state(|| true);
+    let trigger = use_state(|| false);
 
     {
-        use_effect_once(|| {
-            spawn_local(async move {
-                
-            });
+        let tournament = tournament.clone();
+        let loading = loading.clone();
+        let teams = teams.clone();
+        let teams_tmp = teams_tmp.clone();
 
+        use_effect_with_deps(
+            move |_| {
+                spawn_local(async move {
+                    loading.set(true);
+                    if let Some(t) = tournament.get_teams().await.ok() {
+                        teams_tmp.set(t);
+                        // Need to empty teams vec or else there is a weird behavior in rendering when adding/deleting team
+                        teams.set(vec![]); 
+                    }
+                });
 
-            || ()
-        });
+                || ()
+            },
+            trigger.clone(),
+        );
     }
 
-    let on_edit_click = |id: i32| {
-        if let Some(on_edit) = on_edit {
-            let on_edit = on_edit.clone();
+    // Use of a temp state to update teams vec
+    // This way teams vec is first rendered as empty and then updated with values
+    {
+        let teams = teams.clone();
+        let loading = loading.clone();
 
-            Callback::from(move |_| {
-                on_edit.emit(id);
-                ()
-            })
-        } else {
-            Callback::noop()
-        }
-    };
+        use_effect_with_deps(
+            move |teams_tmp| {
+                teams.set((**teams_tmp).clone());
+                loading.set(false);
+            },
+            teams_tmp,
+        );
+    }
 
-    let on_delete_click = |id: i32| {
-        if let Some(on_delete) = on_delete {
-            let on_delete = on_delete.clone();
+    let on_create = {
+        let tournament = tournament.clone();
+        let trigger = trigger.clone();
 
-            Callback::from(move |_| {
-                on_delete.emit(id);
-                ()
-            })
-        } else {
-            Callback::noop()
-        }
+        Callback::from(move |_| {
+            let tournament = tournament.clone();
+            let trigger = trigger.clone();
+
+            spawn_local(async move {
+                match tournament
+                    .add_teams(AddTeamRequest {
+                        name: "New team".into(),
+                        group: 0,
+                    })
+                    .await
+                {
+                    Ok(new_team) => {
+                        add_delayed_notif(
+                            "Équipe ajoutée !",
+                            &format!("L'équipe [{}] à été ajoutée", new_team.name),
+                            NotifType::Success,
+                        );
+
+                        trigger.set(!*trigger);
+                    }
+
+                    Err(e) => {
+                        add_delayed_notif(
+                            &format!("Erreur: {}", e.error.reason),
+                            &e.error.description,
+                            NotifType::Error,
+                        );
+                    }
+                }
+            });
+        })
     };
 
     html! {
-        <div class="flex flex-col items-center bg-nutLighter p-3">
+        <div class="relative flex flex-col items-center bg-nutLighter p-3">
+            if *loading {
+                <div class="flex absolute top-0 left-0 justify-center items-center z-30 w-full h-full bg-black bg-opacity-25">
+                    <LoadingCircle />
+                </div>
+            }
             <h3>{"Equipes"}</h3>
             <ul class="flex flex-wrap gap-3 justify-center items-center">
-                {if let Some(on_create) = on_create {
-                    html! { <li class="team-item team-selectable">
-                        <div class="team-name rounded text-center" onclick={on_create}>
-                            <img src="/img/plus.svg" class="add-btn"/>
-                            {"Créer une équipe"}
-                        </div>
-                    </li>}
-                } else { html! {}}}
+                <li class="team-item team-selectable">
+                    <div class="team-name rounded text-center" onclick={on_create}>
+                        <img src="/img/plus.svg" class="add-btn"/>
+                        {"Créer une équipe"}
+                    </div>
+                </li>
                 {
                     teams.iter().map(|team| {
-                        html!{<li class="team-item">
-                            <div class={format!("team-name {}", if let Some(_on_edit) = on_edit { "rounded-t" } else { "rounded" })}>
-                                <input id={format!("input-team-{}", team.id)} class={format!("w-full text-center {}", if team.is_being_edited { "bg-yellow-200" } else { "bg-transparent" })} disabled={!team.is_being_edited} type="text" value={team.name.clone()}/>
-                            </div>
-                            if let Some(_on_edit) = on_edit {
-                                <div class="team-btn-list">
-                                    // Edit
-                                    {if let Some(_on_edit) = on_edit {
-                                        html! { <a onclick={on_edit_click(team.id)}>
-                                            <img src={if team.is_being_edited { "/img/checkmark.svg" } else { "/img/pencil.svg" }} class={format!("team-btn-icon cursor-pointer hover:scale-110 {}", {if team.is_being_edited { "hover:bg-green-400" } else { "hover:bg-orange-400" }})}/>
-                                        </a> }
-                                    } else { html! {}}}
-
-                                    // Delete
-                                    {if let Some(_on_delete) = on_delete {
-                                        html! { <a onclick={on_delete_click(team.id)}>
-                                            <img src="/img/trash.svg" class="team-btn-icon hover:bg-red-400 cursor-pointer hover:scale-110"/>
-                                        </a> }
-                                    } else { html! {}}}
-                                </div>
-                            }
-                        </li>}
+                        html!{
+                            <TeamCard team={team.clone()} update_trigger={trigger.clone()} />
+                        }
                     }).collect::<Html>()
                 }
             </ul>

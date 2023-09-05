@@ -13,6 +13,7 @@ pub mod notification;
 pub mod qualification_phase;
 pub mod results;
 pub mod team_bet;
+pub mod team_card;
 pub mod teams;
 pub mod tournament_card;
 pub mod tournament_create_button;

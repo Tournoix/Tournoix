@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use log::info;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{window, HtmlInputElement};
@@ -8,7 +9,7 @@ use yew_hooks::use_effect_once;
 use yew_router::prelude::use_navigator;
 
 use crate::{
-    api::{self, models::Tournament, tournoix::UpdateTournoixRequest},
+    api::{self, models::Tournament, tournoix::UpdateTournoixRequest, EmptyResponse},
     components::{
         backlink::Backlink,
         bracket::{Bracket, Match},
@@ -19,7 +20,7 @@ use crate::{
         loading_circle::LoadingCircle,
         notification::NotifType,
         qualification_phase::QualificationPhase,
-        teams::{Team, Teams},
+        teams::Teams,
     },
     layouts::homelayout::HomeLayout,
     routers::Route,
@@ -46,6 +47,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
     let groupe_size_ref = use_node_ref();
     let is_qualif = use_state(|| false);
     let is_elim = use_state(|| false);
+
+    info!("{}", serde_json::to_string(&EmptyResponse{}).unwrap());
 
     let on_qualif_change = {
         let is_qualif = is_qualif.clone();
@@ -81,57 +84,13 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         });
     }
 
-    let teams: UseStateHandle<Vec<Team>> = use_state(|| {
-        vec![
-            Team {
-                id: 0,
-                is_being_edited: false,
-                name: "Cloud9".to_string(),
-            },
-            Team {
-                id: 1,
-                is_being_edited: false,
-                name: "FaZe Clan".to_string(),
-            },
-            Team {
-                id: 2,
-                is_being_edited: false,
-                name: "NaVi".to_string(),
-            },
-            Team {
-                id: 3,
-                is_being_edited: false,
-                name: "NRG Esports".to_string(),
-            },
-            Team {
-                id: 4,
-                is_being_edited: false,
-                name: "G2 Esports".to_string(),
-            },
-            Team {
-                id: 5,
-                is_being_edited: false,
-                name: "fnatic".to_string(),
-            },
-            Team {
-                id: 6,
-                is_being_edited: false,
-                name: "Team with a comically long name".to_string(),
-            },
-            Team {
-                id: 7,
-                is_being_edited: false,
-                name: "Team 42".to_string(),
-            },
-        ]
-    });
-
     let on_click_view = {
         let navigator = navigator.clone();
         let id = id.clone();
         Callback::from(move |_| navigator.push(&Route::TournoixView { id }))
     };
 
+    /*
     let on_edit_team_click = {
         let teams = teams.clone();
         Callback::from(move |id: i32| {
@@ -173,6 +132,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
             teams.set(teams_buf);
         })
     };
+    */
 
     let groups: UseStateHandle<Vec<Group>> =
         use_state(|| vec![Group {}, Group {}, Group {}, Group {}, Group {}, Group {}]);
@@ -488,10 +448,10 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                         <a onclick={on_click_view} class="a_link mb-6">{"Voir ce tournoi en mode affichage"}</a>
                         <JoinCode code={tournament.code.to_string()}/>
                         <hr/>
-                        <form class="flex flex-col items-center" onsubmit={on_submit}>
-                            <h2>{"Informations"}</h2>
-                            <div class="flex flex-row w-full justify-center gap-5 lg:flex-nowrap flex-wrap">
-                                <div class="w-1/2">
+                        <h2>{"Informations"}</h2>
+                        <div class="flex flex-row w-full justify-center gap-5 lg:flex-nowrap flex-wrap">
+                            <div class="w-1/2">
+                                <form class="flex flex-col items-end" onsubmit={on_submit}>
                                     <FormInput id="name" label="Nom" form_type="text" value={tournament.name.clone()} _ref={name_ref} required={true}/>
                                     <FormInput id="date" label="Date" form_type="datetime-local" value={tournament.date_locale().format("%Y-%m-%dT%H:%M").to_string()}  _ref={date_ref} required={true}/>
                                     <FormInput id="location" label="Lieu" form_type="text" value={tournament.location.as_ref().unwrap_or(&String::new()).to_string()}  _ref={location_ref} required={true}/>
@@ -499,31 +459,33 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                                     <FormInput id="nb_team_per_group" label="Nombre d'équipes par groupe" form_type="number" value={if let Some(s) = tournament.size_group {s.to_string()} else {String::new()}}  _ref={groupe_size_ref}/>
                                     <FormInput id="phase_qualifications" label="Phase de qualifications" form_type="checkbox" checked={*is_qualif} onchange={on_qualif_change} />
                                     <FormInput id="phase_eliminations" label="Phase d'éliminations" form_type="checkbox" checked={*is_elim} onchange={on_elim_change} />
-                                </div>
-                                <div class="w-1/2 m-4">
-                                    //<ContextProvider<UseStateHandle<Vec<Team>>> context={teams.clone()}>
-                                        //<Teams on_edit={on_edit_team_click}/>
-                                    //</ContextProvider<UseStateHandle<Vec<Team>>>>
-                                </div>
+
+                                    <Button class="text-lg px-3 py-2 mt-3 hover:scale-110 bg-green-700">{"Modifier les informations"}</Button>
+                                </form>
                             </div>
-                            if *is_qualif {
-                                <hr/>
-                                <h2>{"Phase de qualifications"}</h2>
-                                <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
-                                    <Groups on_create={on_create_group_click} on_delete={on_delete_group_click}/>
-                                </ContextProvider<UseStateHandle<Vec<Group>>>>
-                                <ContextProvider<UseStateHandle<Vec<Vec<Match>>>> context={group_matches.clone()}>
-                                    <QualificationPhase on_started_click={on_started_click(group_matches.clone())} on_finished_click={on_finished_click(group_matches.clone())} on_score1_change={on_score1_change(group_matches.clone())} on_score2_change={on_score2_change(group_matches.clone())}/>
-                                </ContextProvider<UseStateHandle<Vec<Vec<Match>>>>>
-                            }
-                            if *is_elim {
-                                <hr/>
-                                <h2>{"Phase d'éliminations"}</h2>
-                                <Bracket teams={(*elim_matches).clone()} on_started_click={on_started_click(elim_matches.clone())} on_finished_click={on_finished_click(elim_matches.clone())} on_score1_change={on_score1_change(elim_matches.clone())} on_score2_change={on_score2_change(elim_matches.clone())} />
-                            }
+                            <div class="w-1/2 m-4">
+                                <Teams tournament={tournament.clone()} />
+                                //<ContextProvider<UseStateHandle<Vec<Team>>> context={teams.clone()}>
+                                    //
+                                //</ContextProvider<UseStateHandle<Vec<Team>>>>
+                            </div>
+                        </div>
+                        if *is_qualif {
                             <hr/>
-                            <Button class="sm:text-xl text-lg px-3 py-2 mx-auto mt-3 mb-16 hover:scale-110 bg-green-700">{"Modifier le tournoi"}</Button>
-                        </form>
+                            <h2>{"Phase de qualifications"}</h2>
+                            <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
+                                <Groups on_create={on_create_group_click} on_delete={on_delete_group_click}/>
+                            </ContextProvider<UseStateHandle<Vec<Group>>>>
+                            <ContextProvider<UseStateHandle<Vec<Vec<Match>>>> context={group_matches.clone()}>
+                                <QualificationPhase on_started_click={on_started_click(group_matches.clone())} on_finished_click={on_finished_click(group_matches.clone())} on_score1_change={on_score1_change(group_matches.clone())} on_score2_change={on_score2_change(group_matches.clone())}/>
+                            </ContextProvider<UseStateHandle<Vec<Vec<Match>>>>>
+                        }
+                        if *is_elim {
+                            <hr/>
+                            <h2>{"Phase d'éliminations"}</h2>
+                            <Bracket teams={(*elim_matches).clone()} on_started_click={on_started_click(elim_matches.clone())} on_finished_click={on_finished_click(elim_matches.clone())} on_score1_change={on_score1_change(elim_matches.clone())} on_score2_change={on_score2_change(elim_matches.clone())} />
+                        }
+                        <hr/>
                     } else {
                         <div>{"Oups, ce tournoi n'existe pas :("}</div>
                     }

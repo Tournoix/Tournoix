@@ -75,16 +75,46 @@ impl Tournament {
     pub async fn get_user_nut(&self) -> Result<Nut, ErrorResponse> {
         api_call::<Nut>(Method::GET, &format!("tournoix/{}/nut", self.id), HeaderMap::new(), String::new()).await
     }
+
+    pub async fn get_teams(&self) -> Result<Vec<Team>, ErrorResponse> {
+        api_call::<Vec<Team>>(Method::GET, &format!("tournoix/{}/teams", self.id), HeaderMap::new(), String::new()).await
+    }
+
+    pub async fn add_teams(&self, team: AddTeamRequest) -> Result<Team, ErrorResponse> {
+        api_call::<Team>(Method::POST, &format!("tournoix/{}/teams", self.id), HeaderMap::new(), serde_json::to_string(&team).unwrap()).await
+    }
 }
 
 // ---- Team ----
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
 pub struct Team {
-    pub id: usize,
+    pub id: i32,
     pub fk_tournaments: i32,
     pub name: String,
     pub group: i32,
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
+pub struct TeamUpdate {
+    pub name: Option<String>,
+    pub group: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AddTeamRequest {
+    pub name: String,
+    pub group: i32,
+}
+
+impl Team {
+    pub async fn update(&self, update_request: TeamUpdate) -> Result<Team, ErrorResponse> {
+        api_call::<Team>(Method::PATCH, &format!("teams/{}", self.id), HeaderMap::new(), serde_json::to_string(&update_request).unwrap()).await
+    }
+
+    pub async fn delete(&self) -> Result<EmptyResponse, ErrorResponse> {
+        api_call::<EmptyResponse>(Method::DELETE, &format!("teams/{}", self.id), HeaderMap::new(), String::new()).await
+    }
 }
 
 // ---- Game ----

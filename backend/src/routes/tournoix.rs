@@ -17,11 +17,7 @@ pub async fn get_tournoix(
     auth: ApiAuth,
 ) -> Result<Json<Tournament>, (Status, Json<ErrorResponse>)> {
     match connection
-        .run(move |c| {
-            tournaments::table
-                .find(id)
-                .first::<Tournament>(c)
-        })
+        .run(move |c| tournaments::table.find(id).first::<Tournament>(c))
         .await
     {
         Ok(tournoi) => {
@@ -39,7 +35,7 @@ pub async fn get_tournoix(
                     }),
                 ))
             }
-        },
+        }
 
         Err(_e) => {
             return Err((
@@ -218,45 +214,37 @@ pub async fn delete_tournoix(
     connection: MysqlConnection,
     id: i32,
     auth: ApiAuth,
-) -> Result<Json<Tournament>, (Status, String)> {
+) -> Result<Status, (Status, Json<ErrorResponse>)> {
     // verify if the user is the owner of the tournament
     if !is_owner(&connection, id, &auth).await {
-        return Err((Status::Unauthorized, "Unauthorized".to_string()));
+        return Err((
+            Status::Forbidden,
+            Json(ErrorResponse {
+                error: ErrorBody {
+                    code: 403,
+                    reason: "Forbiden".into(),
+                    description: "Access Forbidden".into(),
+                },
+            }),
+        ));
     }
 
     match connection
-        .run(move |c| {
-            c.transaction(|c| {
-                let tournoix = tournaments::table
-                    .find(id)
-                    .filter(tournaments::fk_users.eq(auth.user.id))
-                    .first::<Tournament>(c)
-                    .map(Json)?;
-
-                diesel::delete(
-                    tournaments::table
-                        .find(id)
-                        .filter(tournaments::fk_users.eq(auth.user.id)),
-                )
-                .execute(c)?;
-
-                diesel::result::QueryResult::Ok(tournoix)
-            })
-        })
+        .run(move |c| diesel::delete(tournaments::table.find(id)).execute(c))
         .await
     {
-        Ok(tournoix) => {
-            return Ok(tournoix);
-        }
+        Ok(_r) => Ok(Status::NoContent),
 
-        Err(Error::NotFound) => return Err((Status::NotFound, "Tournament not found".to_string())),
-
-        Err(_e) => {
-            return Err((
-                Status::InternalServerError,
-                "Internel Server Error".to_string(),
-            ))
-        }
+        Err(_e) => Err((
+            Status::InternalServerError,
+            Json(ErrorResponse {
+                error: ErrorBody {
+                    code: 500,
+                    reason: "Internel Server Error".into(),
+                    description: "An error occured".into(),
+                },
+            }),
+        )),
     }
 }
 
