@@ -44,8 +44,26 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
     let location_ref = use_node_ref();
     let description_ref = use_node_ref();
     let groupe_size_ref = use_node_ref();
-    let qualif_ref = use_node_ref();
-    let elim_ref = use_node_ref();
+    let is_qualif = use_state(|| false);
+    let is_elim = use_state(|| false);
+
+    let on_qualif_change = {
+        let is_qualif = is_qualif.clone();
+        Callback::from(move |e: Event| {
+            let target = e.target().unwrap();
+
+            is_qualif.set(target.unchecked_into::<HtmlInputElement>().checked());
+        })
+    };
+
+    let on_elim_change = {
+        let is_elim = is_elim.clone();
+        Callback::from(move |e: Event| {
+            let target = e.target().unwrap();
+
+            is_elim.set(target.unchecked_into::<HtmlInputElement>().checked());
+        })
+    };
 
     {
         let tournament = tournament.clone();
@@ -54,6 +72,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
 
         use_effect_once(move || {
             spawn_local(async move {
+                // TODO: fetch tournoix teams and matches
                 tournament.set(api::tournoix::get(id).await.ok());
                 loading.set(false);
             });
@@ -115,7 +134,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
 
     let on_edit_team_click = {
         let teams = teams.clone();
-        Callback::from(move |id| {
+        Callback::from(move |id: i32| {
             // Deep copy the teams vector into a buffer
             let mut teams_buf = vec![];
             for team in teams.iter() {
@@ -315,6 +334,148 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         })
     };
 
+    let on_create_group_click = {
+        let groups = groups.clone();
+        Callback::from(move |_| {
+            // Deep copy the groups vector into a buffer
+            let mut groups_buf = vec![];
+            for group in groups.iter() {
+                let group = group.clone();
+                groups_buf.push(group);
+            }
+
+            groups_buf.push(Group { });
+
+            groups.set(groups_buf);
+        })
+    };
+
+    let on_delete_group_click = {
+        let groups = groups.clone();
+        Callback::from(move |index| {
+            // Deep copy the groups vector into a buffer
+            let mut groups_buf = vec![];
+            for (_index, group) in groups.iter().enumerate() {
+                if _index != index {
+                    groups_buf.push(group.clone());
+                } else {
+                    // Check if the group is empty, otherwise cannot delete it
+                }
+            }
+            
+            groups.set(groups_buf);
+        })
+    };
+
+    let on_started_click = |group_matches: UseStateHandle<Vec<Vec<Match>>>| {
+        Callback::from(move |match_id| {
+            // Deep copy the group_matches vector into a buffer
+            let mut group_matches_buf = vec![];
+            for group_match in group_matches.iter() {
+                let mut _group_match = vec![];
+                let group_match = group_match.clone();
+
+                for mut _match in group_match.iter() {
+                    let mut _match = _match.clone();
+
+                    if match_id == _match.id {
+                        _match.started = !_match.started;
+
+                        // TODO DB
+                        // UPDATE match SET started = _match.started WHERE id = _match.id
+                    }
+
+                    _group_match.push(_match);
+                }
+
+                group_matches_buf.push(_group_match);
+            }
+
+            group_matches.set(group_matches_buf);
+        })
+    };
+    let on_finished_click = |group_matches: UseStateHandle<Vec<Vec<Match>>>| {
+        Callback::from(move |match_id| {
+            // Deep copy the group_matches vector into a buffer
+            let mut group_matches_buf = vec![];
+            for group_match in group_matches.iter() {
+                let mut _group_match = vec![];
+                let group_match = group_match.clone();
+
+                for mut _match in group_match.iter() {
+                    let mut _match = _match.clone();
+
+                    if match_id == _match.id {
+                        _match.finished = !_match.finished;
+                    }
+
+                    // TODO DB
+                    // UPDATE match SET finished = _match.finished WHERE id = _match.id
+
+                    _group_match.push(_match);
+                }
+
+                group_matches_buf.push(_group_match);
+            }
+
+            group_matches.set(group_matches_buf);
+        })
+    };
+    let on_score1_change = |group_matches: UseStateHandle<Vec<Vec<Match>>>| {
+        Callback::from(move |(match_id, val)| {
+            // Deep copy the group_matches vector into a buffer
+            let mut group_matches_buf = vec![];
+            for group_match in group_matches.iter() {
+                let mut _group_match = vec![];
+                let group_match = group_match.clone();
+
+                for mut _match in group_match.iter() {
+                    let mut _match = _match.clone();
+
+                    if match_id == _match.id {
+                        _match.score1 = val;
+                    }
+
+                    // TODO DB
+                    // UPDATE match SET score1 = _match.score1 WHERE id = _match.id
+
+                    _group_match.push(_match);
+                }
+
+                group_matches_buf.push(_group_match);
+            }
+
+            group_matches.set(group_matches_buf);
+        })
+    };
+    let on_score2_change = |group_matches: UseStateHandle<Vec<Vec<Match>>>| {
+        Callback::from(move |(match_id, val)| {
+            // Deep copy the group_matches vector into a buffer
+            let mut group_matches_buf = vec![];
+            for group_match in group_matches.iter() {
+                let mut _group_match = vec![];
+                let group_match = group_match.clone();
+
+                for mut _match in group_match.iter() {
+                    let mut _match = _match.clone();
+
+                    if match_id == _match.id {
+                        _match.score2 = val;
+                    }
+
+                    // TODO DB
+                    // UPDATE match SET score2 = _match.score2 WHERE id = _match.id
+
+                    _group_match.push(_match);
+                }
+
+                group_matches_buf.push(_group_match);
+            }
+
+            group_matches.set(group_matches_buf);
+        })
+    };
+
     html! {
         <HomeLayout>
             <div class="flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto relative">
@@ -336,26 +497,30 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                                     <FormInput id="location" label="Lieu" form_type="text" value={tournament.location.as_ref().unwrap_or(&String::new()).to_string()}  _ref={location_ref} required={true}/>
                                     <FormInput id="description" label="Description" form_type="text" value={tournament.description.clone()}  _ref={description_ref} required={true}/>
                                     <FormInput id="nb_team_per_group" label="Nombre d'équipes par groupe" form_type="number" value={if let Some(s) = tournament.size_group {s.to_string()} else {String::new()}}  _ref={groupe_size_ref}/>
-                                    <FormInput id="phase_qualifications" label="Phase de qualifications" form_type="checkbox" checked={tournament.is_qualif()}  _ref={qualif_ref} disabled={true}/>
-                                    <FormInput id="phase_eliminations" label="Phase d'éliminations" form_type="checkbox" checked={tournament.is_elim()}  _ref={elim_ref} disabled={true}/>
+                                    <FormInput id="phase_qualifications" label="Phase de qualifications" form_type="checkbox" checked={*is_qualif} onchange={on_qualif_change} />
+                                    <FormInput id="phase_eliminations" label="Phase d'éliminations" form_type="checkbox" checked={*is_elim} onchange={on_elim_change} />
                                 </div>
                                 <div class="w-1/2 m-4">
-                                    <ContextProvider<UseStateHandle<Vec<Team>>> context={teams.clone()}>
-                                        <Teams on_edit={on_edit_team_click}/>
-                                    </ContextProvider<UseStateHandle<Vec<Team>>>>
+                                    //<ContextProvider<UseStateHandle<Vec<Team>>> context={teams.clone()}>
+                                        //<Teams on_edit={on_edit_team_click}/>
+                                    //</ContextProvider<UseStateHandle<Vec<Team>>>>
                                 </div>
                             </div>
-                            <hr/>
-                            <h2>{"Phase de qualifications"}</h2>
-                            <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
-                                <Groups/>
-                            </ContextProvider<UseStateHandle<Vec<Group>>>>
-                            <ContextProvider<UseStateHandle<Vec<Vec<Match>>>> context={group_matches.clone()}>
-                                <QualificationPhase/>
-                            </ContextProvider<UseStateHandle<Vec<Vec<Match>>>>>
-                            <hr/>
-                            <h2>{"Phase d'éliminations"}</h2>
-                            <Bracket teams={(*elim_matches).clone()}/>
+                            if *is_qualif {
+                                <hr/>
+                                <h2>{"Phase de qualifications"}</h2>
+                                <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
+                                    <Groups on_create={on_create_group_click} on_delete={on_delete_group_click}/>
+                                </ContextProvider<UseStateHandle<Vec<Group>>>>
+                                <ContextProvider<UseStateHandle<Vec<Vec<Match>>>> context={group_matches.clone()}>
+                                    <QualificationPhase on_started_click={on_started_click(group_matches.clone())} on_finished_click={on_finished_click(group_matches.clone())} on_score1_change={on_score1_change(group_matches.clone())} on_score2_change={on_score2_change(group_matches.clone())}/>
+                                </ContextProvider<UseStateHandle<Vec<Vec<Match>>>>>
+                            }
+                            if *is_elim {
+                                <hr/>
+                                <h2>{"Phase d'éliminations"}</h2>
+                                <Bracket teams={(*elim_matches).clone()} on_started_click={on_started_click(elim_matches.clone())} on_finished_click={on_finished_click(elim_matches.clone())} on_score1_change={on_score1_change(elim_matches.clone())} on_score2_change={on_score2_change(elim_matches.clone())} />
+                            }
                             <hr/>
                             <Button class="sm:text-xl text-lg px-3 py-2 mx-auto mt-3 mb-16 hover:scale-110 bg-green-700">{"Modifier le tournoi"}</Button>
                         </form>

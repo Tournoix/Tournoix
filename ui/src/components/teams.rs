@@ -1,4 +1,6 @@
+use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
+use yew_hooks::use_effect_once;
 
 #[derive(PartialEq, Clone)]
 pub struct Team {
@@ -9,6 +11,7 @@ pub struct Team {
 
 #[derive(PartialEq, Properties)]
 pub struct TeamsProps {
+    pub tournoix_id: i32,
     pub on_create: Option<Callback<MouseEvent>>,
     pub on_edit: Option<Callback<i32>>,
     pub on_delete: Option<Callback<i32>>,
@@ -17,12 +20,24 @@ pub struct TeamsProps {
 #[function_component]
 pub fn Teams(props: &TeamsProps) -> Html {
     let TeamsProps {
+        tournoix_id,
         on_create,
         on_edit,
-        on_delete,
+        on_delete
     } = props;
 
     let teams = use_context::<UseStateHandle<Vec<Team>>>().expect("Missing teams provider");
+
+    {
+        use_effect_once(|| {
+            spawn_local(async move {
+                
+            });
+
+
+            || ()
+        });
+    }
 
     let on_edit_click = |id: i32| {
         if let Some(on_edit) = on_edit {

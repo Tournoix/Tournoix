@@ -1,6 +1,8 @@
 use crate::models::nut::{Nut, PatchNut};
+use crate::models::tournament::Tournament;
 use crate::routes::auth::ApiAuth;
 use crate::schema::nuts::{self, fk_tournaments, fk_users};
+use crate::schema::tournaments;
 use crate::{ErrorBody, ErrorResponse, MysqlConnection};
 use diesel::prelude::*;
 use rocket::http::Status;
@@ -43,7 +45,24 @@ pub async fn update_nut(
     connection: MysqlConnection,
     id: i32,
     data: Json<PatchNut>,
+    auth: ApiAuth,
 ) -> Result<Json<Nut>, (Status, String)> {
+    // Check if the caller is an owner of the tournament
+    match connection
+        .run(move |c| {
+            tournaments::table
+                .filter(tournaments::id.eq(id))
+                .filter(tournaments::fk_users.eq(auth.user.id))
+                .first::<Tournament>(c)
+        })
+        .await
+    {
+        Ok(_) => (),
+        Err(_) => {
+            return Err((Status::Forbidden, "Access Forbidden".to_string()));
+        }
+    };    
+    
     match connection
         .run(move |c| {
             c.transaction(|c| {

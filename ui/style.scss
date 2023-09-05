@@ -158,6 +158,16 @@ hr {
 	@apply bg-red-600;
 }
 
+.team-text-color {
+	color: var(--team-color);
+}
+.team-bg-color {
+	background-color: var(--team-color);
+}
+.team-border-color {
+	border-color: var(--team-color);
+}
+
 /*CSS here is only used because it cannot be easily done in tailwind*/
 
 html, body {

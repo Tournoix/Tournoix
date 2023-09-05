@@ -1,4 +1,5 @@
 pub mod backlink;
+pub mod bet_list;
 pub mod bracket;
 pub mod bracket_match;
 pub mod bracket_round;

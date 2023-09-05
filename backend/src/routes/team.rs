@@ -1,7 +1,8 @@
 use crate::models::game::Game;
+use crate::models::subscription::Subscription;
 use crate::models::tournament::Tournament;
 use crate::models::team::*;
-use crate::schema::{teams, games, tournaments};
+use crate::schema::{teams, games, tournaments, subscriptions};
 use crate::schema::teams::fk_tournaments;
 use crate::MysqlConnection;
 use diesel::prelude::*;
@@ -9,11 +10,46 @@ use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
 
+use super::auth::ApiAuth;
+
+// get all team from a tournament
 #[get("/tournoix/<id>/team")]
 pub async fn get_teams(
     connection: MysqlConnection,
     id: i32,
+    auth: ApiAuth,
 ) -> Result<Json<Vec<Team>>, (Status, String)> {
+    // Check if the user is a subscriber/owner of the tournament
+    let is_owner = match connection
+        .run(move |c| {
+            tournaments::table
+                .filter(tournaments::id.eq(id))
+                .filter(tournaments::fk_users.eq(auth.user.id))
+                .first::<Tournament>(c)
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
+    let is_subscriber = match connection
+        .run(move |c| {
+            subscriptions::table
+                .filter(subscriptions::fk_tournaments.eq(id))
+                .filter(subscriptions::fk_users.eq(auth.user.id))
+                .first::<Subscription>(c)
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
+    if !is_owner && !is_subscriber {
+        return Err((Status::Forbidden, "Access Forbidden".to_string()));
+    }
+
     match connection
         .run(move |c| teams::table.filter(fk_tournaments.eq(id)).load::<Team>(c))
         .await
@@ -36,7 +72,22 @@ pub async fn create_team(
     connection: MysqlConnection,
     data: Json<AddTeam>,
     id: i32,
+    auth: ApiAuth,
 ) -> Result<Json<Team>, (Status, String)> {
+    // Check if the user is the owner of the tournament
+    match connection
+        .run(move |c| {
+            tournaments::table
+                .filter(tournaments::id.eq(id))
+                .filter(tournaments::fk_users.eq(auth.user.id))
+                .first::<Tournament>(c)
+        })
+        .await
+    {
+        Ok(_) => (),
+        Err(_) => return Err((Status::Forbidden, "Access Forbidden".to_string())),
+    };
+
     // cannot create a team if the tournament is started
     if tournament_is_started(&connection, id).await {
         return Err((Status::BadRequest, "Cannot create a team".to_string()));
@@ -83,7 +134,23 @@ pub async fn update_team(
     connection: MysqlConnection,
     data: Json<PatchTeam>,
     id: i32,
+    auth: ApiAuth,
 ) -> Result<Json<Team>, (Status, String)> {
+
+    // Check if the user is the owner of the tournament
+    match connection
+        .run(move |c| {
+            tournaments::table
+                .filter(tournaments::id.eq(id))
+                .filter(tournaments::fk_users.eq(auth.user.id))
+                .first::<Tournament>(c)
+        })
+        .await
+    {
+        Ok(_) => (),
+        Err(_) => return Err((Status::Forbidden, "Access Forbidden".to_string())),
+    };
+
     let team = data.0;
 
     // if it s an update on the group, we cannot update it since there is games
@@ -126,7 +193,23 @@ pub async fn update_team(
 pub async fn delete_team(
     connection: MysqlConnection,
     id: i32,
+    auth: ApiAuth,
 ) -> Result<Json<Team>, (Status, String)> {
+    // Check if the user is the owner of the tournament
+    match connection
+        .run(move |c| {
+            tournaments::table
+                .filter(tournaments::id.eq(id))
+                .filter(tournaments::fk_users.eq(auth.user.id))
+                .first::<Tournament>(c)
+        })
+        .await
+    {
+        Ok(_) => (),
+        Err(_) => return Err((Status::Forbidden, "Access Forbidden".to_string())),
+    };
+
+
     // if there is allready a match for this team, we can't delete it
     match connection
         .run(
