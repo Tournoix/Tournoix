@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 yew-hooks = "0.2.0"
-web-sys = "0.3"
+web-sys = { version = "0.3", features=["DomRect", "DomRectList", "DomTokenList"] }
 dotenv = "0.15.0"
 yew = { version = "0.20.0", features = ["csr"] }
 yew-router = "0.17.0"
@@ -23,3 +23,4 @@ gloo-dialogs = "0.2.0"
 futures = "0.3.1"
 wasm-bindgen-futures = "0.4.37"
 colorsys = "0.6.7"
+js-sys = "0.3.64"

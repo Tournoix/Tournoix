@@ -138,17 +138,17 @@ pub fn Groups(props: &GroupsProps) -> Html {
         <div class="flex flex-col items-center p-3 w-full">
             <h3>{"Groupes"}</h3>
             <ul class="flex flex-wrap gap-3 w-full justify-center">
-                <li class={format!("group-item {}", if *no_group_state.over {"bg-green-200"} else {"bg-nutLighter"} )} ref={no_group_node}>
+                <li id={"0"} class={format!("group-item {}", if *no_group_state.over {"bg-green-200"} else {"bg-nutLighter"} )} ref={no_group_node}>
                     <div class="flex justify-center">
                         <div>{"Dans aucun groupe"}</div>
                     </div>
-                    <div class="flex flex-col gap-1">
+                    <div class="flex flex-col gap-1  team-list">
                         if *loading {
                             <LoadingCircle />
                         } else {
                             {
                                 groups.get(&0).unwrap().iter().map(|team| {
-                                    html! (<TeamDrag team={team.clone()} />)
+                                    html! (<TeamDrag team={team.clone()} update_trigger={trigger.clone()} />)
                                 }).collect::<Html>()
                             }
                         }
@@ -166,7 +166,8 @@ pub fn Groups(props: &GroupsProps) -> Html {
                         }).collect::<Html>()
                     }
                 }
-                <li class={format!("group-item {}", if *new_group_state.over {"bg-green-200"} else {"bg-nutLighter"} )} ref={new_group_node}>
+
+                <li id={(groups.keys().max().unwrap_or(&0) + 1).to_string()} class={format!("group-item {}", if *new_group_state.over {"bg-green-200"} else {"bg-nutLighter"} )} ref={new_group_node}>
                     <img src="/img/plus.svg" class="add-btn"/>
                     {"Créer un groupe"}
                 </li>

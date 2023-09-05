@@ -255,3 +255,7 @@ li.game-bottom{
 input.game-input-score {
 	@apply w-8 bg-transparent ml-auto pr-2 text-right;
 }
+
+.group-hover {
+	@apply bg-green-200;
+}

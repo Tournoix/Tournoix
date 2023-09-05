@@ -1344,6 +1344,7 @@ dependencies = [
  "dotenv_codegen",
  "futures",
  "gloo-dialogs 0.2.0",
+ "js-sys",
  "log",
  "reqwest",
  "serde",

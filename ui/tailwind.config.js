@@ -46,6 +46,12 @@ module.exports = {
     },
     {
       pattern: /h-.+/
+    },
+    {
+      pattern: /translate-x-.+/
+    },
+    {
+      pattern: /translate-y-.+/
     }
   ]
 }

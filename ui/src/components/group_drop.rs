@@ -41,10 +41,10 @@ pub fn GroupDrop(props: &GroupDropProps) -> Html {
             <div class="flex justify-center">
                 <div>{"Groupe "}{id}</div>
             </div>
-            <div class="flex flex-col gap-1">
+            <div class="flex flex-col gap-1 team-list">
                 {
                     teams.iter().map(|team| {
-                        html! (<TeamDrag team={team.clone()} />)
+                        html! (<TeamDrag team={team.clone()} update_trigger={update_trigger.clone()} />)
                     }).collect::<Html>()
                 }
             </div>
