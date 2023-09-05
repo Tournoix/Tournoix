@@ -6,6 +6,7 @@ use crate::schema::nuts::{self, fk_tournaments, fk_users};
 use crate::MysqlConnection;
 use diesel::dsl::sum;
 use diesel::prelude::*;
+use log::warn;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 
@@ -16,27 +17,6 @@ pub async fn get_nut(
     id: i32,
     auth: ApiAuth
 ) -> Result<Json<Nut>, (Status, String)> {
-    // Check if the caller is an owner of the tournament or the user himself
-    let is_owner = match connection
-        .run(move |c| {
-            tournaments::table
-                .filter(tournaments::id.eq(id))
-                .filter(tournaments::fk_users.eq(auth.user.id))
-                .first::<Tournament>(c)
-        })
-        .await
-    {
-        Ok(_) => true,
-        Err(_) => false,
-    };
-
-    let is_user = id == auth.user.id;
-
-    if !is_owner && !is_user {
-        return Err((Status::Forbidden, "Access Forbidden".to_string()));
-    }
-
-
     match connection
         .run(move |c| {
             nuts::table
@@ -91,6 +71,7 @@ pub async fn update_nut(
     {
         Ok(_) => (),
         Err(_) => {
+            warn!("User {} tried to update the nut of tournament {} - routes/nut/update_nut()", auth.user.id, id);
             return Err((Status::Forbidden, "Access Forbidden".to_string()));
         }
     };    

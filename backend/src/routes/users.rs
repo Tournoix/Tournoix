@@ -4,6 +4,7 @@ use crate::{routes::auth::ApiAuth, ErrorBody};
 use diesel::prelude::*;
 use rocket::http::Status;
 use rocket::serde::json::Json;
+use chrono::Local;
 
 use crate::{ErrorResponse, MysqlConnection};
 
@@ -14,6 +15,7 @@ pub async fn get_user(
     auth: ApiAuth,
 ) -> Result<Json<UserInfo>, (Status, Json<ErrorResponse>)> {
     if auth.user.id != id {
+        warn!("{} - User {} tried to access user {} - routes/users/get_user()", Local::now().format("%d/%m/%Y %H:%M"), auth.user.id, id);
         return Err((
             Status::Forbidden,
             Json(ErrorResponse {

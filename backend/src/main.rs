@@ -29,6 +29,9 @@ use crate::routes::team::*;
 use crate::routes::tournoix::*;
 use crate::routes::bet::*;
 
+use log::{error, info, trace, warn};
+use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
+
 pub mod crypto;
 mod models;
 mod routes;
@@ -74,6 +77,13 @@ pub struct ErrorBody {
 #[launch]
 fn rocket() -> _ {
     dotenv().ok();
+
+    TermLogger::init(
+        LevelFilter::Trace,
+        Config::default(),
+        TerminalMode::Mixed,
+        ColorChoice::Auto,
+    ).unwrap();
 
     rocket::build()
         .attach(MysqlConnection::fairing())

@@ -8,9 +8,10 @@ use crate::{
         users::{self, email},
     },
 };
-use chrono::Duration;
+use chrono::{Duration, Local};
 use diesel::{insert_into, prelude::*};
 
+use log::{warn, info};
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome};
 use rocket::serde::json::Json;
@@ -38,10 +39,12 @@ impl<'r> FromRequest<'r> for ApiAuth {
         let keys: Vec<_> = request.headers().get("Authorization").collect();
         match keys.len() {
             // No token => 401
-            0 => Outcome::Failure((
+            0 => {
+                warn!("{} - No authorization header found", Local::now().format("%d/%m/%Y %H:%M"));
+                Outcome::Failure((
                 Status::Unauthorized,
                 ApiAuthResponse::Unauthorized("No authorization header found".to_string()),
-            )),
+            ))},
             1 => {
                 let connection = MysqlConnection::from_request(&request).await.unwrap();
                 let token_str: String = keys[0][7..].into();
@@ -159,7 +162,7 @@ pub async fn login(
                             token: token.token,
                             expiration_date: token.expiration_date,
                         };
-
+                        info!("{} - User {} logged in", Local::now().format("%d/%m/%Y %H:%M") ,user.id);
                         // Return token
                         return Ok(Json(reponse));
                     }
@@ -167,11 +170,14 @@ pub async fn login(
                     Err(e) => return Err((Status::InternalServerError, e.to_string())),
                 }
             } else {
+                warn!("{} - User {} tried to login with incorrect password", Local::now().format("%d/%m/%Y %H:%M"), user.id);
                 return Err((Status::Unauthorized, "incorrect login".to_string()));
             }
         }
-
-        Err(_e) => return Err((Status::Unauthorized, "incorrect login".to_string())),
+        Err(_e) => {
+            warn!("{} - User with email {} tried to login but doesn't exist", Local::now().format("%d/%m/%Y %H:%M"), data.email);
+            return Err((Status::Unauthorized, "incorrect login".to_string()))
+        },
     }
 }
 
@@ -191,7 +197,10 @@ pub async fn logout(
         .run(move |c| diesel::delete(tokens::table.find(auth.token)).execute(c))
         .await
     {
-        Ok(_) => return Ok(Json(())),
+        Ok(_) => {
+            info!("{} - User {} logged out", Local::now().format("%d/%m/%Y %H:%M"), auth.user.id);
+            return Ok(Json(()))
+        },
         Err(e) => return Err((Status::InternalServerError, e.to_string())),
     }
 }
@@ -245,7 +254,10 @@ pub async fn register(
                 })
                 .await
             {
-                Ok(user) => return Ok(user),
+                Ok(user) => {
+                    info!("{} - User {} registered", Local::now().format("%d/%m/%Y %H:%M"), user.id);
+                    return Ok(user)
+                },
 
                 Err(e) => return Err((Status::InternalServerError, e.to_string())),
             }
