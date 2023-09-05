@@ -3,6 +3,7 @@ use crate::schema::tournaments;
 use crate::MysqlConnection;
 use diesel::prelude::*;
 use diesel::result::Error;
+use log::info;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use rocket::http::Status;
@@ -24,7 +25,10 @@ pub async fn get_tournoix(
     {
         Ok(tournoi) => return Ok(tournoi),
 
-        Err(_e) => return Err((Status::NotFound, "Tournament not found".to_string())),
+        Err(_e) => {
+            info!("{} - User {} tried to access non-existing tournament {} - routes/tournoix/get_tournoix()", chrono::Local::now().format("%d/%m/%Y %H:%M"), auth.user.id, id);
+            return Err((Status::NotFound, "Tournament not found".to_string()))
+        },
     }
 }
 
@@ -111,6 +115,7 @@ pub async fn create_tournoix(
         .await
     {
         Ok(tournoix) => {
+            info!("{} - User {} created tournament {} - routes/tournoix/create_tournoix()", chrono::Local::now().format("%d/%m/%Y %H:%M"), auth.user.id, tournoix.id);
             return Ok(tournoix);
         }
 
