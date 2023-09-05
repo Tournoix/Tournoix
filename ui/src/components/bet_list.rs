@@ -34,7 +34,7 @@ pub fn BetList(props: &BetListProps) -> Html {
                     }
                     <div class="gap-2 flex items-center">
                         <span style={team_color_wrapper(_match.team1.clone())} class="team-text-color pl-3">{_match.team1.clone()}</span>
-                        <img class="h-4" src="/img/versus_smol.png"/>
+                        <img class="drop-shadow h-4" src="/img/versus_smol.png"/>
                         <span style={team_color_wrapper(_match.team2.clone())} class="team-text-color pr-3">{_match.team2.clone()}</span>
                     </div>
                     <Button class="mx-4 mb-3 py-1 px-3 mt-2 hover:scale-110" onclick={(on_click_bet.clone())(_match.id)}>{"Parier"}</Button>

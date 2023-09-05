@@ -15,8 +15,9 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
     
     let tournament = use_state(|| fetch_tournament(*id));
 
-    // TODO Wheter or not the current user can edit this tournament
+    // TODO DB
     let can_edit_tournament = true;
+    let tournament_over = true;
     let user_nut = 20;
 
     let matches: UseStateHandle<Vec<Match>> = use_state(|| vec![
@@ -161,10 +162,11 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                 <hr/>
                 <h2>{"Phase d'éliminations"}</h2>
                 /*<Bracket/>*/
-                <hr/>
-                <h2>{"Résultats"}</h2>
-                <div class="text-red-500">{"AFFICHER UNIQUEMENT SI TOUT LES MATCHS DE CE TOURNOIS SONT TERMINÉS"}</div>
-                <Results/>
+                if tournament_over {
+                    <hr/>
+                    <h2>{"Résultats"}</h2>
+                    <Results tournament_id={ id }/>
+                }
             </div>
         </HomeLayout>
     }
