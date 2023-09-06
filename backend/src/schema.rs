@@ -69,13 +69,15 @@ diesel::table! {
         name -> Varchar,
         #[max_length = 255]
         description -> Varchar,
-        date -> Nullable<Datetime>,
+        date -> Datetime,
         #[max_length = 255]
         location -> Nullable<Varchar>,
         phase -> Integer,
         size_group -> Nullable<Integer>,
         #[max_length = 16]
         code -> Varchar,
+        is_qualif -> Bool,
+        is_elim -> Bool,
     }
 }
 

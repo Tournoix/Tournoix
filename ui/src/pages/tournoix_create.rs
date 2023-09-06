@@ -51,6 +51,8 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                 date,
                 description,
                 location,
+                is_qualif: false,
+                is_elim: false
             };
 
             let notifs = notifs.clone();

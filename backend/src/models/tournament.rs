@@ -13,11 +13,13 @@ pub struct Tournament {
     pub fk_users: i32,
     pub name: String,
     pub description: String,
-    pub date: Option<chrono::NaiveDateTime>,
+    pub date: chrono::NaiveDateTime,
     pub location: Option<String>,
     pub phase: i32,
     pub size_group: Option<i32>,
-    pub code: String
+    pub code: String,
+    pub is_qualif: bool,
+    pub is_elim: bool,
 }
 
 impl Tournament {
@@ -45,11 +47,13 @@ pub struct NewTournament {
     pub fk_users: i32,
     pub name: String,
     pub description: Option<String>,
-    pub date: Option<chrono::NaiveDateTime>,
+    pub date: chrono::NaiveDateTime,
     pub location: Option<String>,
     pub phase: i32,
     pub size_group: Option<i32>,
     pub code: String,
+    pub is_qualif: bool,
+    pub is_elim: bool,
 }
 
 #[derive(Serialize, Deserialize, AsChangeset, Clone)]
@@ -62,4 +66,6 @@ pub struct PatchTournament {
     pub location: Option<String>,
     pub phase: Option<i32>,
     pub size_group: Option<i32>,
+    pub is_qualif: Option<bool>,
+    pub is_elim: Option<bool>,
 }

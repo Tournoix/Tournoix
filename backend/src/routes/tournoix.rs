@@ -59,9 +59,11 @@ pub async fn get_tournoix(
 pub struct AddTournament {
     pub name: String,
     pub description: Option<String>,
-    pub date: Option<chrono::NaiveDateTime>,
+    pub date: chrono::NaiveDateTime,
     pub location: Option<String>,
     pub size_group: Option<i32>,
+    pub is_qualif: bool,
+    pub is_elim: bool,
 }
 
 #[post("/tournoix", data = "<data>")]
@@ -126,6 +128,8 @@ pub async fn create_tournoix(
         phase: 0,
         size_group: add_tournoix.size_group,
         code: generated_code, // Use the generated code
+        is_qualif: add_tournoix.is_qualif,
+        is_elim: add_tournoix.is_elim
     };
 
     match connection

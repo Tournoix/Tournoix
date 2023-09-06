@@ -54,16 +54,11 @@ pub struct Tournament {
     pub phase: i32,
     pub size_group: Option<i32>,
     pub code: String,
+    pub is_qualif: bool,
+    pub is_elim: bool,
 }
 
 impl Tournament {
-    pub fn is_elim(&self) -> bool {
-        true
-    }
-    pub fn is_qualif(&self) -> bool {
-        true
-    }
-
     pub async fn update(
         &self,
         update_request: UpdateTournoixRequest,

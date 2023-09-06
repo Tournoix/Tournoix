@@ -75,12 +75,21 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         let tournament = tournament.clone();
         let loading = loading.clone();
         let id = id.clone();
+        let is_qualif = is_qualif.clone();
+        let is_elim = is_elim.clone();
 
         use_effect_with_deps(
             move |_| {
                 spawn_local(async move {
                     // TODO: fetch tournoix teams and matches
-                    tournament.set(api::tournoix::get(id).await.ok());
+                    let tournoix = api::tournoix::get(id).await.ok();
+
+                    if let Some(tournoix) = &tournoix {
+                        is_elim.set(tournoix.is_elim);
+                        is_qualif.set(tournoix.is_qualif);
+                    }
+
+                    tournament.set(tournoix);
                     loading.set(false);
                 });
 
@@ -192,8 +201,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         let location_ref = location_ref.clone();
         let description_ref = description_ref.clone();
         let groupe_size_ref = groupe_size_ref.clone();
-        // let qualif_ref = qualif_ref.clone();
-        // let elim_ref = elim_ref.clone();
+        let is_qualif = is_qualif.clone();
+        let is_elim = is_elim.clone();
 
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
@@ -220,6 +229,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                 description: Some(description),
                 phase: None,
                 size_group: groupe_size,
+                is_qualif: Some(*is_qualif),
+                is_elim: Some(*is_elim)
             };
 
             {
@@ -397,7 +408,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                                     <FormInput id="phase_qualifications" label="Phase de qualifications" form_type="checkbox" checked={*is_qualif} onchange={on_qualif_change} />
                                     <FormInput id="phase_eliminations" label="Phase d'éliminations" form_type="checkbox" checked={*is_elim} onchange={on_elim_change} />
 
-                                    <Button class="text-lg px-3 py-2 mt-3 hover:scale-110 bg-green-700">{"Modifier les informations"}</Button>
+                                    <Button class="text-lg px-3 py-2 mt-3 hover:scale-110 bg-green-700">{"Sauvegarder les informations"}</Button>
                                 </form>
                             </div>
                             <div class="w-1/2 m-4">
