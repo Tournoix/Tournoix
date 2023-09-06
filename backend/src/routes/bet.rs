@@ -370,10 +370,10 @@ async fn get_user_nut(connection: &MysqlConnection, id_user: i32, id_game: i32) 
 // check if the game is open
 async fn is_game_open(connection: &MysqlConnection, id: i32) -> Result<bool, (Status, String)> {
     match connection.run(
-        move |c| games::table.find(id).select(games::is_open).first::<bool>(c)
+        move |c| games::table.find(id).select(games::status).first::<i32>(c)
     ).await{
-        Ok(is_open) => {
-            return Ok(is_open);
+        Ok(status) => {
+            return Ok(status == 0);
         },
 
         Err(_e) => {

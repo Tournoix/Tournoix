@@ -1,7 +1,7 @@
 use crate::schema::teams;
 use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Queryable, Identifiable)]
+#[derive(Serialize, Deserialize, Queryable, Identifiable, Clone, Debug)]
 #[diesel(belongs_to(Tournament))]
 #[diesel(table_name = teams)]
 pub struct Team {

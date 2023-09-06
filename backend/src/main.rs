@@ -125,6 +125,7 @@ fn rocket() -> _ {
                 update_game,
                 close_game,
                 close_game_betting,
+                remove_all_games,
                 // Nuts
                 get_nut,
                 update_nut,

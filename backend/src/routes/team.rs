@@ -12,7 +12,7 @@ use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
 
 use super::auth::ApiAuth;
-use super::tournoix::is_owner;
+use super::tournoix::{is_owner, tournament_is_started};
 
 // get all team from a tournament
 #[get("/tournoix/<id>/teams")]
@@ -81,7 +81,7 @@ pub async fn create_team(
     data: Json<AddTeam>,
     id: i32,
     auth: ApiAuth,
-) -> Result<Json<Team>, (Status, String)> {
+) -> Result<Json<Team>, (Status, Json<ErrorResponse>)> {
     // Check if the user is the owner of the tournament
     match connection
         .run(move |c| {
@@ -100,13 +100,31 @@ pub async fn create_team(
                 auth.user.id,
                 id
             );
-            return Err((Status::Forbidden, "Access Forbidden".to_string()));
+            return Err((
+                Status::Forbidden,
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 403,
+                        reason: "Forbidden".into(),
+                        description: "Access Forbidden".into(),
+                    },
+                }),
+            ));
         }
     };
 
     // cannot create a team if the tournament is started
     if tournament_is_started(&connection, id).await {
-        return Err((Status::BadRequest, "Cannot create a team".to_string()));
+        return Err((
+            Status::BadRequest,
+            Json(ErrorResponse {
+                error: ErrorBody {
+                    code: 400,
+                    reason: "Bad Request".into(),
+                    description: "Cannot create a team as the tournament has started".into(),
+                },
+            }),
+        ));
     }
 
     let team = NewTeam {
@@ -139,7 +157,13 @@ pub async fn create_team(
         Err(_e) => {
             return Err((
                 Status::InternalServerError,
-                "Internel Server Error".to_string(),
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 500,
+                        reason: "Internal Server Error".into(),
+                        description: "An error occured".into(),
+                    },
+                }),
             ))
         }
     }
@@ -184,7 +208,8 @@ pub async fn update_team(
             let team_data = data.0;
 
             // if it s an update on the group, we cannot update it since there is games
-            if tournament_is_started(&connection, id).await && team_data.group.is_some() {
+            if tournament_is_started(&connection, tournament.id).await && team_data.group.is_some()
+            {
                 return Err((
                     Status::BadRequest,
                     Json(ErrorResponse {
@@ -345,26 +370,5 @@ pub async fn delete_team(
                 }),
             ))
         }
-    };
-}
-
-async fn tournament_is_started(connection: &MysqlConnection, id: i32) -> bool {
-    // verify if the tournament has games
-    match connection
-        .run(move |c| {
-            tournaments::table
-                .find(id)
-                .inner_join(teams::table.on(teams::fk_tournaments.eq(tournaments::id)))
-                .inner_join(
-                    games::table.on(games::fk_team1
-                        .eq(teams::id)
-                        .or(games::fk_team2.eq(teams::id))),
-                )
-                .first::<(Tournament, Team, Game)>(c)
-        })
-        .await
-    {
-        Ok(_game) => return true,
-        Err(_e) => return false,
     };
 }

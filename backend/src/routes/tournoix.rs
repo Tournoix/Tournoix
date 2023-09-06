@@ -1,6 +1,8 @@
+use crate::models::game::Game;
+use crate::models::team::Team;
 use crate::models::tournament::{NewTournament, PatchTournament, Tournament};
 use crate::routes::auth::ApiAuth;
-use crate::schema::tournaments;
+use crate::schema::{games, teams, tournaments};
 use crate::{EmptyResponse, ErrorBody, ErrorResponse, MysqlConnection};
 use diesel::prelude::*;
 use diesel::result::Error;
@@ -129,7 +131,7 @@ pub async fn create_tournoix(
         size_group: add_tournoix.size_group,
         code: generated_code, // Use the generated code
         is_qualif: add_tournoix.is_qualif,
-        is_elim: add_tournoix.is_elim
+        is_elim: add_tournoix.is_elim,
     };
 
     match connection
@@ -274,6 +276,22 @@ pub async fn is_owner(connection: &MysqlConnection, id: i32, auth: &ApiAuth) -> 
         .await
     {
         Ok(_) => true,
+        Err(_) => false,
+    }
+}
+
+pub async fn tournament_is_started(connection: &MysqlConnection, id: i32) -> bool {
+    // verify if the tournament has games
+    match connection
+        .run(move |c| {
+            games::table
+                .inner_join(teams::table.on(games::fk_team1.eq(teams::id)))
+                .filter(teams::fk_tournaments.eq(id))
+                .load::<(Game, Team)>(c)
+        })
+        .await
+    {
+        Ok(games) => games.len() > 0,
         Err(_) => false,
     }
 }
