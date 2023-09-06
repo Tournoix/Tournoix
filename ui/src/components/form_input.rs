@@ -38,9 +38,11 @@ pub fn FormInput(props: &FormInputProps) -> Html {
 
     html! {
         <label class="flex flex-row-reverse m-4">
-            <input value={value} onchange={onchange} required={*required} class="ml-3 border bg-white drop-shadow" name={id.clone()} type={form_type.clone()} disabled={*disabled} ref={_ref}
+            <input required={required.clone()} class="ml-3 border bg-white drop-shadow" id={id.clone()} name={id.clone()} type={form_type.clone()} disabled={*disabled} ref={_ref}
                 min={min_num.to_string()}
-                checked={checked.clone()}
+                checked={*checked}
+                value={value}
+                onchange={onchange}
             />
             <div>{label}</div>
         </label>

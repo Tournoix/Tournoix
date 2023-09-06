@@ -6,7 +6,9 @@ use crate::models::tournament::Tournament;
 use crate::routes::auth::ApiAuth;
 use crate::schema::{games, tournaments, subscriptions, teams};
 use crate::MysqlConnection;
+use chrono::Local;
 use diesel::prelude::*;
+use log::warn;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
@@ -49,6 +51,7 @@ pub async fn get_tournoix_game(
     };
 
     if !is_owner && !is_subscriber {
+        warn!("{} - User {} tried to access tournament {} - routes/tournoix/get_tournoix_game()", Local::now().format("%d/%m/%Y %H:%M"), auth.user.id, id);
         return Err((Status::Forbidden, "Access Forbidden".to_string()));
     }
 
@@ -118,6 +121,7 @@ pub async fn close_game(
 ) -> Result<Status, (Status, String)> {
     // the user is not the owner of the game
     if !is_owner_game(&connection, id, &auth).await {
+        warn!("{} - User {} tried to access game {} - routes/game/close_game()", Local::now().format("%d/%m/%Y %H:%M"), auth.user.id, id);
         return Err((Status::Unauthorized, "Unauthorized".to_string()));
     }
     update_game_fn(&connection, Json(PatchGame { has_gained_nut: Some(false), fk_team1: None, fk_team2:None, place: None, is_open: None }), id).await?;
@@ -147,6 +151,7 @@ pub async fn create_games(
 ) -> Result<Json<Vec<Game>>, (Status, String)> {
     // verify if the user is the owner of the tournament
     if is_owner(&connection, id, &auth).await {
+        warn!("{} - User {} tried to create a game for tournament {} - routes/tournoix/create_games()", Local::now().format("%d/%m/%Y %H:%M"), auth.user.id, id);
         return Err((Status::Unauthorized, "Unauthorized".to_string()));
     }
 
@@ -297,6 +302,7 @@ pub async fn close_game_betting(
 ) -> Result<Json<Game>, (Status, String)> {
     // the user is not the owner of the game
     if !is_owner_game(&connection, id, &auth).await {
+        warn!("{} - User {} tried to access game {} - routes/game/close_game_betting()", Local::now().format("%d/%m/%Y %H:%M"), auth.user.id, id);
         return Err((Status::Unauthorized, "Unauthorized".to_string()));
     }
 

@@ -4,15 +4,18 @@ use yew_hooks::use_effect_once;
 use yew_router::prelude::use_navigator;
 
 use crate::{
+    api::{self, models::Tournament},
     components::{
         backlink::Backlink,
+        bet_list::BetList,
+        bracket::Match,
         groups::{Group, Groups},
         join_code::JoinCode,
-        results::Results, loading_circle::LoadingCircle,
+        loading_circle::LoadingCircle,
+        results::Results,
     },
     layouts::homelayout::HomeLayout,
     routers::Route,
-    api::{models::Tournament, self},
 };
 
 #[derive(PartialEq, Properties)]
@@ -38,11 +41,11 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                 tournament.set(api::tournoix::get(id).await.ok());
                 loading.set(false);
             });
-    
+
             || ()
         });
     }
-    
+
     // TODO Wheter or not the current user can edit this tournament
     let can_edit_tournament = true;
 
@@ -55,10 +58,50 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
         Callback::from(move |_| navigator.push(&Route::TournoixEdit { id }))
     };
 
-    let on_click_match = {
-        let navigator = navigator.clone();
-        Callback::from(move |_| navigator.push(&Route::BetView { id: 42 }))
-    };
+    let matches: UseStateHandle<Vec<Match>> = use_state(|| {
+        vec![
+            Match {
+                id: 0,
+                team1: "Cloud9".to_string(),
+                score1: 0,
+                team2: "FaZe Clan".to_string(),
+                score2: 0,
+                started: false,
+                finished: false,
+            },
+            Match {
+                id: 1,
+                team1: "NaVi".to_string(),
+                score1: 0,
+                team2: "NRG Esports".to_string(),
+                score2: 0,
+                started: true,
+                finished: false,
+            },
+            Match {
+                id: 2,
+                team1: "G2 Esports".to_string(),
+                score1: 0,
+                team2: "fnatic".to_string(),
+                score2: 0,
+                started: true,
+                finished: true,
+            },
+            Match {
+                id: 3,
+                team1: "Team with a comically long name".to_string(),
+                score1: 0,
+                team2: "Team 42".to_string(),
+                score2: 0,
+                started: false,
+                finished: false,
+            },
+        ]
+    });
+
+    // TODO: DB
+    let tournament_over = true;
+    let user_nut = 20;
 
     html! {
         <HomeLayout>
@@ -70,7 +113,6 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                     if tournament.is_none() {
                         <div>{"Oups, ce tournoi n'existe pas :("}</div>
                     } else  {
-                        <button class="m-3 bg-green-500 hover:bg-green-700 text-white font-bold p-2" onclick={on_click_match}>{"AFFICHER UN MATCH DE TEST"}</button>
                         <h1 class="mb-5">{tournament.as_ref().unwrap().name.to_string()}</h1>
                         {if can_edit_tournament { html! {<a onclick={on_click_edit} class="a_link mb-6">{"Modifier ce tournoi"}</a>}} else { html! {} }}
                         <JoinCode code={tournament.as_ref().unwrap().code.to_string()}/>
@@ -79,13 +121,13 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         <div>{"Date: "}{tournament.as_ref().unwrap().date_locale().format("%d.%m.%Y %H:%M:%S")}</div>
                         <div>{"Lieu: "}{tournament.as_ref().unwrap().location.as_ref().unwrap_or(&String::new())}</div>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.2.2/ol.css"/>
-                <script src="https://cdn.jsdelivr.net/npm/ol@v7.2.2/dist/ol.js"></script>
-                <div id="map" class="h-56 w-80"></div>
-                <script>
-                {format!("LOCATION = '{}'", tournament.as_ref().unwrap().location.as_ref().unwrap_or(&String::new()))}
-                </script>
-                <script defer={true}>
-{r#"
+                        <script src="https://cdn.jsdelivr.net/npm/ol@v7.2.2/dist/ol.js"></script>
+                        <div id="map" class="h-56 w-80"></div>
+                        <script>
+                        {format!("LOCATION = '{}'", tournament.as_ref().unwrap().location.as_ref().unwrap_or(&String::new()))}
+                        </script>
+                        <script defer={true}>
+    {r#"
                     setTimeout(async () => {
                         const API_KEY_OPEN_CAGE_DATA = '6013e487ba024001bd708e4afd9e3325';
                         const API_KEY_MAPTILER = 'vAS374E4z5f82WH15YOh';
@@ -142,6 +184,11 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
 "#}</script>
                         <div>{"Description: "}{tournament.as_ref().unwrap().description.to_string()}</div>
                         <hr/>
+                        <h2>{"Paris disponibles"}</h2>
+                        <p class="discrete">{"Vous pouvez misez vos noix dans ces matchs et peut-être remporter le pactole !"}</p>
+                        <p class="mb-4">{format!("Vous possédez actuellement {} noix.", user_nut)}</p>
+                        <BetList matches={(*matches).clone()}/>
+                        <hr/>
                         <h2>{"Phase de qualifications"}</h2>
                         <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
                             <Groups tournament={tournament.as_ref().unwrap().clone()}/>
@@ -149,10 +196,11 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         <hr/>
                         <h2>{"Phase d'éliminations"}</h2>
                         /*<Bracket/>*/
-                        <hr/>
-                        <h2>{"Résultats"}</h2>
-                        <div class="text-red-500">{"AFFICHER UNIQUEMENT SI TOUT LES MATCHS DE CE TOURNOIS SONT TERMINÉS"}</div>
-                        <Results/> 
+                        if tournament_over {
+                            <hr/>
+                            <h2>{"Résultats"}</h2>
+                            <Results tournament_id={ id }/>
+                        }
                     }
                 }
             </div>

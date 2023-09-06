@@ -5,6 +5,7 @@ use crate::schema::nuts::{self, fk_tournaments, fk_users};
 use crate::schema::tournaments;
 use crate::{ErrorBody, ErrorResponse, MysqlConnection};
 use diesel::prelude::*;
+use log::warn;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 
@@ -59,10 +60,14 @@ pub async fn update_nut(
     {
         Ok(_) => (),
         Err(_) => {
+            warn!(
+                "User {} tried to update the nut of tournament {} - routes/nut/update_nut()",
+                auth.user.id, id
+            );
             return Err((Status::Forbidden, "Access Forbidden".to_string()));
         }
-    };    
-    
+    };
+
     match connection
         .run(move |c| {
             c.transaction(|c| {

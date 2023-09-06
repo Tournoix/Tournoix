@@ -1,4 +1,5 @@
 use diesel::prelude::*;
+use log::warn;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use serde::{Serialize, Deserialize};
@@ -10,6 +11,7 @@ use crate::models::subscription::Subscription;
 use crate::models::tournament::Tournament;
 use crate::routes::auth::ApiAuth;
 use crate::schema::{bets, games, teams, tournaments, nuts, subscriptions};
+use chrono::Local;
 
 // Get all bets of a game
 #[get("/game/<id>/bet")]
@@ -46,6 +48,7 @@ pub async fn get_game_bet(
     };
 
     if !is_owner && !is_subscriber {
+        warn!("{} - User {} tried to access bets of tournament {} - routes/bet/get_game_bet()", Local::now().format("%d/%m/%Y %H:%M"), auth.user.id, id);
         return Err((Status::Forbidden, "Access Forbidden".to_string()));
     }
 
@@ -85,6 +88,7 @@ pub async fn get_user_game_bet(
     {
         Ok(_) => (),
         Err(_) => {
+            warn!("{} - User {} tried to access bets of user {} for tournament {} - routes/bet/get_user_game_bet()", Local::now().format("%d/%m/%Y %H:%M"), auth.user.id, id_user, id);
             return Err((Status::Forbidden, "Access Forbidden".to_string()));
         }
     };

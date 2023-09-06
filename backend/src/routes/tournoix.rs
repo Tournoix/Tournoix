@@ -1,9 +1,10 @@
 use crate::models::tournament::{NewTournament, PatchTournament, Tournament};
 use crate::routes::auth::ApiAuth;
 use crate::schema::tournaments;
-use crate::{ErrorBody, ErrorResponse, MysqlConnection, EmptyResponse};
+use crate::{EmptyResponse, ErrorBody, ErrorResponse, MysqlConnection};
 use diesel::prelude::*;
 use diesel::result::Error;
+use log::info;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use rocket::http::Status;
@@ -38,6 +39,8 @@ pub async fn get_tournoix(
         }
 
         Err(_e) => {
+            info!("{} - User {} tried to access non-existing tournament {} - routes/tournoix/get_tournoix()", chrono::Local::now().format("%d/%m/%Y %H:%M"), auth.user.id, id);
+
             return Err((
                 Status::NotFound,
                 Json(ErrorResponse {
@@ -47,7 +50,7 @@ pub async fn get_tournoix(
                         description: "Tournament with given id does not exists".into(),
                     },
                 }),
-            ))
+            ));
         }
     }
 }
@@ -143,6 +146,12 @@ pub async fn create_tournoix(
         .await
     {
         Ok(tournoix) => {
+            info!(
+                "{} - User {} created tournament {} - routes/tournoix/create_tournoix()",
+                chrono::Local::now().format("%d/%m/%Y %H:%M"),
+                auth.user.id,
+                tournoix.id
+            );
             return Ok(tournoix);
         }
 

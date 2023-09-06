@@ -6,6 +6,7 @@ use crate::schema::teams::fk_tournaments;
 use crate::schema::{games, subscriptions, teams, tournaments};
 use crate::{EmptyResponse, ErrorBody, ErrorResponse, MysqlConnection};
 use diesel::prelude::*;
+use log::warn;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
@@ -48,6 +49,12 @@ pub async fn get_teams(
     };
 
     if !is_owner && !is_subscriber {
+        warn!(
+            "{} - User {} tried to access teams of tournament {} - routes/team/get_teams()",
+            chrono::Local::now().format("%d/%m/%Y %H:%M"),
+            auth.user.id,
+            id
+        );
         return Err((Status::Forbidden, "Access Forbidden".to_string()));
     }
 
@@ -86,7 +93,15 @@ pub async fn create_team(
         .await
     {
         Ok(_) => (),
-        Err(_) => return Err((Status::Forbidden, "Access Forbidden".to_string())),
+        Err(_) => {
+            warn!(
+                "{} - User {} tried to create a team for tournament {} - routes/team/create_team()",
+                chrono::Local::now().format("%d/%m/%Y %H:%M"),
+                auth.user.id,
+                id
+            );
+            return Err((Status::Forbidden, "Access Forbidden".to_string()));
+        }
     };
 
     // cannot create a team if the tournament is started
@@ -153,6 +168,7 @@ pub async fn update_team(
                 .unwrap();
 
             if auth.user.id != tournament.fk_users {
+                warn!("{} - User {} tried to update team of tournament {} - routes/team/update_team()", chrono::Local::now().format("%d/%m/%Y %H:%M"), auth.user.id, id);
                 return Err((
                     Status::Forbidden,
                     Json(ErrorResponse {
@@ -254,6 +270,12 @@ pub async fn delete_team(
                 .unwrap();
 
             if auth.user.id != tournament.fk_users {
+                warn!(
+                    "{} - User {} tried to delete team {} - routes/team/delete_team()",
+                    chrono::Local::now().format("%d/%m/%Y %H:%M"),
+                    auth.user.id,
+                    id
+                );
                 return Err((
                     Status::Forbidden,
                     Json(ErrorResponse {
