@@ -24,7 +24,7 @@ pub fn Tournaments(props: &TournamentsProps) -> Html {
     let TournamentsProps {
         tournaments,
         editable,
-        on_delete
+        on_delete,
     } = props;
 
     html! {

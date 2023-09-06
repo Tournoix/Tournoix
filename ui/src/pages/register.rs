@@ -1,29 +1,30 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use time::Duration;
 use web_sys::HtmlInputElement;
 use yew::platform::spawn_local;
 use yew::prelude::*;
+use yew_notifications::use_notification;
 use yew_router::prelude::use_navigator;
 
 use crate::api::auth::RegisterRequest;
 use crate::api::{self};
-use crate::components::notification::NotifType;
-use crate::components::{form_input::FormInput, button::Button};
+use crate::components::{button::Button, form_input::FormInput};
 use crate::layouts::homelayout::HomeLayout;
+use crate::notification::{CustomNotification, NotifType};
 use crate::routers::Route;
-use crate::utils::utils::add_delayed_notif;
 
 #[derive(Serialize, Default)]
 pub struct RegisterForm {
     pub name: String,
     pub email: String,
-    pub password: String
+    pub password: String,
 }
 
 #[derive(Deserialize)]
 pub struct RegisterResponse {
     pub id: i32,
     pub name: String,
-    pub email: String
+    pub email: String,
 }
 
 #[derive(PartialEq, Properties)]
@@ -37,7 +38,8 @@ pub fn Register(props: &RegisterProps) -> Html {
     let email_ref = use_node_ref();
     let password_ref = use_node_ref();
     let loading = use_state(|| false);
-    
+    let notifs = use_notification::<CustomNotification>();
+
     let on_register_submit = {
         let navigator = navigator.clone();
         let username_ref = username_ref.clone();
@@ -48,7 +50,7 @@ pub fn Register(props: &RegisterProps) -> Html {
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
             loading.set(true);
-            
+
             let username = username_ref.cast::<HtmlInputElement>().unwrap().value();
             let email = email_ref.cast::<HtmlInputElement>().unwrap().value();
             let password = password_ref.cast::<HtmlInputElement>().unwrap().value();
@@ -56,35 +58,36 @@ pub fn Register(props: &RegisterProps) -> Html {
             let register_request = RegisterRequest {
                 name: username,
                 email,
-                password
+                password,
             };
 
             {
                 let navigator = navigator.clone();
                 let loading = loading.clone();
 
+                let notifs = notifs.clone();
                 spawn_local(async move {
                     match api::auth::register(register_request).await {
                         Ok(_) => {
                             loading.set(false);
-
-                            add_delayed_notif(
+                            notifs.spawn(CustomNotification::new(
                                 "Compte créé !",
                                 "Votre compte à été créé !",
                                 NotifType::Success,
-                            );
+                                Duration::seconds(5),
+                            ));
 
                             navigator.push(&Route::Login);
-                        },
+                        }
 
                         Err(e) => {
                             loading.set(false);
-
-                            add_delayed_notif(
+                            notifs.spawn(CustomNotification::new(
                                 "Erreur",
                                 &e.error.description,
                                 NotifType::Error,
-                            );
+                                Duration::seconds(5),
+                            ));
                         }
                     }
                 });

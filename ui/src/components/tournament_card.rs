@@ -11,7 +11,7 @@ pub struct TournamentCardProps {
     #[prop_or_default]
     pub editable: bool,
     #[prop_or_default]
-    pub on_delete: Callback<Tournament>
+    pub on_delete: Callback<Tournament>,
 }
 
 #[function_component]
@@ -19,7 +19,7 @@ pub fn TournamentCard(props: &TournamentCardProps) -> Html {
     let TournamentCardProps {
         tournament,
         editable,
-        on_delete
+        on_delete,
     } = props;
     let navigator = use_navigator().unwrap();
     let nb_nuts = use_state(|| 0);

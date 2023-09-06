@@ -1,16 +1,17 @@
-use yew::platform::spawn_local;
-use yew::prelude::*;
-use yew_router::prelude::use_navigator;
-
 use crate::api;
 use crate::api::auth::LoginRequest;
-use crate::components::notification::NotifType;
 use crate::components::user_provider::UserContext;
 use crate::components::{button::Button, form_input::FormInput};
 use crate::layouts::homelayout::HomeLayout;
+use crate::notification::{CustomNotification, NotifType};
 use crate::routers::Route;
-use crate::utils::utils::*;
+
+use time::Duration;
 use web_sys::HtmlInputElement;
+use yew::platform::spawn_local;
+use yew::prelude::*;
+use yew_notifications::use_notification;
+use yew_router::prelude::use_navigator;
 
 #[derive(PartialEq, Properties)]
 pub struct LoginProps {}
@@ -23,12 +24,14 @@ pub fn Login(props: &LoginProps) -> Html {
     let password_ref = use_node_ref();
     let loading = use_state(|| false);
     let user_info = use_context::<UserContext>().expect("Missing UserInfo contect provider");
+    let notifications_manager = use_notification::<CustomNotification>();
 
     let on_login_submit = {
         let navigator = navigator.clone();
         let email_ref = email_ref.clone();
         let password_ref = password_ref.clone();
         let loading = loading.clone();
+        //let notifications_manager = notifications_manager.clone();
 
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
@@ -43,6 +46,7 @@ pub fn Login(props: &LoginProps) -> Html {
                 let navigator = navigator.clone();
                 let loading = loading.clone();
                 let user_info = user_info.clone();
+                let notifications_manager = notifications_manager.clone();
 
                 spawn_local(async move {
                     match api::auth::login(login_request).await {
@@ -50,16 +54,25 @@ pub fn Login(props: &LoginProps) -> Html {
                             user_info.login(&token_response.token);
 
                             loading.set(false);
-                            add_delayed_notif(
+
+                            notifications_manager.spawn(CustomNotification::new(
                                 "Connecté(e)",
                                 "Vous vous êtes connecté(e) avec succès à votre compte.",
                                 NotifType::Success,
-                            );
+                                Duration::seconds(5),
+                            ));
+
                             navigator.push(&Route::Home);
                         }
 
                         Err(e) => {
-                            add_delayed_notif("Erreur", &e.error.description, NotifType::Error);
+                            notifications_manager.spawn(CustomNotification::new(
+                                "Erreur",
+                                e.error.description,
+                                NotifType::Error,
+                                Duration::seconds(5),
+                            ));
+
                             loading.set(false);
                         }
                     }

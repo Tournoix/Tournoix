@@ -2,7 +2,10 @@ use wasm_bindgen::JsCast;
 use web_sys::{EventTarget, HtmlInputElement};
 use yew::prelude::*;
 
-use crate::{components::{bracket::Match, checkbox::CheckBox}, utils::utils::team_color_wrapper};
+use crate::{
+    components::{bracket::Match, checkbox::CheckBox},
+    utils::utils::team_color_wrapper,
+};
 
 #[derive(PartialEq, Properties)]
 pub struct QualificationPhaseProps {
@@ -14,9 +17,15 @@ pub struct QualificationPhaseProps {
 
 #[function_component]
 pub fn QualificationPhase(props: &QualificationPhaseProps) -> Html {
-    let QualificationPhaseProps { on_started_click, on_finished_click, on_score1_change, on_score2_change } = props;
+    let QualificationPhaseProps {
+        on_started_click,
+        on_finished_click,
+        on_score1_change,
+        on_score2_change,
+    } = props;
 
-    let group_matches = use_context::<UseStateHandle<Vec<Vec<Match>>>>().expect("Missing group_matches provider");
+    let group_matches =
+        use_context::<UseStateHandle<Vec<Vec<Match>>>>().expect("Missing group_matches provider");
 
     let on_click_started = |id: i32| {
         if let Some(on_started_click) = on_started_click {
@@ -54,7 +63,11 @@ pub fn QualificationPhase(props: &QualificationPhaseProps) -> Html {
             // You must KNOW target is a HtmlInputElement, otherwise
             // the call to value would be Undefined Behaviour (UB).
             // Here we are sure that this is input element so we can convert it to the appropriate type without checking
-            if let Ok(val) = target.unchecked_into::<HtmlInputElement>().value().parse::<i32>() {
+            if let Ok(val) = target
+                .unchecked_into::<HtmlInputElement>()
+                .value()
+                .parse::<i32>()
+            {
                 if let Some(on_score1_change) = &on_score1_change {
                     on_score1_change.emit((id, val));
                 }
@@ -71,7 +84,11 @@ pub fn QualificationPhase(props: &QualificationPhaseProps) -> Html {
             // You must KNOW target is a HtmlInputElement, otherwise
             // the call to value would be Undefined Behaviour (UB).
             // Here we are sure that this is input element so we can convert it to the appropriate type without checking
-            if let Ok(val) = target.unchecked_into::<HtmlInputElement>().value().parse::<i32>() {
+            if let Ok(val) = target
+                .unchecked_into::<HtmlInputElement>()
+                .value()
+                .parse::<i32>()
+            {
                 if let Some(on_score2_change) = &on_score2_change {
                     on_score2_change.emit((id, val));
                 }

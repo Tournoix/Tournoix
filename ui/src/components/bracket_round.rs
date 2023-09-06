@@ -16,7 +16,14 @@ pub struct BracketRoundProps {
 
 #[function_component]
 pub fn BracketRound(props: &BracketRoundProps) -> Html {
-    let BracketRoundProps {matches, round_id, on_started_click, on_finished_click, on_score1_change, on_score2_change} = props;
+    let BracketRoundProps {
+        matches,
+        round_id,
+        on_started_click,
+        on_finished_click,
+        on_score1_change,
+        on_score2_change,
+    } = props;
     let round_title = format!("Round {}", round_id);
     let mut match_id = 0;
 

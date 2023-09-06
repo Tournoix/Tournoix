@@ -10,7 +10,6 @@ pub mod group_drop;
 pub mod groups;
 pub mod join_code;
 pub mod loading_circle;
-pub mod notification;
 pub mod qualification_phase;
 pub mod results;
 pub mod team_bet;

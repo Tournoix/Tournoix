@@ -1,11 +1,12 @@
 use std::str::FromStr;
 
 use log::info;
+use time::Duration;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{window, HtmlInputElement};
+use web_sys::HtmlInputElement;
 use yew::prelude::*;
-use yew_hooks::use_effect_once;
+use yew_notifications::use_notification;
 use yew_router::prelude::use_navigator;
 
 use crate::{
@@ -18,13 +19,12 @@ use crate::{
         groups::Groups,
         join_code::JoinCode,
         loading_circle::LoadingCircle,
-        notification::NotifType,
         qualification_phase::QualificationPhase,
         teams::Teams,
     },
     layouts::homelayout::HomeLayout,
+    notification::{CustomNotification, NotifType},
     routers::Route,
-    utils::utils::add_delayed_notif,
 };
 
 #[derive(PartialEq, Properties)]
@@ -39,6 +39,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
     let tournament: UseStateHandle<Option<Tournament>> = use_state(|| None);
     let loading = use_state(|| true);
     let should_update = use_state(|| false);
+    let notifs = use_notification::<CustomNotification>();
+    let trigger = use_state(|| false);
 
     // Form inputs
     let name_ref = use_node_ref();
@@ -49,7 +51,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
     let is_qualif = use_state(|| false);
     let is_elim = use_state(|| false);
 
-    info!("{}", serde_json::to_string(&EmptyResponse{}).unwrap());
+    info!("{}", serde_json::to_string(&EmptyResponse {}).unwrap());
 
     let on_qualif_change = {
         let is_qualif = is_qualif.clone();
@@ -74,15 +76,18 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         let loading = loading.clone();
         let id = id.clone();
 
-        use_effect_once(move || {
-            spawn_local(async move {
-                // TODO: fetch tournoix teams and matches
-                tournament.set(api::tournoix::get(id).await.ok());
-                loading.set(false);
-            });
+        use_effect_with_deps(
+            move |_| {
+                spawn_local(async move {
+                    // TODO: fetch tournoix teams and matches
+                    tournament.set(api::tournoix::get(id).await.ok());
+                    loading.set(false);
+                });
 
-            || ()
-        });
+                || ()
+            },
+            trigger.clone(),
+        );
     }
 
     let on_click_view = {
@@ -219,30 +224,34 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
 
             {
                 let tournament = tournament.clone();
+                let notifs = notifs.clone();
+                let trigger = trigger.clone();
+
                 spawn_local(async move {
                     match tournament.as_ref().unwrap().update(update_request).await {
                         Ok(tournament) => {
-                            add_delayed_notif(
+                            notifs.spawn(CustomNotification::new(
                                 "Modification réussie",
                                 &format!(
                                     "Vous avez modifié avec succès le tournoi \"{}\"",
                                     tournament.name
                                 ),
                                 NotifType::Success,
-                            );
+                                Duration::seconds(5),
+                            ));
                         }
 
                         Err(e) => {
-                            add_delayed_notif(
+                            notifs.spawn(CustomNotification::new(
                                 &format!("Erreur: {}", e.error.reason),
                                 &e.error.description,
                                 NotifType::Error,
-                            );
+                                Duration::seconds(5),
+                            ));
                         }
                     }
 
-                    // Reload page to update state (berk)
-                    window().unwrap().location().reload().unwrap();
+                    trigger.set(!*trigger);
                 });
             }
         })

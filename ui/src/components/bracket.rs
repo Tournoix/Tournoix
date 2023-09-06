@@ -1,5 +1,5 @@
-use yew::prelude::*;
 use crate::components::bracket_round::BracketRound;
+use yew::prelude::*;
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct Match {
@@ -25,7 +25,13 @@ pub struct BracketProps {
 
 #[function_component]
 pub fn Bracket(props: &BracketProps) -> Html {
-    let BracketProps {teams, on_started_click, on_finished_click, on_score1_change, on_score2_change} = props;
+    let BracketProps {
+        teams,
+        on_started_click,
+        on_finished_click,
+        on_score1_change,
+        on_score2_change,
+    } = props;
 
     let is_nb_valid = teams.len() > 0 && (teams[0].len() & (teams[0].len() - 1)) == 0;
 

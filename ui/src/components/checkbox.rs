@@ -10,12 +10,20 @@ pub struct CheckBoxProps {
     pub checked: bool,
     pub on_click: Callback<MouseEvent>,
     #[prop_or_default]
-    pub _ref: NodeRef
+    pub _ref: NodeRef,
 }
 
 #[function_component]
 pub fn CheckBox(props: &CheckBoxProps) -> Html {
-    let CheckBoxProps { class, id, label, disabled, checked, on_click, _ref } = props;
+    let CheckBoxProps {
+        class,
+        id,
+        label,
+        disabled,
+        checked,
+        on_click,
+        _ref,
+    } = props;
 
     html! {
         <label class={classes!("flex", "flex-row-reverse", class.clone())}>

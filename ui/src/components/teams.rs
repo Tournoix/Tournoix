@@ -1,10 +1,12 @@
+use time::Duration;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
+use yew_notifications::use_notification;
 
 use crate::{
     api::models::{AddTeamRequest, Team, Tournament},
-    components::{loading_circle::LoadingCircle, notification::NotifType, team_card::TeamCard},
-    utils::utils::add_delayed_notif,
+    components::{loading_circle::LoadingCircle, team_card::TeamCard},
+    notification::{CustomNotification, NotifType},
 };
 
 #[derive(PartialEq, Properties)]
@@ -16,7 +18,11 @@ pub struct TeamsProps {
 
 #[function_component]
 pub fn Teams(props: &TeamsProps) -> Html {
-    let TeamsProps { tournament, on_update } = props;
+    let TeamsProps {
+        tournament,
+        on_update,
+    } = props;
+    let notifs = use_notification::<CustomNotification>();
 
     let teams: UseStateHandle<Vec<Team>> = use_state(|| Vec::new());
     let teams_tmp: UseStateHandle<Vec<Team>> = use_state(|| Vec::new());
@@ -38,7 +44,7 @@ pub fn Teams(props: &TeamsProps) -> Html {
                     if let Some(t) = tournament.get_teams().await.ok() {
                         teams_tmp.set(t);
                         // Need to empty teams vec or else there is a weird behavior in rendering when adding/deleting team
-                        teams.set(vec![]); 
+                        teams.set(vec![]);
                     }
                     loading.set(false);
                 });
@@ -70,6 +76,7 @@ pub fn Teams(props: &TeamsProps) -> Html {
             let tournament = tournament.clone();
             let trigger = trigger.clone();
 
+            let notifs = notifs.clone();
             spawn_local(async move {
                 match tournament
                     .add_teams(AddTeamRequest {
@@ -79,21 +86,23 @@ pub fn Teams(props: &TeamsProps) -> Html {
                     .await
                 {
                     Ok(new_team) => {
-                        add_delayed_notif(
+                        notifs.spawn(CustomNotification::new(
                             "Équipe ajoutée !",
                             &format!("L'équipe [{}] à été ajoutée", new_team.name),
                             NotifType::Success,
-                        );
+                            Duration::seconds(5),
+                        ));
 
                         trigger.set(!*trigger);
                     }
 
                     Err(e) => {
-                        add_delayed_notif(
+                        notifs.spawn(CustomNotification::new(
                             &format!("Erreur: {}", e.error.reason),
                             &e.error.description,
                             NotifType::Error,
-                        );
+                            Duration::seconds(5),
+                        ));
                     }
                 }
             });

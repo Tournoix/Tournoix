@@ -1,5 +1,9 @@
+use crate::{
+    components::{backlink::Backlink, team_bet::TeamBet},
+    layouts::homelayout::HomeLayout,
+    routers::Route,
+};
 use yew::prelude::*;
-use crate::{layouts::homelayout::HomeLayout, routers::Route, components::{backlink::Backlink, team_bet::TeamBet}};
 
 #[derive(PartialEq, Properties)]
 pub struct GamesViewProps {
@@ -9,7 +13,7 @@ pub struct GamesViewProps {
 #[function_component]
 pub fn BetView(props: &GamesViewProps) -> Html {
     let GamesViewProps { id } = props;
-    
+
     html! {
         <HomeLayout>
             <div class="flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto relative">

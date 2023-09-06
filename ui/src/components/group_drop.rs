@@ -2,18 +2,28 @@ use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_hooks::{use_drop_with_options, UseDropOptions};
 
-use crate::{api::{models::{Team, TeamUpdate}, self}, components::team_drag::TeamDrag};
+use crate::{
+    api::{
+        self,
+        models::{Team, TeamUpdate},
+    },
+    components::team_drag::TeamDrag,
+};
 
 #[derive(PartialEq, Properties)]
 pub struct GroupDropProps {
     pub id: i32,
     pub teams: Vec<Team>,
-    pub update_trigger: UseStateHandle<bool>
+    pub update_trigger: UseStateHandle<bool>,
 }
 
 #[function_component]
 pub fn GroupDrop(props: &GroupDropProps) -> Html {
-    let GroupDropProps { id, teams, update_trigger } = props;
+    let GroupDropProps {
+        id,
+        teams,
+        update_trigger,
+    } = props;
     let node = use_node_ref();
     let state = {
         let id = id.clone();
@@ -23,11 +33,24 @@ pub fn GroupDrop(props: &GroupDropProps) -> Html {
             node.clone(),
             UseDropOptions {
                 ondrop: Some(Box::new(move |e| {
-                    let team_id = e.data_transfer().unwrap().get_data("team_id").unwrap().parse::<i32>().unwrap();
+                    let team_id = e
+                        .data_transfer()
+                        .unwrap()
+                        .get_data("team_id")
+                        .unwrap()
+                        .parse::<i32>()
+                        .unwrap();
 
                     let update_trigger = update_trigger.clone();
                     spawn_local(async move {
-                        let _ = api::teams::update(team_id, TeamUpdate {name: None, group: Some(id)}).await;
+                        let _ = api::teams::update(
+                            team_id,
+                            TeamUpdate {
+                                name: None,
+                                group: Some(id),
+                            },
+                        )
+                        .await;
                         update_trigger.set(!*update_trigger);
                     });
                 })),

@@ -18,12 +18,23 @@ pub struct FormInputProps {
     #[prop_or_default]
     pub value: AttrValue,
     #[prop_or_default]
-    pub onchange: Callback<Event>
+    pub onchange: Callback<Event>,
 }
 
 #[function_component]
 pub fn FormInput(props: &FormInputProps) -> Html {
-    let FormInputProps { id, label, form_type, required, min_num, checked, disabled, _ref, value, onchange } = props;
+    let FormInputProps {
+        id,
+        label,
+        form_type,
+        required,
+        min_num,
+        checked,
+        disabled,
+        _ref,
+        value,
+        onchange,
+    } = props;
 
     html! {
         <label class="flex flex-row-reverse m-4">

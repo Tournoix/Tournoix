@@ -19,12 +19,15 @@ pub struct Group; // TODO add fields ?
 #[derive(PartialEq, Properties)]
 pub struct GroupsProps {
     pub tournament: Tournament,
-    pub should_update: Option<UseStateHandle<bool>>
+    pub should_update: Option<UseStateHandle<bool>>,
 }
 
 #[function_component]
 pub fn Groups(props: &GroupsProps) -> Html {
-    let GroupsProps { tournament, should_update } = props;
+    let GroupsProps {
+        tournament,
+        should_update,
+    } = props;
 
     let groups: UseStateHandle<BTreeMap<i32, Vec<Team>>> = use_state(|| BTreeMap::new());
     let trigger = use_state(|| false);
@@ -120,7 +123,6 @@ pub fn Groups(props: &GroupsProps) -> Html {
                                 new_groups.insert(team.group, vec![team]);
                             }
                         }
-
 
                         info!("{:?}", new_groups);
                         groups.set(new_groups);

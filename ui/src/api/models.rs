@@ -2,7 +2,7 @@ use chrono::TimeZone;
 use reqwest::{header::HeaderMap, Method};
 use serde::{Deserialize, Serialize};
 
-use super::{api_call, ErrorResponse, EmptyResponse, tournoix::UpdateTournoixRequest};
+use super::{api_call, tournoix::UpdateTournoixRequest, EmptyResponse, ErrorResponse};
 
 // ---- User ----
 
@@ -57,31 +57,64 @@ pub struct Tournament {
 }
 
 impl Tournament {
-    pub fn is_elim(&self) -> bool {true}
-    pub fn is_qualif(&self) -> bool {true}
-
-    pub fn date_locale(&self) -> chrono::NaiveDateTime {
-        chrono::Local.from_utc_datetime(&self.date.unwrap()).naive_local()
+    pub fn is_elim(&self) -> bool {
+        true
+    }
+    pub fn is_qualif(&self) -> bool {
+        true
     }
 
-    pub async fn update(&self, update_request: UpdateTournoixRequest) -> Result<Tournament, ErrorResponse> {
+    pub fn date_locale(&self) -> chrono::NaiveDateTime {
+        chrono::Local
+            .from_utc_datetime(&self.date.unwrap())
+            .naive_local()
+    }
+
+    pub async fn update(
+        &self,
+        update_request: UpdateTournoixRequest,
+    ) -> Result<Tournament, ErrorResponse> {
         super::tournoix::update(self.id, update_request).await
     }
 
     pub async fn delete(&self) -> Result<EmptyResponse, ErrorResponse> {
-        api_call::<EmptyResponse>(Method::DELETE, &format!("tournoix/{}", self.id), HeaderMap::new(), String::new()).await
+        api_call::<EmptyResponse>(
+            Method::DELETE,
+            &format!("tournoix/{}", self.id),
+            HeaderMap::new(),
+            String::new(),
+        )
+        .await
     }
 
     pub async fn get_user_nut(&self) -> Result<Nut, ErrorResponse> {
-        api_call::<Nut>(Method::GET, &format!("tournoix/{}/nut", self.id), HeaderMap::new(), String::new()).await
+        api_call::<Nut>(
+            Method::GET,
+            &format!("tournoix/{}/nut", self.id),
+            HeaderMap::new(),
+            String::new(),
+        )
+        .await
     }
 
     pub async fn get_teams(&self) -> Result<Vec<Team>, ErrorResponse> {
-        api_call::<Vec<Team>>(Method::GET, &format!("tournoix/{}/teams", self.id), HeaderMap::new(), String::new()).await
+        api_call::<Vec<Team>>(
+            Method::GET,
+            &format!("tournoix/{}/teams", self.id),
+            HeaderMap::new(),
+            String::new(),
+        )
+        .await
     }
 
     pub async fn add_teams(&self, team: AddTeamRequest) -> Result<Team, ErrorResponse> {
-        api_call::<Team>(Method::POST, &format!("tournoix/{}/teams", self.id), HeaderMap::new(), serde_json::to_string(&team).unwrap()).await
+        api_call::<Team>(
+            Method::POST,
+            &format!("tournoix/{}/teams", self.id),
+            HeaderMap::new(),
+            serde_json::to_string(&team).unwrap(),
+        )
+        .await
     }
 }
 
@@ -113,7 +146,13 @@ impl Team {
     }
 
     pub async fn delete(&self) -> Result<EmptyResponse, ErrorResponse> {
-        api_call::<EmptyResponse>(Method::DELETE, &format!("teams/{}", self.id), HeaderMap::new(), String::new()).await
+        api_call::<EmptyResponse>(
+            Method::DELETE,
+            &format!("teams/{}", self.id),
+            HeaderMap::new(),
+            String::new(),
+        )
+        .await
     }
 }
 

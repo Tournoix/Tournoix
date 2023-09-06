@@ -1,11 +1,12 @@
+use time::Duration;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
+use yew_notifications::use_notification;
 
 use crate::{
     api::models::{Team, TeamUpdate},
-    components::notification::NotifType,
-    utils::utils::add_delayed_notif,
+    notification::{CustomNotification, NotifType},
 };
 
 #[derive(PartialEq, Properties)]
@@ -24,12 +25,14 @@ pub fn TeamCard(props: &TeamCardProps) -> Html {
     let team = use_state(|| team.clone());
     let is_being_edited = use_state(|| false);
     let name_ref = use_node_ref();
+    let notifs = use_notification::<CustomNotification>();
 
     let on_edit = {
         let is_being_edited = is_being_edited.clone();
         let name_ref = name_ref.clone();
         let team = team.clone();
         let update_trigger = update_trigger.clone();
+        let notifs = notifs.clone();
 
         Callback::from(move |_| {
             let team = team.clone();
@@ -41,6 +44,7 @@ pub fn TeamCard(props: &TeamCardProps) -> Html {
                 new_team.name = new_name.clone();
                 team.set(new_team);
 
+                let notifs = notifs.clone();
                 spawn_local(async move {
                     match team
                         .update(TeamUpdate {
@@ -50,21 +54,23 @@ pub fn TeamCard(props: &TeamCardProps) -> Html {
                         .await
                     {
                         Ok(team) => {
-                            add_delayed_notif(
+                            notifs.spawn(CustomNotification::new(
                                 "Équipe modifiée !",
                                 &format!("L'équipe [{}] à été modifiée", team.name),
                                 NotifType::Success,
-                            );
+                                Duration::seconds(5),
+                            ));
 
                             update_trigger.set(!*update_trigger);
                         }
 
                         Err(e) => {
-                            add_delayed_notif(
+                            notifs.spawn(CustomNotification::new(
                                 &format!("Erreur: {}", e.error.reason),
                                 &e.error.description,
                                 NotifType::Error,
-                            );
+                                Duration::seconds(5),
+                            ));
                         }
                     };
                 });
@@ -99,23 +105,26 @@ pub fn TeamCard(props: &TeamCardProps) -> Html {
             let team = team.clone();
             let update_trigger = update_trigger.clone();
 
+            let notifs = notifs.clone();
             spawn_local(async move {
                 match team.delete().await {
                     Ok(_) => {
-                        add_delayed_notif(
+                        notifs.spawn(CustomNotification::new(
                             "Équipe supprimée !",
                             &format!("L'équipe [{}] à été supprimée", team.name),
                             NotifType::Success,
-                        );
+                            Duration::seconds(5),
+                        ));
 
                         update_trigger.set(!*update_trigger);
                     }
                     Err(e) => {
-                        add_delayed_notif(
+                        notifs.spawn(CustomNotification::new(
                             &format!("Erreur: {}", e.error.reason),
                             &e.error.description,
                             NotifType::Error,
-                        );
+                            Duration::seconds(5),
+                        ));
                     }
                 }
             });

@@ -1,18 +1,18 @@
 use std::str::FromStr;
 
+use time::Duration;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
+use yew_notifications::use_notification;
 use yew_router::prelude::use_navigator;
 
 use crate::{
     api::{self, tournoix::CreateTournoixRequest},
-    components::{
-        backlink::Backlink, button::Button, form_input::FormInput, notification::NotifType,
-    },
+    components::{backlink::Backlink, button::Button, form_input::FormInput},
     layouts::homelayout::HomeLayout,
+    notification::{CustomNotification, NotifType},
     routers::Route,
-    utils::utils::add_delayed_notif,
 };
 
 #[derive(PartialEq, Properties)]
@@ -22,6 +22,7 @@ pub struct TournoixCreateProps {}
 pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
     let TournoixCreateProps {} = props;
     let navigator = use_navigator().unwrap();
+    let notifs = use_notification::<CustomNotification>();
 
     let name_ref = use_node_ref();
     let date_ref = use_node_ref();
@@ -52,25 +53,28 @@ pub fn TournoixCreate(props: &TournoixCreateProps) -> Html {
                 location,
             };
 
+            let notifs = notifs.clone();
             spawn_local(async move {
                 match api::tournoix::create(create_request).await {
                     Ok(tournoix) => {
-                        add_delayed_notif(
+                        notifs.spawn(CustomNotification::new(
                             "Tournoi créé !",
                             &format!("Votre tournoi [{}] à été créé", tournoix.name),
                             NotifType::Success,
-                        );
+                            Duration::seconds(5),
+                        ));
 
                         navigator.push(&Route::TournoixEdit {
                             id: tournoix.id as i32,
                         });
                     }
                     Err(e) => {
-                        add_delayed_notif(
+                        notifs.spawn(CustomNotification::new(
                             &format!("Erreur: {}", e.error.reason),
                             &e.error.description,
                             NotifType::Error,
-                        );
+                            Duration::seconds(5),
+                        ));
                     }
                 }
             });

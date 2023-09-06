@@ -17,7 +17,13 @@ pub struct BracketMatchProps {
 
 #[function_component]
 pub fn BracketMatch(props: &BracketMatchProps) -> Html {
-    let BracketMatchProps {game, on_started_click, on_finished_click, on_score1_change, on_score2_change} = props;
+    let BracketMatchProps {
+        game,
+        on_started_click,
+        on_finished_click,
+        on_score1_change,
+        on_score2_change,
+    } = props;
 
     let on_click_started = |id: i32| {
         if let Some(on_started_click) = on_started_click {
@@ -55,7 +61,11 @@ pub fn BracketMatch(props: &BracketMatchProps) -> Html {
             // You must KNOW target is a HtmlInputElement, otherwise
             // the call to value would be Undefined Behaviour (UB).
             // Here we are sure that this is input element so we can convert it to the appropriate type without checking
-            if let Ok(val) = target.unchecked_into::<HtmlInputElement>().value().parse::<i32>() {
+            if let Ok(val) = target
+                .unchecked_into::<HtmlInputElement>()
+                .value()
+                .parse::<i32>()
+            {
                 if let Some(on_score1_change) = &on_score1_change {
                     on_score1_change.emit((id, val));
                 }
@@ -72,7 +82,11 @@ pub fn BracketMatch(props: &BracketMatchProps) -> Html {
             // You must KNOW target is a HtmlInputElement, otherwise
             // the call to value would be Undefined Behaviour (UB).
             // Here we are sure that this is input element so we can convert it to the appropriate type without checking
-            if let Ok(val) = target.unchecked_into::<HtmlInputElement>().value().parse::<i32>() {
+            if let Ok(val) = target
+                .unchecked_into::<HtmlInputElement>()
+                .value()
+                .parse::<i32>()
+            {
                 if let Some(on_score2_change) = &on_score2_change {
                     on_score2_change.emit((id, val));
                 }

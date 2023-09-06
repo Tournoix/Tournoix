@@ -24,3 +24,8 @@ futures = "0.3.1"
 wasm-bindgen-futures = "0.4.37"
 colorsys = "0.6.7"
 js-sys = "0.3.64"
+yew-notifications = { git = "https://github.com/TheBestTvarynka/yew-notifications.git", features = ["standard-notification"] }
+time = { version = "0.3.20", features = ["local-offset", "wasm-bindgen"] }
+uuid = { version = "1.3.0", features = ["v4", "js"] }
+stylist = { version = "0.12", features = ["yew_integration"] }
+gloo = "0.8"

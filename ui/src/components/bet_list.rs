@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::{routers::Route, components::button::Button, utils::utils::team_color_wrapper};
+use crate::{components::button::Button, routers::Route, utils::utils::team_color_wrapper};
 
 use super::bracket::Match;
 
@@ -15,9 +15,7 @@ pub fn BetList(props: &BetListProps) -> Html {
     let BetListProps { matches } = props;
     let navigator = use_navigator().unwrap();
 
-    let on_click_bet = |id| {
-        Callback::from(move |_| navigator.push(&Route::BetView{ id }))
-    };
+    let on_click_bet = |id| Callback::from(move |_| navigator.push(&Route::BetView { id }));
 
     html! {
         <ul class="flex gap-4 flex-wrap">{

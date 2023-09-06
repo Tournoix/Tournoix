@@ -1,12 +1,14 @@
+use time::Duration;
 use yew::platform::spawn_local;
 use yew::prelude::*;
 use yew_hooks::prelude::*;
+use yew_notifications::use_notification;
 use yew_router::prelude::use_navigator;
 
 use crate::api;
-use crate::components::notification::{Notif, NotifType, Notification};
 use crate::components::user_provider::UserContext;
-use crate::{components::button::Button, routers::Route, utils::utils::*};
+use crate::notification::{CustomNotification, NotifType};
+use crate::{components::button::Button, routers::Route};
 use web_sys::window;
 
 #[derive(PartialEq, Properties)]
@@ -20,7 +22,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
     let navigator = use_navigator().unwrap();
     let user_info = use_context::<UserContext>().expect("Missing user context provider");
     let is_logged = use_state(|| false);
-    let notifs: UseStateHandle<Vec<Notif>> = use_state(|| Vec::new());
+    let notifs = use_notification::<CustomNotification>();
 
     {
         let is_logged = is_logged.clone();
@@ -34,30 +36,6 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
             }
 
             || {}
-        });
-    }
-
-    {
-        let notifs = notifs.clone();
-        use_effect(move || {
-            if let Some(fetched_notifs) = consume_notifs() {
-                let mut buf_notifs: Vec<Notif> = vec![];
-                let mut curr_id = 0;
-
-                for fetched_notif in fetched_notifs.iter() {
-                    buf_notifs.push(Notif {
-                        id: curr_id,
-                        title: fetched_notif.title.to_string(),
-                        content: fetched_notif.content.to_string(),
-                        type_notif: fetched_notif.type_notif,
-                    });
-                    curr_id += 1;
-                }
-
-                if !buf_notifs.is_empty() {
-                    notifs.set(buf_notifs);
-                }
-            }
         });
     }
 
@@ -79,14 +57,16 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
     let on_logout_click = Callback::from(move |_| {
         let user_info = user_info.clone();
 
+        let notifs = notifs.clone();
         spawn_local(async move {
             api::auth::logout().await;
 
-            add_delayed_notif(
+            notifs.spawn(CustomNotification::new(
                 "Déconnecté(e)",
                 "Vous vous êtes déconnecté(e) avec succès de votre compte.",
                 NotifType::Success,
-            );
+                Duration::seconds(5),
+            ));
 
             user_info.logout();
         });
@@ -116,18 +96,7 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
             </header>
 
             <main class={"w-full"}>
-                <ContextProvider<UseStateHandle<Vec<Notif>>> context={notifs.clone()}>
-                    <div id="notifs-container" class="pointer-events-none flex fixed bottom-0 left-0 right-0 sm:w-9/12 w-11/12 h-full z-50 ml-[12.5%] flex-col-reverse items-end pb-12">
-                        {
-                            notifs.iter().map(|notif| {
-                                html!{
-                                    <Notification notif={notif.clone()}/>
-                                }
-                            }).collect::<Html>()
-                        }
-                    </div>
-                    {children.clone()}
-                </ContextProvider<UseStateHandle<Vec<Notif>>>>
+                {children.clone()}
             </main>
 
             <footer class="sticky bg-nutLight w-full">

@@ -1,6 +1,9 @@
 use yew::prelude::*;
 
-use crate::{components::{button::Button, form_input::FormInput}, utils::utils::team_color_wrapper};
+use crate::{
+    components::{button::Button, form_input::FormInput},
+    utils::utils::team_color_wrapper,
+};
 
 #[derive(PartialEq, Properties)]
 pub struct TeamBetProps {}
