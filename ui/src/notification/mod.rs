@@ -3,7 +3,7 @@ pub mod factory;
 
 use std::fmt;
 
-use time::{Duration, OffsetDateTime};
+use time::Duration;
 use uuid::Uuid;
 use yew_notifications::Notifiable;
 
@@ -30,9 +30,8 @@ pub struct CustomNotification {
     pub title: String,
     pub content: String,
     pub type_notif: NotifType,
+    pub lifetime: Duration,
 
-    spawn_time: OffsetDateTime,
-    lifetime: Duration,
     full_lifetime: Duration,
     is_paused: bool,
     is_alive: bool,
@@ -51,11 +50,10 @@ impl CustomNotification {
             content: content.into(),
             type_notif,
 
-            spawn_time: OffsetDateTime::now_local().expect("Can not acquire local current time"),
             lifetime,
             full_lifetime: lifetime,
             is_paused: false,
-            is_alive: true,
+            is_alive: true
         }
     }
 }

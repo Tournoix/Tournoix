@@ -64,12 +64,6 @@ impl Tournament {
         true
     }
 
-    pub fn date_locale(&self) -> chrono::NaiveDateTime {
-        chrono::Local
-            .from_utc_datetime(&self.date.unwrap())
-            .naive_local()
-    }
-
     pub async fn update(
         &self,
         update_request: UpdateTournoixRequest,

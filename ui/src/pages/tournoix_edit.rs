@@ -390,7 +390,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                             <div class="w-1/2">
                                 <form class="flex flex-col items-end" onsubmit={on_submit}>
                                     <FormInput id="name" label="Nom" form_type="text" value={tournament.name.clone()} _ref={name_ref} required={true}/>
-                                    <FormInput id="date" label="Date" form_type="datetime-local" value={tournament.date_locale().format("%Y-%m-%dT%H:%M").to_string()}  _ref={date_ref} required={true}/>
+                                    <FormInput id="date" label="Date" form_type="datetime-local" value={tournament.date.unwrap().format("%Y-%m-%dT%H:%M").to_string()}  _ref={date_ref} required={true}/>
                                     <FormInput id="location" label="Lieu" form_type="text" value={tournament.location.as_ref().unwrap_or(&String::new()).to_string()}  _ref={location_ref} required={true}/>
                                     <FormInput id="description" label="Description" form_type="text" value={tournament.description.clone()}  _ref={description_ref} required={true}/>
                                     <FormInput id="nb_team_per_group" label="Nombre d'équipes par groupe" form_type="number" value={if let Some(s) = tournament.size_group {s.to_string()} else {String::new()}}  _ref={groupe_size_ref}/>
