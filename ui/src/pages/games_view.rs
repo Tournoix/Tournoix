@@ -4,15 +4,17 @@ use crate::{
         bracket::Match,
         button::Button,
         form_input::FormInput,
-        team_bet::{Bet, TeamBet},
+        team_bet::{Bet, TeamBet}, loading_circle::LoadingCircle,
     },
     layouts::homelayout::HomeLayout,
     routers::Route,
-    utils::utils::team_color_wrapper,
+    utils::utils::team_color_wrapper, api::{models::GameWithTeams, self},
 };
 use wasm_bindgen::JsCast;
+use wasm_bindgen_futures::spawn_local;
 use web_sys::{window, HtmlInputElement};
 use yew::prelude::*;
+use yew_hooks::use_effect_once;
 
 #[derive(PartialEq, Properties)]
 pub struct MatchViewProps {
@@ -23,16 +25,27 @@ pub struct MatchViewProps {
 pub fn MatchView(props: &MatchViewProps) -> Html {
     let MatchViewProps { id } = props;
 
-    let game = use_state(|| Match {
-        id: 42,
-        started: true,
-        finished: false,
-        team1: "Cloud9".to_string(),
-        team2: "fnatic".to_string(),
-        score1: 0,
-        score2: 0,
-    });
+
+    let game: UseStateHandle<Option<GameWithTeams>> = use_state(|| None);
+    let loading = use_state(|| true);
+
+    {
+        let game = game.clone();
+        let loading = loading.clone();
+        let id = id.clone();
+
+        use_effect_once(move || {
+            spawn_local(async move {
+                game.set(api::game::get(id).await.ok());
+                loading.set(false);
+            });
+
+            || ()
+        });
+    }
+
     let user_nut = use_state(|| 42);
+    let user_has_win = use_state(|| true);
     let bet_made: UseStateHandle<Option<Bet>> = use_state(|| None);
 
     // BET 1
@@ -65,22 +78,25 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
             bets_1.clone(),
         );
     }
-    let on_bet_1_click = {
+
+    let on_bet_click = |is_team_left: bool| {
         let bet_made = bet_made.clone();
         let game = game.clone();
 
         Callback::from(move |_| {
-            let window = window().unwrap();
-            let document = window.document().unwrap();
-            let input_element = document.get_element_by_id("nut_bet").unwrap();
-            let input_element = input_element.dyn_into::<HtmlInputElement>().ok();
-            if let Some(input_element) = input_element {
-                if let Ok(bet_value) = input_element.value().parse() {
-                    if bet_value > 0 {
-                        bet_made.set(Some(Bet {
-                            name: game.team1.clone(),
-                            bet_value,
-                        }));
+            if let Some(game) = (*game).clone() {
+                let window = window().unwrap();
+                let document = window.document().unwrap();
+                let input_element = document.get_element_by_id("nut_bet").unwrap();
+                let input_element = input_element.dyn_into::<HtmlInputElement>().ok();
+                if let Some(input_element) = input_element {
+                    if let Ok(bet_value) = input_element.value().parse() {
+                        if bet_value > 0 {
+                            bet_made.set(Some(Bet {
+                                name: if is_team_left { game.team2.name.clone() } else { game.team1.name.clone() },
+                                bet_value,
+                            }));
+                        }
                     }
                 }
             }
@@ -161,27 +177,6 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
             bets_2.clone(),
         );
     }
-    let on_bet_2_click = {
-        let bet_made = bet_made.clone();
-        let game = game.clone();
-
-        Callback::from(move |_| {
-            let window = window().unwrap();
-            let document = window.document().unwrap();
-            let input_element = document.get_element_by_id("nut_bet").unwrap();
-            let input_element = input_element.dyn_into::<HtmlInputElement>().ok();
-            if let Some(input_element) = input_element {
-                if let Ok(bet_value) = input_element.value().parse() {
-                    if bet_value > 0 {
-                        bet_made.set(Some(Bet {
-                            name: game.team2.clone(),
-                            bet_value,
-                        }));
-                    }
-                }
-            }
-        })
-    };
 
     let ratio = use_state(|| "".to_string());
     {
@@ -213,47 +208,69 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                 <img src="/img/bullets_texture.svg" class="absolute opacity-[2%] sm:w-9/12 w-11/12 pointer-events-none left-[12.5%] max-h-full"/>
                 <div class="relative font-bebas flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto z-10">
                     <Backlink route={Route::TournoixView{ id: 42 }} label="Retour au tournoi"/>
-                    <div class="flex gap-5">
-                        <TeamBet total={(*total_1).clone()} is_left={true} team_name={game.team1.clone()} bets={(*bets_1).clone()}/>
-                        <div class="flex flex-col w-96">
-                            <img src="/img/versus_big.png" class="w-72 mx-auto"/>
-                            <div class="flex justify-center items-center mb-2">
-                                <span class="mr-1">{"Ce match est "}</span>
-                                if game.started && game.finished {
-                                    <div class="font-bebas px-2 py-1 text-xs rounded m-1 text-center text-white bg-green-600">{"TERMINÉ"}</div>
-                                } else if game.started {
-                                    <div class="font-bebas px-2 py-1 text-xs rounded m-1 text-center text-white bg-yellow-600">{"EN COURS"}</div>
-                                } else {
-                                    <div class="font-bebas px-2 py-1 text-xs rounded m-1 text-center text-white bg-orange-600">{"EN ATTENTE"}</div>
-                                }
+                    if *loading {
+                        <LoadingCircle />
+                    } else {
+                        if let Some(game) = &*game {
+                            <div class="flex gap-5">
+                                <TeamBet total={(*total_1).clone()} is_left={true} team_name={game.team1.name.clone()} bets={(*bets_1).clone()}/>
+                                <div class="flex flex-col w-96">
+                                    <img src="/img/versus_big.png" class="w-72 mx-auto"/>
+                                    <div class="flex justify-center items-center mb-2">
+                                        <span class="mr-1">{"Ce match est "}</span>
+                                        if game.status == 2 {
+                                            <div class="font-bebas px-2 py-1 text-xs rounded m-1 text-center text-white bg-green-600">{"TERMINÉ"}</div>
+                                        } else if game.status == 1 {
+                                            <div class="font-bebas px-2 py-1 text-xs rounded m-1 text-center text-white bg-yellow-600">{"EN COURS"}</div>
+                                        } else {
+                                            <div class="font-bebas px-2 py-1 text-xs rounded m-1 text-center text-white bg-orange-600">{"EN ATTENTE"}</div>
+                                        }
+                                    </div>
+                                    <div class="text-xl text-center">{(*ratio).clone()}</div>
+                                    <div class="text-xl text-center">{format!("Vous avez {} noix", *user_nut)}</div>
+                                    if game.status == 0 {
+                                        if let Some(bet_made) = (*bet_made).clone() {
+                                            <div class="text-xl text-center my-[0.92rem]">{format!("Vous avez misé {} noix sur \"{}\"", bet_made.bet_value, bet_made.name)}</div>
+                                            <div style={team_color_wrapper((*bet_made.name).to_string())} class="flex rounded team-bg-color">
+                                                <Button class="bg-transparent px-4 py-3 w-full" onclick={on_revert_bet_click}>
+                                                    {"Annuler la mise"}
+                                                </Button>
+                                            </div>
+                                        } else {
+                                            <FormInput id="nut_bet" label="Nombre de noix à miser" form_type="number" min_num={1} required={true}/>
+                                            <div class="flex relative drop-shadow-lg">
+                                                <div style={team_color_wrapper(game.team1.name.clone())} class="flex grow-[1] hover:duration-[200ms] duration-[600ms] hover:grow-[3] rounded-l team-bg-color">
+                                                    <Button class="bg-transparent px-4 py-3 text-right w-full" onclick={on_bet_click(false)}>
+                                                        {format!("Miser sur \"{}\"", game.team1.name.clone())}
+                                                    </Button>
+                                                </div>
+                                                <div style={team_color_wrapper(game.team2.name.clone())} class="flex grow-[1] hover:duration-[200ms] duration-[600ms] hover:grow-[3] rounded-r team-bg-color">
+                                                    <Button class="bg-transparent px-4 py-3 text-left w-full" onclick={on_bet_click(true)}>
+                                                        {format!("Miser sur \"{}\"", game.team2.name.clone())}
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        }
+                                    } else {
+                                        if let Some(bet_made) = (*bet_made).clone() {
+                                            <div class="mt-2 flex flex-col items-center">
+                                                <h2>{if *user_has_win { "BRAVO !" } else {"DOMMAGE !"}}</h2>
+                                                {format!("Vous avez parié {} noix sur ce match.", bet_made.bet_value.clone())}
+                                                <div>{if *user_has_win { format!("Vous avez remporté {} noix !", 42) } else { format!("Vous avez perdu {} noix !", 42) }}</div>
+                                            </div>
+                                        } else {
+                                            <div class="mt-2">
+                                                {format!("Impossible de faire une mise sur ce match car il est {} !", if game.status == 1 { "en cours" } else {"terminé"})}
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                                <TeamBet total={(*total_2).clone()} is_left={false} team_name={game.team2.name.clone()} bets={(*bets_2).clone()}/>
                             </div>
-                            <div class="text-xl text-center">{(*ratio).clone()}</div>
-                            <div class="text-xl text-center">{format!("Vous avez {} noix", *user_nut)}</div>
-                            if let Some(bet_made) = (*bet_made).clone() {
-                                <div class="text-xl text-center my-[0.92rem]">{format!("Vous avez misé {} noix sur \"{}\"", bet_made.bet_value, bet_made.name)}</div>
-                                <div style={team_color_wrapper((*bet_made.name).to_string())} class="flex rounded team-bg-color">
-                                    <Button class="bg-transparent px-4 py-3 w-full" onclick={on_revert_bet_click}>
-                                        {"Annuler la mise"}
-                                    </Button>
-                                </div>
-                            } else {
-                                <FormInput id="nut_bet" label="Nombre de noix à miser" form_type="number" min_num={1} required={true}/>
-                                <div class="flex relative drop-shadow-lg">
-                                    <div style={team_color_wrapper(game.team1.clone())} class="flex grow-[1] hover:duration-[200ms] duration-[600ms] hover:grow-[3] rounded-l team-bg-color">
-                                        <Button class="bg-transparent px-4 py-3 text-right w-full" onclick={on_bet_1_click}>
-                                            {format!("Miser sur \"{}\"", game.team1.clone())}
-                                        </Button>
-                                    </div>
-                                    <div style={team_color_wrapper(game.team2.clone())} class="flex grow-[1] hover:duration-[200ms] duration-[600ms] hover:grow-[3] rounded-r team-bg-color">
-                                        <Button class="bg-transparent px-4 py-3 text-left w-full" onclick={on_bet_2_click}>
-                                            {format!("Miser sur \"{}\"", game.team2.clone())}
-                                        </Button>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                        <TeamBet total={(*total_2).clone()} is_left={false} team_name={game.team2.clone()} bets={(*bets_2).clone()}/>
-                    </div>
+                        } else  {
+                            <div>{"Oups, ce match n'existe pas :("}</div>
+                        }
+                    }
                 </div>
             </div>
         </HomeLayout>
