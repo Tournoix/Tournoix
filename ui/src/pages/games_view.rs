@@ -10,12 +10,13 @@ use crate::{
     routers::Route,
     utils::utils::team_color_wrapper, api::{models::{GameWithTeams, self}, self, game::BetData}, notification::{NotifType, CustomNotification},
 };
+use futures::Stream;
 use time::Duration;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{window, HtmlInputElement};
 use yew::prelude::*;
-use yew_hooks::use_effect_once;
+use yew_hooks::{use_effect_once, use_interval};
 use yew_notifications::use_notification;
 
 #[derive(PartialEq, Properties)]
@@ -37,9 +38,25 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
     let trigger = use_state(|| true);
 
     {
-        let game = game.clone();
+        let game_clone = game.clone();
         let loading = loading.clone();
         let match_id: i32 = match_id.clone();
+
+        use_interval(move || {
+            let game = game_clone.clone();
+            spawn_local(async move {
+                let response = api::game::get(match_id).await.ok();
+                if let Some(response) = response {
+                    if let Some(game_inner) = &*game {
+                        if response.status != game_inner.status {
+                            game.set(Some(response));
+                        }
+                    }
+                }
+            });
+        }, 1000);
+
+        let game = game.clone();
 
         use_effect_once(move || {
             spawn_local(async move {
@@ -62,6 +79,8 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
         let trigger = trigger.clone();
         let match_id = match_id.clone();
         let tournament_id = tournament_id.clone();
+        let game = game.clone();
+        let loading = loading.clone();
 
         use_effect_with_deps(
             move |_| {
@@ -72,6 +91,8 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                         let user_nut = user_nut.clone();
                         let match_id = match_id.clone();
                         let tournament_id = tournament_id.clone();
+                        let game = game.clone();
+                        let loading = loading.clone();
 
                         spawn_local(async move {
                             if let Some(bet) = api::game::get_user_bet_on_match(user.id.clone() as i32, match_id).await.ok() {
