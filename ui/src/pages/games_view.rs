@@ -51,23 +51,34 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
         });
     }
 
+    let user_nut = use_state(|| 0);
+    let user_has_win = use_state(|| true);
+
     {
         let user_bet = user_bet.clone();
+        let user_nut = user_nut.clone();
         let user_info = user_info.clone();
         let user = user_info.user.clone();
         let trigger = trigger.clone();
         let match_id = match_id.clone();
+        let tournament_id = tournament_id.clone();
 
         use_effect_with_deps(
             move |_| {
                 if let Some(user) = user {
                     {
                         let user = user.clone();
-                        let match_id = match_id.clone();
                         let user_bet = user_bet.clone();
+                        let user_nut = user_nut.clone();
+                        let match_id = match_id.clone();
+                        let tournament_id = tournament_id.clone();
 
                         spawn_local(async move {
                             user_bet.set(api::game::get_user_bet_on_match(user.id.clone() as i32, match_id).await.ok());
+
+                            if let Some(nut) = api::game::get_nb_nut(tournament_id.clone()).await.ok() {
+                                user_nut.set(nut.stock);
+                            }
                         });
                     }
                 }
@@ -77,9 +88,6 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
             (user_info, trigger.clone()),
         );
     }
-
-    let user_nut = use_state(|| 42); // get_user_nut
-    let user_has_win = use_state(|| true);
 
     let local_team_name_from_id = |id| {
         if let Some(game) = (*game).clone() {
@@ -168,28 +176,41 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                 let total_2 = (**total_2) as f64;
                 let total = total_1 + total_2;
                 if total_1 < total_2 {
-                    ratio.set(format!("1 : {:.2}", total_2 / total_1));
+                    ratio.set(if total_1 == 0. { "1 : 1".to_string() } else { format!("1 : {:.2}", total_2 / total_1) });
                 } else {
-                    ratio.set(format!("{:.2} : 1", total_1 / total_2));
+                    ratio.set(if total_2 == 0. { "1 : 1".to_string() } else { format!("{:.2} : 1", total_1 / total_2) });
                 }
             },
             (total_1.clone(), total_2.clone()),
         );
     }
     let on_revert_bet_click = {
+        let user_info = user_info.clone();
+        let user = user_info.user.clone();
         let user_bet = user_bet.clone();
         let notifications_manager = notifications_manager.clone();
         let trigger = trigger.clone();
 
         Callback::from(move |_| {
-            if let Some(user_bet) = &*user_bet {
-                notifications_manager.spawn(CustomNotification::new(
-                    "Mise annulée",
-                    format!("Vous avez annulé votre mise de {}.", user_bet.nb_nut.clone()),
-                    NotifType::Success,
-                    Duration::seconds(5),
-                ));
-                trigger.set(!*trigger);
+            if let Some(user) = user.clone() {
+                let user_bet = user_bet.clone();
+                let notifications_manager = notifications_manager.clone();
+                let trigger = trigger.clone();
+
+                spawn_local(async move {
+                    if let Some(user_bet) = &*user_bet {
+                        notifications_manager.spawn(CustomNotification::new(
+                            "Mise annulée",
+                            format!("Vous avez annulé votre mise de {}.", user_bet.nb_nut.clone()),
+                            NotifType::Success,
+                            Duration::seconds(5),
+                        ));
+                    }
+
+                    user_bet.set(api::game::delete_bet(user.id.clone() as i32).await.ok());
+                    
+                    trigger.set(!*trigger);
+                });
             }
         })
     };

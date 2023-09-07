@@ -20,11 +20,26 @@ pub async fn get_game_bet(
     id: i32,
     auth: ApiAuth,
 ) -> Result<Json<Vec<Bet>>, (Status, String)> {
-    // Check if the user is a subscriber/owner of the tournament
+    // Get tournament id of the game
+    let tournament_id = match connection
+        .run(move |c| {
+            games::table
+                .inner_join(teams::table.on(teams::id.eq(games::fk_team1)))
+                .inner_join(tournaments::table.on(tournaments::id.eq(teams::fk_tournaments)))
+                .filter(games::id.eq(id))
+                .select(tournaments::id)
+                .first::<i32>(c)
+        })
+        .await
+    {
+        Ok(id) => id,
+        Err(_e) => return Err((Status::NotFound, "Game not found".to_string())),
+    };
+
     let is_owner = match connection
         .run(move |c| {
             tournaments::table
-                .filter(tournaments::id.eq(id))
+                .filter(tournaments::id.eq(tournament_id))
                 .filter(tournaments::fk_users.eq(auth.user.id))
                 .first::<Tournament>(c)
         })
@@ -33,11 +48,10 @@ pub async fn get_game_bet(
         Ok(_) => true,
         Err(_) => false,
     };
-
     let is_subscriber = match connection
         .run(move |c| {
             subscriptions::table
-                .filter(subscriptions::fk_tournaments.eq(id))
+                .filter(subscriptions::fk_tournaments.eq(tournament_id))
                 .filter(subscriptions::fk_users.eq(auth.user.id))
                 .first::<Subscription>(c)
         })
@@ -71,42 +85,85 @@ pub async fn get_game_bet(
     }
 }
 
-#[get("/user/<id_user>/game/<id>/bet")]
+#[get("/user/<id_user>/game/<id_game>/bet")]
 pub async fn get_user_game_bet(
     connection: MysqlConnection,
-    id: i32,
+    id_game: i32,
     id_user: i32,
     auth: ApiAuth,
-) -> Result<Json<Bet>, (Status, String)> {
-    // Check if the caller is an owner of the tournament
-    match connection
+) -> Result<Json<Bet>, (Status, Json<ErrorResponse>)> {
+    // Get tournament id of the game
+    let tournament_id = match connection
         .run(move |c| {
-            tournaments::table
-                .filter(tournaments::id.eq(id))
-                .filter(tournaments::fk_users.eq(auth.user.id))
-                .first::<Tournament>(c)
+            games::table
+                .inner_join(teams::table.on(teams::id.eq(games::fk_team1)))
+                .inner_join(tournaments::table.on(tournaments::id.eq(teams::fk_tournaments)))
+                .filter(games::id.eq(id_game))
+                .select(tournaments::id)
+                .first::<i32>(c)
         })
         .await
     {
-        Ok(_) => (),
-        Err(_) => {
-            warn!("{} - User {} tried to access bets of user {} for tournament {} - routes/bet/get_user_game_bet()", Local::now().format("%d/%m/%Y %H:%M"), auth.user.id, id_user, id);
-            return Err((Status::Forbidden, "Access Forbidden".to_string()));
-        }
+        Ok(id) => id,
+        Err(_e) => return Err((Status::NotFound, Json(ErrorResponse {
+            error: ErrorBody {
+                code: 404,
+                reason: "Game not found".into(),
+                description: "Game not found".into(),
+            },
+        }))),
     };
+
+    // Assert that the user is a subscriber of the tournament of the game
+    let is_subscriber = match connection
+        .run(move |c| {
+            subscriptions::table
+                .filter(subscriptions::fk_tournaments.eq(tournament_id))
+                .filter(subscriptions::fk_users.eq(auth.user.id))
+                .first::<Subscription>(c)
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+    if !is_subscriber {
+        warn!(
+            "{} - User {} tried to get bet of tournament {} even if he is not a subscriber - routes/bet/get_user_game_bet()",
+            Local::now().format("%d/%m/%Y %H:%M"),
+            auth.user.id,
+            tournament_id
+        );
+        return Err((Status::Forbidden, Json(ErrorResponse {
+            error: ErrorBody {
+                code: 403,
+                reason: "Forbidden".into(),
+                description: "Access Forbidden".into(),
+            },
+        })));
+    }
 
     // get the bet of the user for this game
     match connection
         .run(move |c| {
             bets::table
                 .filter(bets::fk_users.eq(id_user))
-                .filter(bets::fk_games.eq(id))
+                .filter(bets::fk_games.eq(id_game))
                 .first::<Bet>(c)
         })
         .await
     {
         Ok(bet) => return Ok(Json(bet)),
-        Err(_e) => return Err((Status::NotFound, "User bet not found".to_string())),
+        Err(_e) => return Err((
+            Status::NotFound,
+            Json(ErrorResponse {
+                error: ErrorBody {
+                    code: 404,
+                    reason: "User bet not found".into(),
+                    description: "User bet not found".into(),
+                },
+            }),
+    )),
     };
 }
 
