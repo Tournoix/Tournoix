@@ -1,10 +1,10 @@
-use crate::models::bet::{Bet, NewBet, PathBet};
+use crate::models::bet::{Bet, NewBet, PathBet, BetWithUser};
 use crate::models::game::Game;
 use crate::models::nut::Nut;
 use crate::models::subscription::Subscription;
 use crate::models::tournament::Tournament;
 use crate::routes::auth::ApiAuth;
-use crate::schema::{bets, games, nuts, subscriptions, teams, tournaments};
+use crate::schema::{bets, games, nuts, subscriptions, teams, tournaments, users};
 use crate::{ErrorBody, ErrorResponse, MysqlConnection, EmptyResponse};
 use chrono::Local;
 use diesel::prelude::*;
@@ -19,7 +19,7 @@ pub async fn get_game_bet(
     connection: MysqlConnection,
     id: i32,
     auth: ApiAuth,
-) -> Result<Json<Vec<Bet>>, (Status, String)> {
+) -> Result<Json<Vec<BetWithUser>>, (Status, String)> {
     // Get tournament id of the game
     let tournament_id = match connection
         .run(move |c| {
@@ -36,18 +36,6 @@ pub async fn get_game_bet(
         Err(_e) => return Err((Status::NotFound, "Game not found".to_string())),
     };
 
-    let is_owner = match connection
-        .run(move |c| {
-            tournaments::table
-                .filter(tournaments::id.eq(tournament_id))
-                .filter(tournaments::fk_users.eq(auth.user.id))
-                .first::<Tournament>(c)
-        })
-        .await
-    {
-        Ok(_) => true,
-        Err(_) => false,
-    };
     let is_subscriber = match connection
         .run(move |c| {
             subscriptions::table
@@ -61,7 +49,7 @@ pub async fn get_game_bet(
         Err(_) => false,
     };
 
-    if !is_owner && !is_subscriber {
+    if !is_subscriber {
         warn!(
             "{} - User {} tried to access bets of tournament {} - routes/bet/get_game_bet()",
             Local::now().format("%d/%m/%Y %H:%M"),
@@ -74,8 +62,10 @@ pub async fn get_game_bet(
     match connection
         .run(move |c| {
             bets::table
+                .inner_join(users::table.on(users::id.eq(bets::fk_users)))
+                .select((bets::id, bets::fk_users, bets::fk_games, bets::fk_teams, bets::nb_nut, users::name))
                 .filter(bets::fk_games.eq(id))
-                .get_results::<Bet>(c)
+                .get_results::<BetWithUser>(c)
         })
         .await
         .map(Json)

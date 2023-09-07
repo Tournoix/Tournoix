@@ -13,6 +13,16 @@ pub struct CreateTournoixRequest {
     pub is_elim: bool,
 }
 
+pub async fn is_tournoix_owner(tournoix_id: i32) -> Result<bool, ErrorResponse> {
+    api_call::<bool>(
+        Method::GET,
+        &format!("tournoix/{}/me@/is_owner", tournoix_id),
+        HeaderMap::new(),
+        String::new(),
+    )
+    .await
+}
+
 pub async fn create(
     create_tounoix_request: CreateTournoixRequest,
 ) -> Result<Tournament, ErrorResponse> {

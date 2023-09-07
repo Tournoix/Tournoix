@@ -15,6 +15,7 @@ pub mod models;
 pub mod teams;
 pub mod tournoix;
 pub mod game;
+pub mod bets;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ErrorBody {

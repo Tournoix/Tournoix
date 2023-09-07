@@ -14,6 +14,17 @@ pub struct Bet {
     pub nb_nut: i32,
 }
 
+#[derive(Serialize, Deserialize, Queryable, Identifiable, Clone)]
+#[diesel(table_name = bets)]
+pub struct BetWithUser {
+    pub id: i32,
+    pub fk_users: i32,
+    pub fk_games: i32,
+    pub fk_teams: i32,
+    pub nb_nut: i32,
+    pub username: String,
+}
+
 #[derive(Serialize, Deserialize, Insertable)]
 #[diesel(belongs_to(Nut))]
 #[diesel(belongs_to(Game))]
