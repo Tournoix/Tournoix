@@ -6,8 +6,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  API_ENDPOINT = https://tournoix.ch/api
-  APP_URL = https://tournoix.ch
+  API_ENDPOINT: https://tournoix.ch/api
+  APP_URL: https://tournoix.ch
 
 jobs:
   deploy:
