@@ -227,11 +227,21 @@ pub struct Nut {
     pub stock: i32,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Bet {
     pub id: i32,
     pub fk_games: i32,
     pub fk_teams: i32,
     pub fk_users: i32,
     pub nb_nut: i32,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct BetWithUser {
+    pub id: i32,
+    pub fk_games: i32,
+    pub fk_teams: i32,
+    pub fk_users: i32,
+    pub nb_nut: i32,
+    pub username: String,
 }

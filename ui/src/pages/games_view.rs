@@ -4,11 +4,11 @@ use crate::{
         bracket::Match,
         button::Button,
         form_input::FormInput,
-        team_bet::{TeamBet, self}, loading_circle::LoadingCircle, user_provider::UserContext,
+        team_bet::{TeamBet, self, BetItem}, loading_circle::LoadingCircle, user_provider::UserContext,
     },
     layouts::homelayout::HomeLayout,
     routers::Route,
-    utils::utils::team_color_wrapper, api::{models::{GameWithTeams, self}, self, game::BetData}, notification::{NotifType, CustomNotification},
+    utils::utils::team_color_wrapper, api::{models::{GameWithTeams, self, BetWithUser}, self, game::BetData}, notification::{NotifType, CustomNotification},
 };
 use futures::Stream;
 use time::Duration;
@@ -36,11 +36,23 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
     let user_bet: UseStateHandle<Option<models::Bet>> = use_state(|| None);
     let loading = use_state(|| true);
     let trigger = use_state(|| true);
+    let bets_1: UseStateHandle<Vec<BetItem>> = use_state(|| vec![]);
+    let bets_2: UseStateHandle<Vec<BetItem>> = use_state(|| vec![]);
+    let total_1 = use_state(|| 0);
+    let total_2 = use_state(|| 0);
+    let ratio = use_state(|| "".to_string());
 
     {
         let game_clone = game.clone();
         let loading = loading.clone();
         let match_id: i32 = match_id.clone();
+        let bets_1 = bets_1.clone();
+        let bets_2 = bets_2.clone();
+        let user_info = user_info.clone();
+        let user = user_info.user.clone();
+        let ratio = ratio.clone();
+        let total_1 = total_1.clone();
+        let total_2 = total_2.clone();
 
         use_interval(move || {
             let game = game_clone.clone();
@@ -50,6 +62,97 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                     if let Some(game_inner) = &*game {
                         if response.status != game_inner.status {
                             game.set(Some(response));
+                        }
+                    }
+                }
+            });
+
+            let game_clone_2 = game_clone.clone();
+            let ratio = ratio.clone();
+            let total_1 = total_1.clone();
+            let total_2 = total_2.clone();
+            let bets_1 = bets_1.clone();
+            let bets_2 = bets_2.clone();
+            let user_info = user_info.clone();
+            let user = user_info.user.clone();
+
+            // fetch bets
+            spawn_local(async move {
+                let response = api::bets::get_bets(match_id.clone() as i32).await;
+                
+                if let Ok(response) = response {
+                    if let Some(game) = (*game_clone_2).clone() {
+                        if let Some(user) = user {
+                            let mut _bets_1: Vec<BetItem> = vec![];
+                            let mut _bets_2: Vec<BetItem> = vec![];
+    
+                            // sort response from nb_nut
+                            let mut response: Vec<BetWithUser> = response.clone();
+                            response.sort_by(|a, b| b.nb_nut.cmp(&a.nb_nut));
+        
+                            // fill bets_1 and bets_2
+                            for bet in response.iter() {
+        
+                                let mut _bet = (*bet).clone();
+                                
+                                if _bet.fk_teams == game.team1.id {
+                                    _bets_1.push(BetItem {
+                                        name: _bet.username.clone(),
+                                        nb_nut: _bet.nb_nut.clone(),
+                                    });
+                                } else {
+                                    _bets_2.push(BetItem {
+                                        name: _bet.username.clone(),
+                                        nb_nut: _bet.nb_nut.clone(),
+                                    });
+                                }
+                            }
+
+                            // total_1 et total_2
+                            let total_1_val = _bets_1.iter().fold(0, |acc, bet| acc + bet.nb_nut);
+                            let total_2_val = _bets_2.iter().fold(0, |acc, bet| acc + bet.nb_nut);
+                            if total_1_val != *total_1 { total_1.set(total_1_val); }
+                            if total_2_val != *total_2 { total_2.set(total_2_val); }
+
+                            // ratio
+                            let total_1_val = total_1_val as f64;
+                            let total_2_val = total_2_val as f64;
+                            let total = total_1_val + total_2_val;
+                            let ratio_val: String;
+                            if total_1_val < total_2_val {
+                                ratio_val = if total_1_val == 0. { "1 : 1".to_string() } else { format!("1 : {:.2}", total_2_val / total_1_val) };
+                            } else {
+                                ratio_val = if total_2_val == 0. { "1 : 1".to_string() } else { format!("{:.2} : 1", total_1_val / total_2_val) };
+                            }
+                            if ratio_val != *ratio {
+                                ratio.set(ratio_val);
+                            }
+
+                            // Only set bets_1 and bets_2 if values have changed
+                            let mut same = true;
+                            for bet in _bets_1.iter() {
+                                for _bet in bets_1.iter() {
+                                    if bet.name != _bet.name || bet.nb_nut != _bet.nb_nut {
+                                        same = false;
+                                    }
+                                }
+                            }
+                            if !same || bets_1.len() != _bets_1.len() {
+                                bets_1.set(_bets_1);
+                            }
+
+                            same = true;
+
+                            for bet in _bets_2.iter() {
+                                for _bet in bets_2.iter() {
+                                    if bet.name != _bet.name || bet.nb_nut != _bet.nb_nut {
+                                        same = false;
+                                    }
+                                }
+                            }
+                            if !same || bets_2.len() != _bets_2.len() {
+                                bets_2.set(_bets_2);
+                            }
                         }
                     }
                 }
@@ -135,24 +238,6 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
         "error".to_string()
     };
 
-    // BET 1
-    let bets_1: UseStateHandle<Vec<team_bet::Bet>> = use_state(|| {
-        let mut bets = vec![];
-        // bets.sort_by(|a, b| b.nb_nut.cmp(&a.nb_nut));
-        bets
-    });
-    let total_1 = use_state(|| 0);
-    {
-        let bets_1_clone = bets_1.clone();
-        let total_1 = total_1.clone();
-        use_effect_with_deps(
-            move |_| {
-                total_1.set(bets_1_clone.iter().fold(0, |acc, bet| acc + bet.nb_nut));
-            },
-            bets_1.clone(),
-        );
-    }
-
     let on_bet_click = |team_id: i32| {
         let user_info = user_info.clone();
         let user = user_info.user.clone();
@@ -214,41 +299,6 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
         })
     };
 
-    // BET 2
-    let bets_2: UseStateHandle<Vec<team_bet::Bet>> = use_state(|| {
-        let mut bets = vec![];
-        // bets.sort_by(|a, b| b.nb_nut.cmp(&a.nb_nut));
-        bets
-    });
-    let total_2 = use_state(|| 0);
-    {
-        let bets_2_clone = bets_2.clone();
-        let total_2 = total_2.clone();
-        use_effect_with_deps(
-            move |_| {
-                total_2.set(bets_2_clone.iter().fold(0, |acc, bet| acc + bet.nb_nut));
-            },
-            bets_2.clone(),
-        );
-    }
-
-    let ratio = use_state(|| "".to_string());
-    {
-        let ratio = ratio.clone();
-        use_effect_with_deps(
-            move |(total_1, total_2)| {
-                let total_1 = (**total_1) as f64;
-                let total_2 = (**total_2) as f64;
-                let total = total_1 + total_2;
-                if total_1 < total_2 {
-                    ratio.set(if total_1 == 0. { "1 : 1".to_string() } else { format!("1 : {:.2}", total_2 / total_1) });
-                } else {
-                    ratio.set(if total_2 == 0. { "1 : 1".to_string() } else { format!("{:.2} : 1", total_1 / total_2) });
-                }
-            },
-            (total_1.clone(), total_2.clone()),
-        );
-    }
     let on_revert_bet_click = {
         let user_info = user_info.clone();
         let user = user_info.user.clone();

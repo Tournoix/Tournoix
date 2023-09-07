@@ -3,7 +3,7 @@ use yew::prelude::*;
 use crate::utils::utils::team_color_wrapper;
 
 #[derive(Clone, PartialEq, Debug)]
-pub struct Bet {
+pub struct BetItem {
     pub name: String,
     pub nb_nut: i32,
 }
@@ -11,7 +11,7 @@ pub struct Bet {
 #[derive(PartialEq, Properties)]
 pub struct TeamBetProps {
     pub team_name: String,
-    pub bets: Vec<Bet>,
+    pub bets: Vec<BetItem>,
     pub total: i32, // Computed in the component above
     pub is_left: bool,
 }
