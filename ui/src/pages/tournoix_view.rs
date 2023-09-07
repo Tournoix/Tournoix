@@ -98,7 +98,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                     spawn_local(async move {
                         if let Some(games) = tournament_clone.get_matches().await.ok() {
                             bettable_games.set(games.iter()
-                                .filter(|&m| m.status == 0) // filter out finished matches
+                                .filter(|&m| m.status == 0 || 1 == 1) // filter out finished matches
                                 .cloned()
                                 .collect()
                             );

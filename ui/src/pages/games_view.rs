@@ -41,6 +41,8 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
     let total_1 = use_state(|| 0);
     let total_2 = use_state(|| 0);
     let ratio = use_state(|| "".to_string());
+    let user_nut = use_state(|| 0);
+    let user_gains = use_state(|| 0);
 
     {
         let game_clone = game.clone();
@@ -49,10 +51,14 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
         let bets_1 = bets_1.clone();
         let bets_2 = bets_2.clone();
         let user_info = user_info.clone();
+        let user_bet = user_bet.clone();
         let user = user_info.user.clone();
         let ratio = ratio.clone();
         let total_1 = total_1.clone();
         let total_2 = total_2.clone();
+        let user_gains = user_gains.clone();
+        let tournament_id = tournament_id.clone();
+        let user_nut = user_nut.clone();
 
         use_interval(move || {
             let game = game_clone.clone();
@@ -60,7 +66,7 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                 let response = api::game::get(match_id).await.ok();
                 if let Some(response) = response {
                     if let Some(game_inner) = &*game {
-                        if response.status != game_inner.status {
+                        if response.status != game_inner.status || response.score1 != game_inner.score1 || response.score2 != game_inner.score2 {
                             game.set(Some(response));
                         }
                     }
@@ -71,10 +77,14 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
             let ratio = ratio.clone();
             let total_1 = total_1.clone();
             let total_2 = total_2.clone();
+            let total_1_clone = total_1.clone();
+            let total_2_clone = total_2.clone();
             let bets_1 = bets_1.clone();
             let bets_2 = bets_2.clone();
             let user_info = user_info.clone();
             let user = user_info.user.clone();
+            let tournament_id = tournament_id.clone();
+            let user_nut = user_nut.clone();
 
             // fetch bets
             spawn_local(async move {
@@ -83,6 +93,12 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                 if let Ok(response) = response {
                     if let Some(game) = (*game_clone_2).clone() {
                         if let Some(user) = user {
+                            if let Some(nut) = api::game::get_nb_nut(tournament_id.clone()).await.ok() {
+                                if (nut.stock) != *user_nut {
+                                    user_nut.set(nut.stock);
+                                }
+                            }
+
                             let mut _bets_1: Vec<BetItem> = vec![];
                             let mut _bets_2: Vec<BetItem> = vec![];
     
@@ -157,6 +173,41 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                     }
                 }
             });
+
+            let game_clone_3 = game_clone.clone();
+            let user_gains = user_gains.clone();
+            let user_bet = user_bet.clone();
+
+            // Check if user has win
+            spawn_local(async move {
+                if let Some(game) = (*game_clone_3).clone() {
+                    if let Some(user_bet) = (*user_bet).clone() {
+                        let has_win = game.score1 > game.score2 && user_bet.fk_teams == game.team1.id || game.score1 < game.score2 && user_bet.fk_teams == game.team2.id;
+
+                        if has_win {
+                            if game.score1 > game.score2 {
+                                if (*total_1_clone) != 0 {
+                                    let participation_percentage = user_bet.nb_nut as f64 / (*total_1_clone) as f64;
+                                    let gains = participation_percentage * (*total_2_clone) as f64;
+                                    user_gains.set(gains as i32);
+                                } else {
+                                    user_gains.set(0);
+                                }
+                            } else {
+                                if (*total_2_clone) != 0 {
+                                    let participation_percentage = user_bet.nb_nut as f64 / (*total_2_clone) as f64;
+                                    let gains = participation_percentage * (*total_1_clone) as f64;
+                                    user_gains.set(gains as i32);
+                                } else {
+                                    user_gains.set(0);
+                                }
+                            };
+                        } else {
+                            user_gains.set(-user_bet.nb_nut);
+                        }
+                    }
+                }
+            });
         }, 1000);
 
         let game = game.clone();
@@ -170,9 +221,6 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
             || ()
         });
     }
-
-    let user_nut = use_state(|| 0);
-    let user_has_win = use_state(|| true);
 
     {
         let user_bet = user_bet.clone();
@@ -331,7 +379,7 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                     } else {
                         if let Some(game) = &*game {
                             <div class="flex gap-5">
-                                <TeamBet total={(*total_1).clone()} is_left={true} team_name={game.team1.name.clone()} bets={(*bets_1).clone()}/>
+                                <TeamBet total={(*total_1).clone()} is_left={true} team_name={game.team1.name.clone()} score={game.score1.clone()} bets={(*bets_1).clone()}/>
                                 <div class="flex flex-col w-96">
                                     <img src="/img/versus_big.png" class="w-72 mx-auto"/>
                                     <div class="flex justify-center items-center mb-2">
@@ -369,13 +417,31 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                                                 </div>
                                             </div>
                                         }
-                                    } else {
+                                    } else if game.status == 1 {
                                         if let Some(user_bet) = &*user_bet {
-                                            <div class="mt-2 flex flex-col items-center">
-                                                <h2>{if *user_has_win { "BRAVO !" } else {"DOMMAGE !"}}</h2>
-                                                {format!("Vous avez parié {} noix sur ce match.", user_bet.nb_nut.clone())}
-                                                <div>{if *user_has_win { format!("Vous avez remporté {} noix !", 42) } else { format!("Vous avez perdu {} noix !", 42) }}</div>
-                                            </div>
+                                            <div class="text-xl text-center my-[0.92rem]">{format!("Vous avez misé {} noix sur \"{}\"", user_bet.nb_nut, local_team_name_from_id(user_bet.fk_teams.clone()))}</div>
+                                        }
+                                        <div class="mt-2">
+                                            {format!("Impossible de faire une mise sur ce match car il est {} !", if game.status == 1 { "en cours" } else {"terminé"})}
+                                        </div>
+                                    } else if game.status == 2 {
+                                        if let Some(user_bet) = &*user_bet {
+                                            if *user_gains == 0 {
+                                                <div class="mt-2 flex flex-col items-center">
+                                                    {format!("Vous avez parié {} noix sur ce match.", user_bet.nb_nut.clone())}
+                                                    <div>{"Vous n'avez rien gagné ni perdu."}</div>
+                                                </div>
+                                            } else {
+                                                <div class="mt-2 flex flex-col items-center">
+                                                    if *user_gains > 0 {
+                                                        <h1 class="text-green-700">{"BRAVO !"}</h1>
+                                                    } else {
+                                                        <h1 class="text-red-700">{"DOMMAGE !"}</h1>
+                                                    }
+                                                    {format!("Vous avez parié {} noix sur ce match.", user_bet.nb_nut.clone())}
+                                                    <div>{if *user_gains > 0 { format!("Vous avez remporté {} noix !", *user_gains) } else { format!("Vous avez perdu {} noix !", -*user_gains) }}</div>
+                                                </div>
+                                            }
                                         } else {
                                             <div class="mt-2">
                                                 {format!("Impossible de faire une mise sur ce match car il est {} !", if game.status == 1 { "en cours" } else {"terminé"})}
@@ -383,7 +449,7 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                                         }
                                     }
                                 </div>
-                                <TeamBet total={(*total_2).clone()} is_left={false} team_name={game.team2.name.clone()} bets={(*bets_2).clone()}/>
+                                <TeamBet total={(*total_2).clone()} is_left={false} team_name={game.team2.name.clone()} score={game.score2.clone()} bets={(*bets_2).clone()}/>
                             </div>
                         } else  {
                             <div>{"Oups, ce match n'existe pas :("}</div>
