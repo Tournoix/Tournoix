@@ -9,6 +9,8 @@ pub struct CreateTournoixRequest {
     pub description: String,
     pub date: chrono::NaiveDateTime,
     pub location: String,
+    pub is_qualif: bool,
+    pub is_elim: bool,
 }
 
 pub async fn create(
@@ -41,6 +43,8 @@ pub struct UpdateTournoixRequest {
     pub location: Option<String>,
     pub phase: Option<i32>,
     pub size_group: Option<i32>,
+    pub is_qualif: Option<bool>,
+    pub is_elim: Option<bool>,
 }
 
 pub async fn update(

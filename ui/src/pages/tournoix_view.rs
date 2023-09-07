@@ -118,7 +118,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         <JoinCode code={tournament.as_ref().unwrap().code.to_string()}/>
                         <hr/>
                         <h2>{"Informations"}</h2>
-                        <div>{"Date: "}{tournament.as_ref().unwrap().date_locale().format("%d.%m.%Y %H:%M:%S")}</div>
+                        <div>{"Date: "}{tournament.as_ref().unwrap().date.format("%d.%m.%Y %H:%M:%S")}</div>
                         <div>{"Lieu: "}{tournament.as_ref().unwrap().location.as_ref().unwrap_or(&String::new())}</div>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.2.2/ol.css"/>
                         <script src="https://cdn.jsdelivr.net/npm/ol@v7.2.2/dist/ol.js"></script>

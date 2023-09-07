@@ -116,7 +116,6 @@ pub fn Groups(props: &GroupsProps) -> Html {
                         new_groups.insert(0, vec![]);
 
                         for team in teams {
-                            info!("{:?}", team.group as usize);
                             if new_groups.contains_key(&team.group) {
                                 new_groups.get_mut(&team.group).unwrap().push(team);
                             } else {
@@ -124,7 +123,6 @@ pub fn Groups(props: &GroupsProps) -> Html {
                             }
                         }
 
-                        info!("{:?}", new_groups);
                         groups.set(new_groups);
                         loading.set(false);
                     }

@@ -1,6 +1,5 @@
 use std::str::FromStr;
 
-use log::info;
 use time::Duration;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
@@ -10,7 +9,7 @@ use yew_notifications::use_notification;
 use yew_router::prelude::use_navigator;
 
 use crate::{
-    api::{self, models::Tournament, tournoix::UpdateTournoixRequest, EmptyResponse},
+    api::{self, models::Tournament, tournoix::UpdateTournoixRequest},
     components::{
         backlink::Backlink,
         bracket::{Bracket, Match},
@@ -51,8 +50,6 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
     let is_qualif = use_state(|| false);
     let is_elim = use_state(|| false);
 
-    info!("{}", serde_json::to_string(&EmptyResponse {}).unwrap());
-
     let on_qualif_change = {
         let is_qualif = is_qualif.clone();
         Callback::from(move |e: Event| {
@@ -75,12 +72,21 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         let tournament = tournament.clone();
         let loading = loading.clone();
         let id = id.clone();
+        let is_qualif = is_qualif.clone();
+        let is_elim = is_elim.clone();
 
         use_effect_with_deps(
             move |_| {
                 spawn_local(async move {
                     // TODO: fetch tournoix teams and matches
-                    tournament.set(api::tournoix::get(id).await.ok());
+                    let tournoix = api::tournoix::get(id).await.ok();
+
+                    if let Some(tournoix) = &tournoix {
+                        is_elim.set(tournoix.is_elim);
+                        is_qualif.set(tournoix.is_qualif);
+                    }
+
+                    tournament.set(tournoix);
                     loading.set(false);
                 });
 
@@ -95,60 +101,6 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         let id = id.clone();
         Callback::from(move |_| navigator.push(&Route::TournoixView { id }))
     };
-
-    let group_matches = use_state(|| {
-        vec![
-            vec![
-                Match {
-                    id: 0,
-                    team1: "Cloud9".to_string(),
-                    score1: 0,
-                    team2: "FaZe Clan".to_string(),
-                    score2: 0,
-                    started: false,
-                    finished: false,
-                },
-                Match {
-                    id: 1,
-                    team1: "NaVi".to_string(),
-                    score1: 0,
-                    team2: "NRG Esports".to_string(),
-                    score2: 0,
-                    started: true,
-                    finished: false,
-                },
-                Match {
-                    id: 2,
-                    team1: "G2 Esports".to_string(),
-                    score1: 0,
-                    team2: "fnatic".to_string(),
-                    score2: 0,
-                    started: true,
-                    finished: true,
-                },
-            ],
-            vec![
-                Match {
-                    id: 3,
-                    team1: "Team with a comically long name".to_string(),
-                    score1: 0,
-                    team2: "Team 42".to_string(),
-                    score2: 0,
-                    started: false,
-                    finished: false,
-                },
-                Match {
-                    id: 4,
-                    team1: "TBA".to_string(),
-                    score1: 0,
-                    team2: "TBA".to_string(),
-                    score2: 0,
-                    started: false,
-                    finished: false,
-                },
-            ],
-        ]
-    });
 
     let elim_matches = use_state(|| {
         vec![
@@ -192,8 +144,9 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         let location_ref = location_ref.clone();
         let description_ref = description_ref.clone();
         let groupe_size_ref = groupe_size_ref.clone();
-        // let qualif_ref = qualif_ref.clone();
-        // let elim_ref = elim_ref.clone();
+        let is_qualif = is_qualif.clone();
+        let is_elim = is_elim.clone();
+        let trigger = trigger.clone();
 
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
@@ -220,6 +173,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                 description: Some(description),
                 phase: None,
                 size_group: groupe_size,
+                is_qualif: Some(*is_qualif),
+                is_elim: Some(*is_elim)
             };
 
             {
@@ -373,6 +328,40 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         })
     };
 
+    let on_qualif_gen_click = {
+        let tournament = tournament.clone();
+        let should_update = should_update.clone();
+
+        Callback::from(move |_| {
+            if tournament.is_some() {
+                let tournament = tournament.clone();
+                let should_update = should_update.clone();
+
+                spawn_local(async move {
+                    let _ = tournament.as_ref().unwrap().generate_qualif_games().await;
+                    should_update.set(!*should_update);
+                });
+            }
+        })
+    };
+
+    let on_qualif_reset_click = {
+        let tournament = tournament.clone();
+        let should_update = should_update.clone();
+
+        Callback::from(move |_| {
+            if tournament.is_some() {
+                let tournament = tournament.clone();
+                let should_update = should_update.clone();
+
+                spawn_local(async move {
+                    let _ = tournament.as_ref().unwrap().reset_qualif_games().await;
+                    should_update.set(!*should_update);
+                });
+            }
+        })
+    };
+
     html! {
         <HomeLayout>
             <div class="flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto relative">
@@ -390,14 +379,14 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                             <div class="w-1/2">
                                 <form class="flex flex-col items-end" onsubmit={on_submit}>
                                     <FormInput id="name" label="Nom" form_type="text" value={tournament.name.clone()} _ref={name_ref} required={true}/>
-                                    <FormInput id="date" label="Date" form_type="datetime-local" value={tournament.date_locale().format("%Y-%m-%dT%H:%M").to_string()}  _ref={date_ref} required={true}/>
+                                    <FormInput id="date" label="Date" form_type="datetime-local" value={tournament.date.format("%Y-%m-%dT%H:%M").to_string()}  _ref={date_ref} required={true}/>
                                     <FormInput id="location" label="Lieu" form_type="text" value={tournament.location.as_ref().unwrap_or(&String::new()).to_string()}  _ref={location_ref} required={true}/>
                                     <FormInput id="description" label="Description" form_type="text" value={tournament.description.clone()}  _ref={description_ref} required={true}/>
                                     <FormInput id="nb_team_per_group" label="Nombre d'équipes par groupe" form_type="number" value={if let Some(s) = tournament.size_group {s.to_string()} else {String::new()}}  _ref={groupe_size_ref}/>
                                     <FormInput id="phase_qualifications" label="Phase de qualifications" form_type="checkbox" checked={*is_qualif} onchange={on_qualif_change} />
                                     <FormInput id="phase_eliminations" label="Phase d'éliminations" form_type="checkbox" checked={*is_elim} onchange={on_elim_change} />
 
-                                    <Button class="text-lg px-3 py-2 mt-3 hover:scale-110 bg-green-700">{"Modifier les informations"}</Button>
+                                    <Button class="text-lg px-3 py-2 mt-3 hover:scale-110 bg-green-700">{"Sauvegarder les informations"}</Button>
                                 </form>
                             </div>
                             <div class="w-1/2 m-4">
@@ -407,14 +396,25 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                         if *is_qualif {
                             <hr/>
                             <h2>{"Phase de qualifications"}</h2>
-                            <Groups tournament={tournament.clone()} should_update={should_update} />
-                            <ContextProvider<UseStateHandle<Vec<Vec<Match>>>> context={group_matches.clone()}>
-                                <QualificationPhase on_started_click={on_started_click(group_matches.clone())} on_finished_click={on_finished_click(group_matches.clone())} on_score1_change={on_score1_change(group_matches.clone())} on_score2_change={on_score2_change(group_matches.clone())}/>
-                            </ContextProvider<UseStateHandle<Vec<Vec<Match>>>>>
+                            <Groups tournament={tournament.clone()} should_update={should_update.clone()} />
+                            <div class={"flex gap-4 mt-3"}>
+                                <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700" onclick={on_qualif_gen_click}>{"Générer les matches"}</Button> // Génère les matches et bloque la modification des équipes
+                                <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700" onclick={on_qualif_reset_click}>{"Réinitialiser les matches"}</Button> // Reset les matches, possible uniquement si aucun match n'a démarré !
+                            </div>
+                            <QualificationPhase tournament={tournament.clone()} should_update={should_update} editable={true} />
                         }
                         if *is_elim {
                             <hr/>
                             <h2>{"Phase d'éliminations"}</h2>
+                            
+                            if *is_qualif {
+                                <p>{"La phase de qualification doit être terminée pour générer la phase d'élimination"}</p>
+                            } else {
+                                <div class={"flex gap-4 mt-3 mb-3"}>
+                                    <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700">{"Générer les matches"}</Button> // Génère les matches et bloque la modification des équipes
+                                    <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700">{"Réinitialiser les matches"}</Button> // Reset les matches, possible uniquement si aucun match n'a démarré !
+                                </div>
+                            }
                             <Bracket teams={(*elim_matches).clone()} on_started_click={on_started_click(elim_matches.clone())} on_finished_click={on_finished_click(elim_matches.clone())} on_score1_change={on_score1_change(elim_matches.clone())} on_score2_change={on_score2_change(elim_matches.clone())} />
                         }
                     } else {

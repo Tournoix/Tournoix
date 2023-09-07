@@ -49,27 +49,16 @@ pub struct Tournament {
     pub fk_users: i32,
     pub name: String,
     pub description: String,
-    pub date: Option<chrono::NaiveDateTime>,
+    pub date: chrono::NaiveDateTime,
     pub location: Option<String>,
     pub phase: i32,
     pub size_group: Option<i32>,
     pub code: String,
+    pub is_qualif: bool,
+    pub is_elim: bool,
 }
 
 impl Tournament {
-    pub fn is_elim(&self) -> bool {
-        true
-    }
-    pub fn is_qualif(&self) -> bool {
-        true
-    }
-
-    pub fn date_locale(&self) -> chrono::NaiveDateTime {
-        chrono::Local
-            .from_utc_datetime(&self.date.unwrap())
-            .naive_local()
-    }
-
     pub async fn update(
         &self,
         update_request: UpdateTournoixRequest,
@@ -113,6 +102,36 @@ impl Tournament {
             &format!("tournoix/{}/teams", self.id),
             HeaderMap::new(),
             serde_json::to_string(&team).unwrap(),
+        )
+        .await
+    }
+
+    pub async fn get_matches(&self) -> Result<Vec<GameWithTeams>, ErrorResponse> {
+        api_call::<Vec<GameWithTeams>>(
+            Method::GET,
+            &format!("tournoix/{}/games", self.id),
+            HeaderMap::new(),
+            String::new(),
+        )
+        .await
+    }
+
+    pub async fn generate_qualif_games(&self) -> Result<Vec<Game>, ErrorResponse> {
+        api_call::<Vec<Game>>(
+            Method::POST,
+            &format!("tournoix/{}/qualif", self.id),
+            HeaderMap::new(),
+            String::new(),
+        )
+        .await
+    }
+
+    pub async fn reset_qualif_games(&self) -> Result<EmptyResponse, ErrorResponse> {
+        api_call::<EmptyResponse>(
+            Method::DELETE,
+            &format!("tournoix/{}/qualif", self.id),
+            HeaderMap::new(),
+            String::new(),
         )
         .await
     }
@@ -160,13 +179,30 @@ impl Team {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Game {
-    pub id: usize,
+    pub id: i32,
     pub fk_team1: i32,
     pub fk_team2: i32,
     pub score1: i32,
     pub score2: i32,
     pub phase: i32,
     pub place: i32,
+    pub status: i32,
+    pub has_gained_nut: bool,
+    pub group: Option<i32>
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GameWithTeams {
+    pub id: i32,
+    pub team1: Team,
+    pub team2: Team,
+    pub score1: i32,
+    pub score2: i32,
+    pub phase: i32,
+    pub place: i32,
+    pub status: i32,
+    pub has_gained_nut: bool,
+    pub group: Option<i32>
 }
 
 #[derive(Serialize, Deserialize, Debug)]
