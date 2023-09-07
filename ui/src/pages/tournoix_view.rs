@@ -33,11 +33,13 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
     let tournament: UseStateHandle<Option<Tournament>> = use_state(|| None);
     let has_joined_this_tournament = use_state(|| false);
     let loading = use_state(|| true);
+    let user_nut = use_state(|| 0);
 
     {
         let tournament = tournament.clone();
         let user_info = user_info.clone();
         let user = user_info.user.clone();
+        let user_nut = user_nut.clone();
         let loading = loading.clone();
         let id = id.clone();
         let has_joined_this_tournament = has_joined_this_tournament.clone();
@@ -46,18 +48,21 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
             if let Some(user) = user {
                 {
                     let user = user.clone();
+                    let user_nut = user_nut.clone();
+                    let tournament_clone = tournament.clone();
 
                     spawn_local(async move {
-                        tournament.set(api::tournoix::get(id).await.ok());
+                        tournament_clone.set(api::tournoix::get(id).await.ok());
                         loading.set(false);
                     });
+
+                    let tournament = tournament.clone();
         
                     spawn_local(async move {
                         if let Some(subscriptions) = user.subscriptions().await.ok() {
                             subscriptions.iter().for_each(|t| {
                                 if t.id == id {
                                     has_joined_this_tournament.set(true);
-                                    log::info!("User has joined this tournament");
                                 }
                             });
                         }
@@ -77,11 +82,13 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
         let bettable_games = bettable_games.clone();
         let loading_bettable_games = loading_bettable_games.clone();
         let tournament_clone = (*tournament).clone();
+        let user_nut = user_nut.clone();
 
         use_effect_with_deps(
             move |_| {
                 if let Some(tournament_clone) = tournament_clone {
                     let tournament_clone = tournament_clone.clone();
+                    let user_nut = user_nut.clone();
                     spawn_local(async move {
                         if let Some(games) = tournament_clone.get_matches().await.ok() {
                             bettable_games.set(games.iter()
@@ -91,6 +98,10 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                             );
                         }
                         loading_bettable_games.set(false);
+
+                        if let Some(nut) = api::game::get_nb_nut(tournament_clone.id).await.ok() {
+                            user_nut.set(nut.stock);
+                        }
                     });
                 }
 
@@ -118,7 +129,6 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
 
     // TODO: DB
     let tournament_over = true;
-    let user_nut = 20;
 
     html! {
         <HomeLayout>
@@ -139,7 +149,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         <div>{"Lieu: "}{tournament.as_ref().unwrap().location.as_ref().unwrap_or(&String::new())}</div>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.2.2/ol.css"/>
                         <script src="https://cdn.jsdelivr.net/npm/ol@v7.2.2/dist/ol.js"></script>
-                        <div id="map" class="h-56 w-80"></div>
+                        <div id="map" class="h-56 w-80" style="background-image: url(\"/img/loading.gif\")"></div>
                         <script>
                         {format!("LOCATION = '{}'", tournament.as_ref().unwrap().location.as_ref().unwrap_or(&String::new()))}
                         </script>
@@ -204,7 +214,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         <h2>{"Paris disponibles"}</h2>
                         if *has_joined_this_tournament {
                             <p class="discrete">{"Vous pouvez misez vos noix dans ces matchs et peut-être remporter le pactole !"}</p>
-                            <p class="mb-2">{format!("Vous possédez actuellement {} noix.", user_nut)}</p>
+                            <p class="mb-2">{format!("Vous possédez actuellement {} noix.", &*user_nut)}</p>
                             <Button class="px-3 py-2 hover:scale-110 mb-4" onclick={on_click_refresh_games}>{"Rafraîchir"}</Button>
                             if *loading_bettable_games {
                                 <LoadingCircle />

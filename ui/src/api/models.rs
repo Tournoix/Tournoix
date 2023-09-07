@@ -230,8 +230,8 @@ pub struct Nut {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Bet {
     pub id: i32,
-    pub fk_nuts: i32,
     pub fk_games: i32,
     pub fk_teams: i32,
+    pub fk_users: i32,
     pub nb_nut: i32,
 }
