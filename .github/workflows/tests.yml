@@ -16,9 +16,12 @@ jobs:
           sudo /etc/init.d/mysql start
           mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
 
-      # Run sql script to create tables and insert data
-      - name: Run sql script
-        run: mysql -h localhost -u root -proot test < ./test.sql
+      # Run diesel migrations
+      - name: Run diesel migrations
+        run: |
+          cd ./backend
+          cargo install diesel_cli --no-default-features --features mysql
+          diesel migration run
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -37,9 +40,6 @@ jobs:
         with:
           cache-directories: "./backend/.cargo\n ./backend/target\n ./ui/.cargo\n ./ui/target"
           shared-key: "rust_cache"
-
-      - name: Build frontend
-        run: cd ./ui && npm i && npm run build
 
       - name: Run backend tests
         run: cd ./backend && cargo test --release --verbose
