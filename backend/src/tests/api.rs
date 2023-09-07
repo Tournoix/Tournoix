@@ -58,7 +58,7 @@ fn successful_login_logoff_request(){
 
     let c = client();
 
-    let json_register_request = "{\"email\":\"TEST_USER_EMAIL\",\"password\":\"TEST_USER_PASSWORD\",\"name\":\"TEST_USER_NAME\"}";
+    let json_register_request = format!("{{\"email\":\"{}\",\"password\":\"{}\",\"name\":\"{}\"}}", TEST_USER_EMAIL, TEST_USER_PASSWORD, TEST_USER_NAME);
 
     let response = c.post("/api/auth/register")
         .header(ContentType::JSON)
@@ -72,7 +72,7 @@ fn successful_login_logoff_request(){
     info!("Register Response: {:?}", response);
     assert_eq!(response.status(), Status::Ok);
     
-    let json_login_request = "{\"email\":\"TEST_USER_EMAIL\",\"password\":\"TEST_USER_PASSWORD\"}";
+    let json_login_request = format!("{{\"email\":\"{}\",\"password\":\"{}\"}}", TEST_USER_EMAIL, TEST_USER_PASSWORD);
 
     let response = c.post("/api/auth/login")
         .header(ContentType::JSON)
