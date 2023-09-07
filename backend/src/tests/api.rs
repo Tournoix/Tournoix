@@ -43,15 +43,37 @@ fn successful_register_request() {
 }
 
 #[test]
-fn successful_login_logof_request() {
+fn successful_login_logoff_request() {
     use crate::routes::auth::LoginRequest;
     use rocket::http::Header;
+    use crate::models::user::NewUser;
+
 
 
     const TEST_USER_EMAIL: &str = "john.doe2@tournoix.com";
     const TEST_USER_PASSWORD: &str ="Password123!2";
+    const TEST_USER_NAME: &str = "John Doe 2";
 
     let c = client();
+
+    // Register user
+    let register_request = NewUser {
+        email: TEST_USER_EMAIL.to_owned(),
+        password: TEST_USER_PASSWORD.to_owned(),
+        name: TEST_USER_NAME.to_owned()
+    };
+
+    let json_register_request = serde_json::to_string(&register_request);
+
+    let response = c.post("/api/auth/register")
+        .header(ContentType::JSON)
+        .body(json_register_request.unwrap())
+        .dispatch();
+
+
+    info!("Register Response: {:?}", response);
+    assert_eq!(response.status(), Status::Ok);
+
     
     let login_request = LoginRequest {
         email: TEST_USER_EMAIL.to_owned(),
