@@ -29,19 +29,41 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
     let TournoixViewProps { id } = props;
     let navigator = use_navigator().unwrap();
     
+    let user_info = use_context::<UserContext>().expect("Missing user context provider");
     let tournament: UseStateHandle<Option<Tournament>> = use_state(|| None);
+    let has_joined_this_tournament = use_state(|| false);
     let loading = use_state(|| true);
 
     {
         let tournament = tournament.clone();
+        let user_info = user_info.clone();
+        let user = user_info.user.clone();
         let loading = loading.clone();
         let id = id.clone();
+        let has_joined_this_tournament = has_joined_this_tournament.clone();
 
         use_effect_once(move || {
-            spawn_local(async move {
-                tournament.set(api::tournoix::get(id).await.ok());
-                loading.set(false);
-            });
+            if let Some(user) = user {
+                {
+                    let user = user.clone();
+
+                    spawn_local(async move {
+                        tournament.set(api::tournoix::get(id).await.ok());
+                        loading.set(false);
+                    });
+        
+                    spawn_local(async move {
+                        if let Some(subscriptions) = user.subscriptions().await.ok() {
+                            subscriptions.iter().for_each(|t| {
+                                if t.id == id {
+                                    has_joined_this_tournament.set(true);
+                                    log::info!("User has joined this tournament");
+                                }
+                            });
+                        }
+                    });
+                }
+            }
 
             || ()
         });
@@ -180,13 +202,17 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         <div>{"Description: "}{tournament.as_ref().unwrap().description.to_string()}</div>
                         <hr/>
                         <h2>{"Paris disponibles"}</h2>
-                        <p class="discrete">{"Vous pouvez misez vos noix dans ces matchs et peut-être remporter le pactole !"}</p>
-                        <p class="mb-2">{format!("Vous possédez actuellement {} noix.", user_nut)}</p>
-                        <Button class="px-3 py-2 hover:scale-110 mb-4" onclick={on_click_refresh_games}>{"Rafraîchir"}</Button>
-                        if *loading_bettable_games {
-                            <LoadingCircle />
+                        if *has_joined_this_tournament {
+                            <p class="discrete">{"Vous pouvez misez vos noix dans ces matchs et peut-être remporter le pactole !"}</p>
+                            <p class="mb-2">{format!("Vous possédez actuellement {} noix.", user_nut)}</p>
+                            <Button class="px-3 py-2 hover:scale-110 mb-4" onclick={on_click_refresh_games}>{"Rafraîchir"}</Button>
+                            if *loading_bettable_games {
+                                <LoadingCircle />
+                            } else {
+                                <BetList tournament_id={id.clone()} matches={(*bettable_games).clone()}/>
+                            }
                         } else {
-                            <BetList tournament_id={id.clone()} matches={(*bettable_games).clone()}/>
+                            {"Vous devez rejoindre ce tournoi afin de pouvoir y miser vos noix."}
                         }
                         <hr/>
                         <h2>{"Phase de qualifications"}</h2>

@@ -76,7 +76,7 @@ pub async fn get_user_subscription(
     // for each subscription, get the tournament
     for subscriber in tab_subscriber {
         let tournaments = match connection
-            .run(move |c| tournaments::table.find(subscriber.id).load::<Tournament>(c))
+            .run(move |c| tournaments::table.find(subscriber.fk_users).load::<Tournament>(c))
             .await
         {
             Ok(tournaments) => tournaments,
