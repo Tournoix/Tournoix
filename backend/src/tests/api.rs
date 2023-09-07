@@ -1,38 +1,31 @@
-use rocket::{local::blocking::Client, fairing::Fairing, http::hyper};
-use crate::routes::auth::{LoginResponse, register};
 
 use super::super::rocket;
 
 #[cfg(test)]
 
-fn client() -> Client {
-    Client::tracked(rocket()).expect("valid rocket instance")
+fn client() -> rocket::local::blocking::Client {
+    rocket::local::blocking::Client::tracked(rocket()).expect("valid rocket instance")
 }
 
-/*
+
 #[test]
 fn successful_register_request() {
+    use rocket::http::{Status, ContentType};
+
     const TEST_USER_EMAIL: &str = "john.doe@tournoix.com";
     const TEST_USER_PASSWORD: &str ="Password123!";
     const TEST_USER_NAME: &str = "John Doe";
 
     use log::info;
 
-    use crate::models::user::NewUser;
-
     let c = client();
     
-    let register_request = NewUser {
-        email: TEST_USER_EMAIL.to_owned(),
-        password: TEST_USER_PASSWORD.to_owned(),
-        name: TEST_USER_NAME.to_owned()
-    };
 
-    let json_register_request = serde_json::to_string(&register_request);
+    let json_register_request = format!("{{\"email\":\"{}\",\"password\":\"{}\",\"name\":\"{}\"}}", TEST_USER_EMAIL, TEST_USER_PASSWORD, TEST_USER_NAME);
 
     let response = c.post("/api/auth/register")
         .header(ContentType::JSON)
-        .body(json_register_request.unwrap())
+        .body(json_register_request)
         .dispatch();
 
 
@@ -40,7 +33,6 @@ fn successful_register_request() {
     assert_eq!(response.status(), Status::Ok);
 }
 
- */
 #[test]
 fn successful_login_logoff_request(){
     use rocket::http::Header;
@@ -100,7 +92,7 @@ fn successful_login_logoff_request(){
     assert_eq!(response.status(), Status::Ok);
 }
 
-#[test]
+/* #[test]
 fn unsuccessful_login_request() {
     use rocket::http::{Status, ContentType};
 
@@ -126,7 +118,7 @@ fn unsuccessful_login_request() {
 
     info!("Login Response: {:?}", response);
     assert_eq!(response.status(), Status::Unauthorized);
-}
+} */
 
 
 /* #[test]

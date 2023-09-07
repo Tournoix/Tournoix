@@ -29,7 +29,6 @@ use crate::routes::team::*;
 use crate::routes::tournoix::*;
 use crate::routes::bet::*;
 
-use log::{error, info, trace, warn};
 use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
 
 pub mod crypto;
