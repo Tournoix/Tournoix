@@ -186,7 +186,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         if *loading_bettable_games {
                             <LoadingCircle />
                         } else {
-                            <BetList matches={(*bettable_games).clone()}/>
+                            <BetList tournament_id={id.clone()} matches={(*bettable_games).clone()}/>
                         }
                         <hr/>
                         <h2>{"Phase de qualifications"}</h2>

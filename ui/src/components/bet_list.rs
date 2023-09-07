@@ -6,14 +6,21 @@ use crate::{components::button::Button, routers::Route, utils::utils::team_color
 #[derive(PartialEq, Properties)]
 pub struct BetListProps {
     pub matches: Vec<GameWithTeams>,
+    pub tournament_id: i32,
 }
 
 #[function_component]
 pub fn BetList(props: &BetListProps) -> Html {
-    let BetListProps { matches } = props;
+    let BetListProps { matches, tournament_id } = props;
     let navigator = use_navigator().unwrap();
 
-    let on_click_bet = |id| Callback::from(move |_| navigator.push(&Route::MatchView { id }));
+    let on_click_bet = |match_id| {
+        let tournament_id = tournament_id.clone();
+        Callback::from(move |_| navigator.push(&Route::MatchView {
+            match_id,
+            tournament_id
+        }))
+    };
 
     html! {
         <ul class="flex gap-4 flex-wrap">{

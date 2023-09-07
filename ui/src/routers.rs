@@ -21,8 +21,8 @@ pub enum Route {
     TournoixEdit { id: i32 },
     #[at("/tournoix/:id")]
     TournoixView { id: i32 },
-    #[at("/tournoix/match/:id")]
-    MatchView { id: i32 },
+    #[at("/tournoix/:tournament_id/match/:match_id")]
+    MatchView { tournament_id: i32, match_id: i32 },
     #[at("/login")]
     Login,
     #[at("/register")]
@@ -39,7 +39,7 @@ pub fn router(routes: Route) -> Html {
         Route::TournoixView { id } => html! {<LoggedRoute><TournoixView id={id} /></LoggedRoute>},
         Route::TournoixEdit { id } => html! {<LoggedRoute><TournoixEdit id={id} /></LoggedRoute>},
         Route::TournoixCreate => html! {<LoggedRoute><TournoixCreate /></LoggedRoute>},
-        Route::MatchView { id } => html! {<LoggedRoute><MatchView id={id} /></LoggedRoute>},
+        Route::MatchView { tournament_id, match_id } => html! {<LoggedRoute><MatchView tournament_id={tournament_id} match_id={match_id} /></LoggedRoute>},
         Route::Login => html! {<Login/>},
         Route::Register => html! {<Register/>},
         Route::NotFound => html! {<h1>{"404 Not Found"}</h1>},

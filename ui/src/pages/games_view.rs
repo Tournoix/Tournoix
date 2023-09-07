@@ -18,12 +18,13 @@ use yew_hooks::use_effect_once;
 
 #[derive(PartialEq, Properties)]
 pub struct MatchViewProps {
-    pub id: i32,
+    pub match_id: i32,
+    pub tournament_id: i32,
 }
 
 #[function_component]
 pub fn MatchView(props: &MatchViewProps) -> Html {
-    let MatchViewProps { id } = props;
+    let MatchViewProps { match_id, tournament_id } = props;
 
 
     let game: UseStateHandle<Option<GameWithTeams>> = use_state(|| None);
@@ -32,11 +33,11 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
     {
         let game = game.clone();
         let loading = loading.clone();
-        let id = id.clone();
+        let match_id: i32 = match_id.clone();
 
         use_effect_once(move || {
             spawn_local(async move {
-                game.set(api::game::get(id).await.ok());
+                game.set(api::game::get(match_id).await.ok());
                 loading.set(false);
             });
 
@@ -207,7 +208,7 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
             <div class="h-full relative">
                 <img src="/img/bullets_texture.svg" class="absolute opacity-[2%] sm:w-9/12 w-11/12 pointer-events-none left-[12.5%] max-h-full"/>
                 <div class="relative font-bebas flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto z-10">
-                    <Backlink route={Route::TournoixView{ id: 42 }} label="Retour au tournoi"/>
+                    <Backlink route={Route::TournoixView{ id: tournament_id.clone() }} label="Retour au tournoi"/>
                     if *loading {
                         <LoadingCircle />
                     } else {
