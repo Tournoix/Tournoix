@@ -246,6 +246,7 @@ pub async fn calculate_gain(
     // if the user bet on the winning team
     let mut winner_total_bet = 0;
     let mut total_bet = 0;
+    let mut looser_total_bet = 0;
 
     for bet in bets.clone() {
         if bet.fk_teams == winner {
@@ -254,6 +255,8 @@ pub async fn calculate_gain(
 
         total_bet += bet.nb_nut;
     }
+
+    looser_total_bet = total_bet - winner_total_bet;
 
     // calculate the gain for the winning team
     for bet in bets {
@@ -277,9 +280,11 @@ pub async fn calculate_gain(
                 }
             };
 
+            let participation = bet.nb_nut as f64 / winner_total_bet as f64;
+
             let new_stock = nut.stock
                 + bet.nb_nut
-                + (bet.nb_nut as f64 * total_bet as f64 / winner_total_bet as f64).round() as i32;
+                + (participation * looser_total_bet as f64).round() as i32;
             set_stock(&connection, nut.id, new_stock).await?;
         }
     }
@@ -574,8 +579,8 @@ pub async fn create_bet(
     }
 
     // remove the nut from the user
-    // let new_stock = nut.stock - data.nut as i32;
-    // let nut = set_stock(&connection, nut.id, new_stock).await?;
+    let new_stock = nut.stock - data.nut as i32;
+    let nut = set_stock(&connection, nut.id, new_stock).await?;
 
     // create the bet
     let new_bet = NewBet {
