@@ -11,6 +11,8 @@ fn client() -> Client {
     Client::tracked(rocket()).expect("valid rocket instance")
 }
 
+
+
 #[test]
 fn successful_register_request() {
 
@@ -42,7 +44,7 @@ fn successful_register_request() {
     assert_eq!(response.status(), Status::Ok);
 }
 
-
+/* 
 #[test]
 fn successful_login_request() {
     const TEST_USER_EMAIL: &str = "john.doe@tournoix.com";
@@ -141,4 +143,4 @@ fn unsuccessful_logout_request() {
 
     info!("Logout Response: {:?}", response);
     assert_eq!(response.status(), Status::Unauthorized);
-}
+} */

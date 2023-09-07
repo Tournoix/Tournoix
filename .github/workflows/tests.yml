@@ -25,8 +25,6 @@ jobs:
           cd ./backend
           cargo install diesel_cli --no-default-features --features mysql
           diesel migration run --database-url mysql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:3306/${{ env.DB_DATABASE }}
-
-      
         
       - uses: jetli/trunk-action@v0.4.0
         with:
