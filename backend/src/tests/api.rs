@@ -1,6 +1,6 @@
 use log::info;
 use rocket::{local::blocking::Client, fairing::Fairing, http::hyper};
-use crate::routes::auth::LoginResponse;
+use crate::routes::auth::{LoginResponse, register};
 
 use super::super::rocket;
 use rocket::http::{Status, ContentType};
@@ -12,10 +12,8 @@ fn client() -> Client {
 }
 
 
-
 #[test]
 fn successful_register_request() {
-
     const TEST_USER_EMAIL: &str = "john.doe@tournoix.com";
     const TEST_USER_PASSWORD: &str ="Password123!";
     const TEST_USER_NAME: &str = "John Doe";
@@ -44,12 +42,12 @@ fn successful_register_request() {
     assert_eq!(response.status(), Status::Ok);
 }
 
-/* 
 #[test]
 fn successful_login_request() {
-    const TEST_USER_EMAIL: &str = "john.doe@tournoix.com";
-    const TEST_USER_PASSWORD: &str ="Password123!";
-    const TEST_USER_NAME: &str = "John Doe";
+    const TEST_USER_EMAIL: &str = "john.doe2@tournoix.com";
+    const TEST_USER_PASSWORD: &str ="Password123!2";
+    const TEST_USER_NAME: &str = "John Doe 2";
+
 
     use crate::routes::auth::LoginRequest;
     let c = client();
@@ -79,6 +77,9 @@ fn successful_login_request() {
 
 
 }
+
+
+/* 
 
 #[test]
 fn unsuccessful_login_request() {

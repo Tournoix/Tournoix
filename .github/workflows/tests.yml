@@ -42,6 +42,6 @@ jobs:
           shared-key: "rust_cache"
 
       - name: Run backend tests
-        run: cd ./backend && cargo test --release --verbose
+        run: cd ./backend && cargo test
 
     
