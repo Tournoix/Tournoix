@@ -1,9 +1,7 @@
-use log::info;
 use rocket::{local::blocking::Client, fairing::Fairing, http::hyper};
 use crate::routes::auth::{LoginResponse, register};
 
 use super::super::rocket;
-use rocket::http::{Status, ContentType};
 
 #[cfg(test)]
 
@@ -45,9 +43,9 @@ fn successful_register_request() {
  */
 #[test]
 fn successful_login_logoff_request(){
-    use crate::routes::auth::LoginRequest;
     use rocket::http::Header;
-    use crate::models::user::NewUser;
+    use rocket::http::{Status, ContentType};
+
 
 
     std::thread::sleep(std::time::Duration::from_secs(3));
@@ -104,6 +102,8 @@ fn successful_login_logoff_request(){
 
 #[test]
 fn unsuccessful_login_request() {
+    use rocket::http::{Status, ContentType};
+
     const TEST_USER_EMAIL: &str = "john.doe3@tournoix.com";
     const TEST_USER_PASSWORD: &str ="WrongPassword123!";
 
