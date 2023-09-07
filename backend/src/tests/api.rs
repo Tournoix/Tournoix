@@ -32,7 +32,7 @@ fn successful_register_request() {
 
     let json_register_request = serde_json::to_string(&register_request);
 
-    let mut response = c.post("/api/auth/register")
+    let response = c.post("/api/auth/register")
         .header(ContentType::JSON)
         .body(json_register_request.unwrap())
         .dispatch();
@@ -43,13 +43,14 @@ fn successful_register_request() {
 }
 
 #[test]
-fn successful_login_request() {
+fn successful_login_logof_request() {
+    use crate::routes::auth::LoginRequest;
+    use rocket::http::Header;
+
+
     const TEST_USER_EMAIL: &str = "john.doe2@tournoix.com";
     const TEST_USER_PASSWORD: &str ="Password123!2";
-    const TEST_USER_NAME: &str = "John Doe 2";
 
-
-    use crate::routes::auth::LoginRequest;
     let c = client();
     
     let login_request = LoginRequest {
@@ -75,17 +76,21 @@ fn successful_login_request() {
     let token = login_response.token;
     info!("Token: {:?}", token);
 
+    let mut headers = Header::new("Authorization", format!("Bearer {}", token));
 
+    let response = c.post("/api/auth/logout")
+        .header(ContentType::JSON)
+        .header(headers)
+        .dispatch();
+
+    info!("Logout Response: {:?}", response);
+    assert_eq!(response.status(), Status::Ok);
 }
-
-
-/* 
 
 #[test]
 fn unsuccessful_login_request() {
-    const TEST_USER_EMAIL: &str = "john.doe@tournoix.com";
+    const TEST_USER_EMAIL: &str = "john.doe3@tournoix.com";
     const TEST_USER_PASSWORD: &str ="WrongPassword123!";
-    const TEST_USER_NAME: &str = "John Doe";
 
     use crate::routes::auth::LoginRequest;
     let c = client();
@@ -108,7 +113,8 @@ fn unsuccessful_login_request() {
     assert_eq!(response.status(), Status::Unauthorized);
 }
 
-#[test]
+
+/* #[test]
 fn successful_logout_request() {
     use rocket::http::Header;
     
@@ -125,23 +131,23 @@ fn successful_logout_request() {
 
     info!("Logout Response: {:?}", response);
     assert_eq!(response.status(), Status::Ok);
-}
-
-#[test]
-fn unsuccessful_logout_request() {
-    use rocket::http::Header;
-    
-    let c = client();
-
-    // Create header
-
-    let mut headers = Header::new("Authorization", format!("Bearer {}", "14b08dc3-192e-441f-bb06-ad2bf09960eb"));
-
-    let response = c.post("/api/auth/logout")
-        .header(ContentType::JSON)
-        .header(headers)
-        .dispatch();
-
-    info!("Logout Response: {:?}", response);
-    assert_eq!(response.status(), Status::Unauthorized);
 } */
+
+// #[test]
+// fn unsuccessful_logout_request() {
+//     use rocket::http::Header;
+    
+//     let c = client();
+
+//     // Create header
+
+//     let mut headers = Header::new("Authorization", format!("Bearer {}", "14b08dc3-192e-441f-bb06-ad2bf09960eb"));
+
+//     let response = c.post("/api/auth/logout")
+//         .header(ContentType::JSON)
+//         .header(headers)
+//         .dispatch();
+
+//     info!("Logout Response: {:?}", response);
+//     assert_eq!(response.status(), Status::Unauthorized);
+// } 
