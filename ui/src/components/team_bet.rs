@@ -11,6 +11,7 @@ pub struct BetItem {
 #[derive(PartialEq, Properties)]
 pub struct TeamBetProps {
     pub team_name: String,
+    pub score: i32,
     pub bets: Vec<BetItem>,
     pub total: i32, // Computed in the component above
     pub is_left: bool,
@@ -20,6 +21,7 @@ pub struct TeamBetProps {
 pub fn TeamBet(props: &TeamBetProps) -> Html {
     let TeamBetProps {
         team_name,
+        score,
         bets,
         total,
         is_left,
@@ -27,7 +29,10 @@ pub fn TeamBet(props: &TeamBetProps) -> Html {
 
     html! {
         <div class="flex flex-col drop-shadow-lg">
-            <div style={team_color_wrapper(team_name.to_string())} class="team-bg-color p-4 text-3xl text-white rounded-t">{team_name}</div>
+            <div style={team_color_wrapper(team_name.to_string())} class="team-bg-color p-4 text-3xl text-white rounded-t flex flex-col items-center">
+                <div>{team_name}</div>
+                <div>{score}</div>
+            </div>
             <ul class={format!("bg-white max-h-[17rem] overflow-y-scroll {}", if is_left.clone() { "text-right" } else { "" })}>
                 {
                     bets.iter().enumerate().map(|(index, bet)| {

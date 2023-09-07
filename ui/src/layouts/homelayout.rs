@@ -54,23 +54,26 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
         Callback::from(move |_| navigator.push(&Route::Tournoix))
     };
 
-    let on_logout_click = Callback::from(move |_| {
+    let on_logout_click = {
         let user_info = user_info.clone();
 
-        let notifs = notifs.clone();
-        spawn_local(async move {
-            api::auth::logout().await;
+        Callback::from(move |_| {
+            let user_info = user_info.clone();
+            let notifs = notifs.clone();
+            spawn_local(async move {
+                api::auth::logout().await;
 
-            notifs.spawn(CustomNotification::new(
-                "Déconnecté(e)",
-                "Vous vous êtes déconnecté(e) avec succès de votre compte.",
-                NotifType::Success,
-                Duration::seconds(5),
-            ));
+                notifs.spawn(CustomNotification::new(
+                    "Déconnecté(e)",
+                    "Vous vous êtes déconnecté(e) avec succès de votre compte.",
+                    NotifType::Success,
+                    Duration::seconds(5),
+                ));
 
-            user_info.logout();
-        });
-    });
+                user_info.logout();
+            });
+        })
+    };
 
     html! {
         <div class="font-bebas bg-[#fbfefb] min-h-full">
@@ -86,6 +89,11 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                         <div class="ml-auto my-auto flex">
                             <Button class="sm:px-4 px-2 py-1 hover:scale-110 sm:text-base text-sm mr-6" onclick={on_tournoix_click}>{"Liste des tournoix"}</Button>
                             <Button class="sm:px-4 px-2 py-1 origin-right hover:scale-110 sm:text-base text-sm" onclick={on_logout_click}>{"Déconnexion"}</Button>
+                            if let Some(user) = &user_info.user {
+                                <div class="drop-shadow ml-4 font-bold">
+                                    {user.name.clone()}
+                                </div>
+                            }
                         </div>
                     } else {
                         <div class="ml-auto my-auto flex">
