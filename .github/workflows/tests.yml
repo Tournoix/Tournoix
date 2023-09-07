@@ -24,8 +24,7 @@ jobs:
         run: |
           cd ./backend
           cargo install diesel_cli --no-default-features --features mysql
-          diesel setup --database-url mysql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:3306/${{ env.DB_DATABASE }}
-          diesel migration run
+          diesel migration run --database-url mysql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:3306/${{ env.DB_DATABASE }}
 
       
         
