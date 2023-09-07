@@ -1,7 +1,10 @@
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
 
-use crate::{components::button::Button, routers::Route, utils::utils::team_color_wrapper, api::models::GameWithTeams};
+use crate::{
+    api::models::GameWithTeams, components::button::Button, routers::Route,
+    utils::utils::team_color_wrapper,
+};
 
 #[derive(PartialEq, Properties)]
 pub struct BetListProps {
@@ -11,15 +14,20 @@ pub struct BetListProps {
 
 #[function_component]
 pub fn BetList(props: &BetListProps) -> Html {
-    let BetListProps { matches, tournament_id } = props;
+    let BetListProps {
+        matches,
+        tournament_id,
+    } = props;
     let navigator = use_navigator().unwrap();
 
     let on_click_bet = |match_id| {
         let tournament_id = tournament_id.clone();
-        Callback::from(move |_| navigator.push(&Route::MatchView {
-            match_id,
-            tournament_id
-        }))
+        Callback::from(move |_| {
+            navigator.push(&Route::MatchView {
+                match_id,
+                tournament_id,
+            })
+        })
     };
 
     html! {

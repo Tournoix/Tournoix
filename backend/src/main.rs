@@ -29,7 +29,6 @@ use crate::routes::team::*;
 use crate::routes::tournoix::*;
 use crate::routes::bet::*;
 
-use log::{error, info, trace, warn};
 use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
 
 pub mod crypto;
@@ -127,6 +126,8 @@ fn rocket() -> _ {
                 close_game,
                 close_game_betting,
                 remove_all_games,
+                create_games_elim,
+                remove_all_games_elim,
                 // Nuts
                 get_nut,
                 update_nut,

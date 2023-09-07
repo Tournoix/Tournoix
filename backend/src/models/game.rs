@@ -20,6 +20,16 @@ pub struct Game {
     pub has_gained_nut: bool,
 }
 
+impl Game {
+    pub fn winner(&self) -> i32 {
+        if self.score1 > self.score2 {
+            return self.fk_team1;
+        } else {
+            return self.fk_team2;
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Queryable, Identifiable, Clone)]
 #[diesel(belongs_to(Team))]
 #[diesel(table_name = games)]
@@ -35,6 +45,16 @@ pub struct GameWithGroup {
     pub status: i32,
     pub has_gained_nut: bool,
     pub group: i32,
+}
+
+impl GameWithGroup {
+    pub fn winner(&self) -> i32 {
+        if self.score1 > self.score2 {
+            return self.fk_team1;
+        } else {
+            return self.fk_team2;
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Queryable, Identifiable, Clone)]

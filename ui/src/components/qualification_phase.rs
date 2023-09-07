@@ -1,14 +1,11 @@
 use std::collections::BTreeMap;
 
-use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{EventTarget, HtmlInputElement};
 use yew::prelude::*;
 
 use crate::{
     api::models::{GameWithTeams, Tournament},
-    components::{bracket::Match, checkbox::CheckBox, qualif_game::QualifGame},
-    utils::utils::team_color_wrapper,
+    components::qualif_game::QualifGame,
 };
 
 #[derive(PartialEq, Properties)]
@@ -17,12 +14,6 @@ pub struct QualificationPhaseProps {
     pub should_update: UseStateHandle<bool>,
     #[prop_or_default]
     pub editable: bool,
-    /*
-    pub on_started_click: Option<Callback<i32>>,
-    pub on_finished_click: Option<Callback<i32>>,
-    pub on_score1_change: Option<Callback<(i32, i32)>>,
-    pub on_score2_change: Option<Callback<(i32, i32)>>,
-    */
 }
 
 #[function_component]
@@ -30,12 +21,7 @@ pub fn QualificationPhase(props: &QualificationPhaseProps) -> Html {
     let QualificationPhaseProps {
         tournament,
         should_update,
-        editable, /*
-                  on_started_click,
-                  on_finished_click,
-                  on_score1_change,
-                  on_score2_change,
-                  */
+        editable,
     } = props;
 
     let group_matches: UseStateHandle<BTreeMap<i32, Vec<GameWithTeams>>> =
@@ -53,7 +39,6 @@ pub fn QualificationPhase(props: &QualificationPhaseProps) -> Html {
                 spawn_local(async move {
                     if let Some(games) = tournament.get_matches().await.ok() {
                         let mut new_groups: BTreeMap<i32, Vec<GameWithTeams>> = BTreeMap::new();
-                        // new_groups.insert(0, vec![]);
 
                         for game in games {
                             if game.phase != 0 {

@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 
-use log::info;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_hooks::{use_drop_with_options, UseDropOptions};
