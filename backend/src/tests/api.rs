@@ -1,5 +1,6 @@
 
 use super::super::rocket;
+use serial_test::serial;
 
 #[cfg(test)]
 
@@ -9,6 +10,8 @@ fn client() -> rocket::local::blocking::Client {
 
 
 #[test]
+#[serial]
+
 fn successful_register_request() {
     use rocket::http::{Status, ContentType};
 
@@ -28,17 +31,14 @@ fn successful_register_request() {
         .body(json_register_request)
         .dispatch();
 
-
-    info!("Register Response: {:?}", response);
     assert_eq!(response.status(), Status::Ok);
 }
 
 #[test]
+#[serial]
 fn successful_login_logoff_request(){
     use rocket::http::Header;
     use rocket::http::{Status, ContentType};
-
-
 
     std::thread::sleep(std::time::Duration::from_secs(3));
 
@@ -58,8 +58,6 @@ fn successful_login_logoff_request(){
     // Wait for user to be registered
     std::thread::sleep(std::time::Duration::from_secs(3));
 
-
-    info!("Register Response: {:?}", response);
     assert_eq!(response.status(), Status::Ok);
     
     let json_login_request = format!("{{\"email\":\"{}\",\"password\":\"{}\"}}", TEST_USER_EMAIL, TEST_USER_PASSWORD);
@@ -69,14 +67,12 @@ fn successful_login_logoff_request(){
         .body(json_login_request)
         .dispatch();
 
-    info!("Login Response: {:?}", response);
     assert_eq!(response.status(), Status::Ok);
 
     // Save token from response
     // "{\"token\":\"f35e9be6-db56-4e0a-8d26-82abb507e828\",\"expiration_date\":\"2023-09-08T02:41:49.201130\"}"
     let token = response.into_string().unwrap().split(":").nth(1).unwrap().split(",").nth(0).unwrap().replace("\"", "");
     
-    info!("Token: {:?}", token);
 
     let headers = Header::new("Authorization", format!("Bearer {}", token));
 
@@ -88,7 +84,6 @@ fn successful_login_logoff_request(){
         .header(headers)
         .dispatch();
 
-    info!("Logout Response: {:?}", response);
     assert_eq!(response.status(), Status::Ok);
 }
 

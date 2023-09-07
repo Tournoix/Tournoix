@@ -77,12 +77,12 @@ pub struct ErrorBody {
 fn rocket() -> _ {
     dotenv().ok();
 
-    TermLogger::init(
+    let _ = TermLogger::init(
         LevelFilter::Info,
         Config::default(),
         TerminalMode::Mixed,
         ColorChoice::Auto,
-    ).unwrap();
+    );
 
     rocket::build()
         .attach(MysqlConnection::fairing())
