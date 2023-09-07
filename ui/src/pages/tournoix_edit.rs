@@ -12,7 +12,7 @@ use crate::{
     api::{self, models::Tournament, tournoix::UpdateTournoixRequest},
     components::{
         backlink::Backlink,
-        bracket::{Bracket, Match},
+        bracket::Bracket,
         button::Button,
         form_input::FormInput,
         groups::Groups,
