@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
 use time::Duration;
-use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
@@ -46,9 +45,10 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
     let date_ref = use_node_ref();
     let location_ref = use_node_ref();
     let description_ref = use_node_ref();
-    let is_qualif = use_state(|| false);
-    let is_elim = use_state(|| false);
+    let qualif_ref = use_node_ref();
+    let elim_ref = use_node_ref();
 
+    /*
     let on_qualif_change = {
         let is_qualif = is_qualif.clone();
         Callback::from(move |e: Event| {
@@ -57,7 +57,9 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
             is_qualif.set(target.unchecked_into::<HtmlInputElement>().checked());
         })
     };
+    */
 
+    /*
     let on_elim_change = {
         let is_elim = is_elim.clone();
         Callback::from(move |e: Event| {
@@ -66,13 +68,12 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
             is_elim.set(target.unchecked_into::<HtmlInputElement>().checked());
         })
     };
+    */
 
     {
         let tournament = tournament.clone();
         let loading = loading.clone();
         let id = id.clone();
-        let is_qualif = is_qualif.clone();
-        let is_elim = is_elim.clone();
         let notifs = notifs.clone();
 
         use_effect_with_deps(
@@ -91,11 +92,6 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                             None
                         }
                     };
-
-                    if let Some(tournoix) = &tournoix {
-                        is_elim.set(tournoix.is_elim);
-                        is_qualif.set(tournoix.is_qualif);
-                    }
 
                     tournament.set(tournoix);
                     loading.set(false);
@@ -121,8 +117,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         let location_ref = location_ref.clone();
         let description_ref = description_ref.clone();
         // let groupe_size_ref = groupe_size_ref.clone();
-        let is_qualif = is_qualif.clone();
-        let is_elim = is_elim.clone();
+        let qualif_ref = qualif_ref.clone();
+        let elim_ref = elim_ref.clone();
         let trigger = trigger.clone();
         let notifs = notifs.clone();
 
@@ -134,8 +130,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
             let location = location_ref.cast::<HtmlInputElement>().unwrap().value();
             let description = description_ref.cast::<HtmlInputElement>().unwrap().value();
             // let groupe_size = groupe_size_ref.cast::<HtmlInputElement>().unwrap().value();
-            // let qualif = qualif_ref.cast::<HtmlInputElement>().unwrap().checked();
-            // let elim = elim_ref.cast::<HtmlInputElement>().unwrap().checked();
+            let qualif = qualif_ref.cast::<HtmlInputElement>().unwrap().checked();
+            let elim = elim_ref.cast::<HtmlInputElement>().unwrap().checked();
 
             /*
             let groupe_size = match groupe_size.is_empty() {
@@ -153,8 +149,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                 description: Some(description),
                 phase: None,
                 size_group: None,
-                is_qualif: Some(*is_qualif),
-                is_elim: Some(*is_elim)
+                is_qualif: Some(qualif),
+                is_elim: Some(elim)
             };
 
             {
@@ -327,8 +323,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                                     <FormInput id="location" label="Lieu" form_type="text" value={tournament.location.as_ref().unwrap_or(&String::new()).to_string()}  _ref={location_ref} required={true}/>
                                     <FormInput id="description" label="Description" form_type="text" value={tournament.description.clone()}  _ref={description_ref} required={true}/>
                                     // <FormInput id="nb_team_per_group" label="Nombre d'équipes par groupe" form_type="number" value={if let Some(s) = tournament.size_group {s.to_string()} else {String::new()}}  _ref={groupe_size_ref}/>
-                                    <FormInput id="phase_qualifications" label="Phase de qualifications" form_type="checkbox" checked={*is_qualif} onchange={on_qualif_change} />
-                                    <FormInput id="phase_eliminations" label="Phase d'éliminations" form_type="checkbox" checked={*is_elim} onchange={on_elim_change} />
+                                    <FormInput id="phase_qualifications" label="Phase de qualifications" form_type="checkbox" checked={tournament.is_qualif} _ref={qualif_ref} />
+                                    <FormInput id="phase_eliminations" label="Phase d'éliminations" form_type="checkbox" checked={tournament.is_elim} _ref={elim_ref} />
 
                                     <Button class="text-lg px-3 py-2 mt-3 hover:scale-110 bg-green-700">{"Sauvegarder les informations"}</Button>
                                 </form>
@@ -337,7 +333,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                                 <Teams tournament={tournament.clone()} on_update={on_teams_update} />
                             </div>
                         </div>
-                        if *is_qualif {
+                        if tournament.is_qualif {
                             <hr/>
                             <h2>{"Phase de qualifications"}</h2>
                             <Groups tournament={tournament.clone()} should_update={should_update.clone()} editable={true} />
@@ -347,7 +343,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                             </div>
                             <QualificationPhase tournament={tournament.clone()} should_update={should_update.clone()} editable={true} />
                         }
-                        if *is_elim {
+                        if tournament.is_elim {
                             <hr/>
                             <h2>{"Phase d'éliminations"}</h2>
                             

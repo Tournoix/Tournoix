@@ -1,16 +1,14 @@
 use crate::{
     components::{
         backlink::Backlink,
-        bracket::Match,
         button::Button,
         form_input::FormInput,
-        team_bet::{TeamBet, self, BetItem}, loading_circle::LoadingCircle, user_provider::UserContext,
+        team_bet::{TeamBet, BetItem}, loading_circle::LoadingCircle, user_provider::UserContext,
     },
     layouts::homelayout::HomeLayout,
     routers::Route,
     utils::utils::team_color_wrapper, api::{models::{GameWithTeams, self, BetWithUser}, self, game::BetData}, notification::{NotifType, CustomNotification},
 };
-use futures::Stream;
 use time::Duration;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
@@ -52,7 +50,6 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
         let bets_2 = bets_2.clone();
         let user_info = user_info.clone();
         let user_bet = user_bet.clone();
-        let user = user_info.user.clone();
         let ratio = ratio.clone();
         let total_1 = total_1.clone();
         let total_2 = total_2.clone();
