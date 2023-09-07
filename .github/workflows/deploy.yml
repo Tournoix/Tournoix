@@ -37,7 +37,7 @@ jobs:
       run: cd ./ui && mv ./.env.example ./.env && npm i && npx tailwindcss -i ./style.scss -o ./output.scss --minify && trunk build --release
       
     - name: Build and test backend
-      run: cd ./backend && cargo test --release --verbose
+      run: cd ./backend && cargo test --release
 
     - name: Cleanup
       run: rm -rf ./backend/target

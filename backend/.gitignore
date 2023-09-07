@@ -1,3 +1,7 @@
 /target
 /public/*
 !/public/.gitkeep
+
+.env
+Rocket.toml
+Cargo.lock

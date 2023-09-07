@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "tailwind": "npx tailwindcss --watch -i ./style.scss -o ./output.scss",
     "serve": "npx tailwindcss -i ./style.scss -o ./output.scss && trunk serve",
     "build": "npx tailwindcss -i ./style.scss -o ./output.scss --minify && trunk build --release && npm run copy-files",
     "copy-files": "shx rm -rf ../backend/public/**.js ../backend/public/**.wasm ../backend/public/**.css && shx cp -r ./dist/. ../backend/public/"

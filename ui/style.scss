@@ -32,6 +32,10 @@ p {
 	@apply text-base sm:text-lg;
 }
 
+hr {
+	@apply w-full drop-shadow my-8;
+}
+
 .discrete {
 	@apply text-base text-discrete;
 }
@@ -52,14 +56,160 @@ p {
 	@apply text-white text-lg flex justify-center mx-auto sm:w-9/12 w-11/12 h-full;
 }
 
+.backlink {
+	@apply float-left underline text-nut cursor-pointer hover:duration-[200ms] duration-[400ms] hover:tracking-wide transition-all sm:text-lg text-base mb-4;
+}
+
+.a_link {
+	@apply underline text-nut cursor-pointer hover:duration-[200ms] duration-[400ms] hover:tracking-wide transition-all sm:text-base text-sm;
+}
+
+/* Tournaments */
+.tournament-card {
+	@apply flex justify-center content-center p-3 bg-nutLighter rounded drop-shadow-lg cursor-pointer hover:scale-110 hover:duration-[200ms] duration-[400ms] w-32 h-32 origin-bottom select-none leading-5;
+
+	.add-btn {
+		@apply h-1/2 mb-1 w-1/2 mx-auto rounded-full duration-[200ms];
+	}
+
+	&:hover {
+		.add-btn {
+			@apply bg-[#6fcf6f] transition-all duration-[400ms];
+		}
+	}
+}
+
+.tournament-btn-icon {
+	@apply h-8 p-1.5 basis-0 grow hover:duration-[200ms] duration-[400ms] rounded select-none;
+}
+
+.tournament-btn-list {
+	@apply flex gap-4 w-full mt-2 justify-center;
+}
+
+/* Groups */
+.group-item {
+	@apply basis-[9rem] rounded p-3;
+
+	.add-btn {
+		@apply mb-1 w-1/3 mx-auto rounded-full duration-[200ms];
+	}
+
+	&:hover {
+		.add-btn {
+			@apply bg-[#6fcf6f] transition-all duration-[400ms];
+		}
+	}
+}
+
+.group-selectable {
+	@apply cursor-pointer hover:scale-[105%] hover:duration-[200ms] duration-[400ms] select-none;
+}
+
+.group-btn-icon {
+	@apply h-6 p-1 basis-0 grow hover:duration-[200ms] duration-[400ms] rounded-tr rounded-bl select-none origin-top-right;
+}
+
+.group-btn-list {
+	@apply flex gap-2 w-full justify-center p-1 bg-white rounded-b;
+}
+
+/* Teams */
+.team-item {
+	@apply basis-[9rem];
+}
+
+.team-selectable {
+	@apply cursor-pointer hover:scale-[105%] hover:duration-[200ms] duration-[400ms] select-none;
+}
+
+.team-btn-icon {
+	@apply h-5 p-0.5 basis-0 grow hover:duration-[200ms] duration-[400ms] rounded select-none;
+}
+
+.team-btn-list {
+	@apply flex gap-2 w-full justify-center p-1 bg-white rounded-b;
+}
+
+.team-name {
+	@apply w-full p-2 bg-nutLight;
+
+	.add-btn {
+		@apply h-1/3 mb-1 w-1/3 mx-auto rounded-full duration-[200ms];
+	}
+
+	&:hover {
+		.add-btn {
+			@apply bg-[#6fcf6f] transition-all duration-[400ms];
+		}
+	}
+}
+
+/* Notifications */
+.notif-success {
+	@apply bg-green-600;
+}
+
+.notif-warning {
+	@apply bg-yellow-600;
+}
+
+.notif-error {
+	@apply bg-red-600;
+}
+
+.team-text-color {
+	color: var(--team-color);
+}
+.team-bg-color {
+	background-color: var(--team-color);
+}
+.team-border-color {
+	border-color: var(--team-color);
+}
+
+/* for wiggle animation */
+.wiggle {
+	animation: wiggle 1.8s ease-in-out infinite;
+}
+
+@keyframes wiggle {
+	0% {
+		transform: rotate(0deg) scale(1, 1);
+	}
+	20% {
+		transform: rotate(7deg) scale(1.1, 1.1);
+	}
+	40% {
+		transform: rotate(0deg) scale(1, 1);
+	}
+	50% {
+		transform: rotate(0deg) scale(1, 1);
+	}
+	60% {
+		transform: rotate(0deg) scale(1, 1);
+	}
+	80% {
+		transform: rotate(-7deg) scale(1.1, 1.1);
+	}
+	100% {
+		transform: rotate(0deg) scale(1, 1);
+	}
+}
+
 /*CSS here is only used because it cannot be easily done in tailwind*/
 
 html, body {
 	height: 100%;
 }
 
-li + li {
-	margin-top: -4px;
+.footer-links {
+	li + li {
+		margin-top: -4px;
+	}
+	a {
+		@apply underline hover:duration-[200ms] duration-[400ms] hover:tracking-wider transition-all;
+	}
 }
 
 .wavy {
@@ -80,3 +230,125 @@ footer {
 	height: 140px;
 	top: calc(100vh - 140px);
 }
+
+.bracket{
+	display:flex;
+	flex-direction:row;
+}
+
+.round{
+	display:flex;
+	flex-direction:column;
+	justify-content:center;
+	width:200px;
+	list-style:none;
+	padding:0;
+}
+
+.round .spacer{ flex-grow:1; }
+.round .spacer:first-child,
+.round .spacer:last-child{ flex-grow:.5; }
+
+.round .game-spacer{
+	flex-grow:1;
+}
+
+li.game{
+	padding-left:20px;
+}
+  
+li.game.winner{
+	font-weight:bold;
+}
+li.game span{
+	float:right;
+	@apply px-1;
+}
+
+li.game-top{ border-bottom:1px solid #aaa; }
+
+li.game-spacer{ 
+	border-right:1px solid #aaa;
+	min-height:40px;
+	justify-content: center;
+    display: flex;
+    align-items: center;
+    padding-right: 20px;
+	flex-direction: column;
+}
+
+li.game-bottom{ 
+	border-top:1px solid #aaa;
+}
+
+input.game-input-score {
+	@apply w-8 bg-transparent ml-auto pr-2 text-right;
+}
+
+.group-hover {
+	@apply bg-green-200;
+}
+
+.notifications {
+	position: fixed;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5em;
+	font-family: 'JetBrains Mono', monospace;
+	src: url("https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Source+Code+Pro:wght@300&display=swap");
+  }
+  
+  .notifications-provider-bottom-right {
+	right: 2em;
+	bottom: 2em;
+  }
+  
+  .notifications-provider-top-right {
+	right: 2em;
+	top: 2em;
+  }
+  
+  .notifications-provider-bottom-left {
+	left: 2em;
+	bottom: 2em;
+  }
+  
+  .notifications-provider-top-left {
+	left: 2em;
+	top: 2em;
+  }
+
+  .notification {
+	cursor: pointer;
+	padding: 0.6em;
+	border-radius: 0.5em;
+	display: flex;
+	flex-direction: column;
+	gap: 0.2em;
+	border: 2px solid transparent;
+  }
+  
+  .notification > .time {
+	font-size: 0.7em;
+	color: #4c5159;
+  }
+  
+  .notification > .notification-title {
+	font-weight: bold;
+  }
+  
+  .error {
+	background-color: #f08694;
+  }
+  
+  .warn {
+	background-color: #9cb8e6;
+  }
+  
+  .info {
+	background-color: #91c7b5;
+  }
+  
+  .paused {
+	border: 2px solid grey;
+  }
