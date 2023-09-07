@@ -46,7 +46,6 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
     let date_ref = use_node_ref();
     let location_ref = use_node_ref();
     let description_ref = use_node_ref();
-    let groupe_size_ref = use_node_ref();
     let is_qualif = use_state(|| false);
     let is_elim = use_state(|| false);
 
@@ -74,12 +73,24 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         let id = id.clone();
         let is_qualif = is_qualif.clone();
         let is_elim = is_elim.clone();
+        let notifs = notifs.clone();
 
         use_effect_with_deps(
             move |_| {
                 spawn_local(async move {
-                    // TODO: fetch tournoix teams and matches
-                    let tournoix = api::tournoix::get(id).await.ok();
+                    let tournoix = match api::tournoix::get(id).await {
+                        Ok(t) => Some(t),
+                        Err(e) => {
+                            notifs.spawn(CustomNotification::new(
+                                &format!("Erreur: {}", e.error.reason),
+                                &e.error.description,
+                                NotifType::Error,
+                                Duration::seconds(5),
+                            ));
+
+                            None
+                        }
+                    };
 
                     if let Some(tournoix) = &tournoix {
                         is_elim.set(tournoix.is_elim);
@@ -102,40 +113,6 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         Callback::from(move |_| navigator.push(&Route::TournoixView { id }))
     };
 
-    let elim_matches = use_state(|| {
-        vec![
-            vec![
-                Match {
-                    id: 0,
-                    team1: "Cloud9".to_string(),
-                    score1: 0,
-                    team2: "FaZe Clan".to_string(),
-                    score2: 0,
-                    started: false,
-                    finished: false,
-                },
-                Match {
-                    id: 1,
-                    team1: "NaVi".to_string(),
-                    score1: 0,
-                    team2: "NRG Esports".to_string(),
-                    score2: 0,
-                    started: true,
-                    finished: false,
-                },
-            ],
-            vec![Match {
-                id: 2,
-                team1: "G2 Esports".to_string(),
-                score1: 0,
-                team2: "fnatic".to_string(),
-                score2: 0,
-                started: true,
-                finished: true,
-            }],
-        ]
-    });
-
     let on_submit = {
         let tournament = tournament.clone();
 
@@ -147,6 +124,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         let is_qualif = is_qualif.clone();
         let is_elim = is_elim.clone();
         let trigger = trigger.clone();
+        let notifs = notifs.clone();
 
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
@@ -241,14 +219,87 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
     let on_qualif_reset_click = {
         let tournament = tournament.clone();
         let should_update = should_update.clone();
+        let notifs = notifs.clone();
 
         Callback::from(move |_| {
             if tournament.is_some() {
                 let tournament = tournament.clone();
                 let should_update = should_update.clone();
+                let notifs = notifs.clone();
 
                 spawn_local(async move {
-                    let _ = tournament.as_ref().unwrap().reset_qualif_games().await;
+                    match tournament.as_ref().unwrap().reset_qualif_games().await {
+                        Ok(_) => {},
+                        Err(e) => {
+                            notifs.spawn(CustomNotification::new(
+                                &format!("Erreur: {}", e.error.reason),
+                                &e.error.description,
+                                NotifType::Error,
+                                Duration::seconds(5),
+                            ));
+                        }
+                    };
+
+                    should_update.set(!*should_update);
+                });
+            }
+        })
+    };
+
+    let on_elim_gen_click = {
+        let tournament = tournament.clone();
+        let should_update = should_update.clone();
+        let notifs = notifs.clone();
+
+        Callback::from(move |_| {
+            if tournament.is_some() {
+                let tournament = tournament.clone();
+                let should_update = should_update.clone();
+                let notifs = notifs.clone();
+
+                spawn_local(async move {
+                    match tournament.as_ref().unwrap().generate_elim_games().await {
+                        Ok(_) => {},
+                        Err(e) => {
+                            notifs.spawn(CustomNotification::new(
+                                &format!("Erreur: {}", e.error.reason),
+                                &e.error.description,
+                                NotifType::Error,
+                                Duration::seconds(5),
+                            ));
+                        }
+                    };
+
+                    should_update.set(!*should_update);
+                });
+            }
+        })
+    };
+
+    let on_elim_reset_click = {
+        let tournament = tournament.clone();
+        let should_update = should_update.clone();
+        let notifs = notifs.clone();
+
+        Callback::from(move |_| {
+            if tournament.is_some() {
+                let tournament = tournament.clone();
+                let should_update = should_update.clone();
+                let notifs = notifs.clone();
+
+                spawn_local(async move {
+                    match tournament.as_ref().unwrap().reset_elim_games().await {
+                        Ok(_) => {},
+                        Err(e) => {
+                            notifs.spawn(CustomNotification::new(
+                                &format!("Erreur: {}", e.error.reason),
+                                &e.error.description,
+                                NotifType::Error,
+                                Duration::seconds(5),
+                            ));
+                        }
+                    };
+
                     should_update.set(!*should_update);
                 });
             }
@@ -291,8 +342,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                             <h2>{"Phase de qualifications"}</h2>
                             <Groups tournament={tournament.clone()} should_update={should_update.clone()} editable={true} />
                             <div class={"flex gap-4 mt-3"}>
-                                <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700" onclick={on_qualif_gen_click}>{"Générer les matches"}</Button> // Génère les matches et bloque la modification des équipes
-                                <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700" onclick={on_qualif_reset_click}>{"Réinitialiser les matches"}</Button> // Reset les matches, possible uniquement si aucun match n'a démarré !
+                                <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700" onclick={on_qualif_gen_click}>{"Générer les matches"}</Button>
+                                <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700" onclick={on_qualif_reset_click}>{"Réinitialiser les matches"}</Button>
                             </div>
                             <QualificationPhase tournament={tournament.clone()} should_update={should_update.clone()} editable={true} />
                         }
@@ -300,15 +351,11 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                             <hr/>
                             <h2>{"Phase d'éliminations"}</h2>
                             
-                            if *is_qualif {
-                                <p>{"La phase de qualification doit être terminée pour générer la phase d'élimination"}</p>
-                            } else {
-                                <div class={"flex gap-4 mt-3 mb-3"}>
-                                    <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700">{"Générer les matches"}</Button> // Génère les matches et bloque la modification des équipes
-                                    <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700">{"Réinitialiser les matches"}</Button> // Reset les matches, possible uniquement si aucun match n'a démarré !
-                                </div>
-                            }
-                            <Bracket tournament={tournament.clone()} should_update={should_update} />
+                            <div class={"flex gap-4 mt-3 mb-3"}>
+                                <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700" onclick={on_elim_gen_click}>{"Générer les matches"}</Button>
+                                <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700" onclick={on_elim_reset_click}>{"Réinitialiser les matches"}</Button>
+                            </div>
+                            <Bracket tournament={tournament.clone()} should_update={should_update} editable={true} />
                         }
                     } else {
                         <div>{"Oups, ce tournoi n'existe pas :("}</div>

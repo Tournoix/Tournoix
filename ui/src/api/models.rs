@@ -135,6 +135,26 @@ impl Tournament {
         )
         .await
     }
+
+    pub async fn generate_elim_games(&self) -> Result<Vec<Game>, ErrorResponse> {
+        api_call::<Vec<Game>>(
+            Method::POST,
+            &format!("tournoix/{}/elim", self.id),
+            HeaderMap::new(),
+            String::new(),
+        )
+        .await
+    }
+
+    pub async fn reset_elim_games(&self) -> Result<EmptyResponse, ErrorResponse> {
+        api_call::<EmptyResponse>(
+            Method::DELETE,
+            &format!("tournoix/{}/elim", self.id),
+            HeaderMap::new(),
+            String::new(),
+        )
+        .await
+    }
 }
 
 // ---- Team ----

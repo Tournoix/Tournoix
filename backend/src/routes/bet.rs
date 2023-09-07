@@ -339,7 +339,7 @@ pub async fn get_user_game_bet_result(
     }
 
     // get the user nut
-    let nut = get_user_nut(&connection, auth.user.id, id_game).await?;
+    // let nut = get_user_nut(&connection, auth.user.id, id_game).await?;
 
     // get the user bet
     let bet = match connection
@@ -584,8 +584,8 @@ pub async fn create_bet(
     }
 
     // remove the nut from the user
-    let new_stock = nut.stock - data.nut as i32;
-    let nut = set_stock(&connection, nut.id, new_stock).await?;
+    // let new_stock = nut.stock - data.nut as i32;
+    // let nut = set_stock(&connection, nut.id, new_stock).await?;
 
     // create the bet
     let new_bet = NewBet {

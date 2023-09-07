@@ -6,10 +6,13 @@ use yew::prelude::*;
 use yew_notifications::use_notification;
 
 use crate::{
-    api::{models::{GameWithTeams, GameUpdate}, self}, components::checkbox::CheckBox, utils::utils::team_color_wrapper, notification::{CustomNotification, NotifType},
+    api::{
+        self,
+        models::{GameUpdate, GameWithTeams},
+    },
+    notification::{CustomNotification, NotifType},
+    utils::utils::team_color_wrapper,
 };
-
-use super::bracket::Match;
 
 #[derive(PartialEq, Properties)]
 pub struct BracketMatchProps {
@@ -22,11 +25,18 @@ pub struct BracketMatchProps {
 
 #[function_component]
 pub fn BracketMatch(props: &BracketMatchProps) -> Html {
-    let BracketMatchProps { game, editable, on_game_update } = props;
-    
+    let BracketMatchProps {
+        game,
+        editable,
+        on_game_update,
+    } = props;
+
     let notifs = use_notification::<CustomNotification>();
 
     let change_score1 = {
+        let game_id = game.id;
+        let notifs = notifs.clone();
+
         Callback::from(move |e: Event| {
             let target: EventTarget = e
                 .target()
@@ -39,10 +49,41 @@ pub fn BracketMatch(props: &BracketMatchProps) -> Html {
                 .unchecked_into::<HtmlInputElement>()
                 .value()
                 .parse::<i32>()
-            {}
+            {
+                let notifs = notifs.clone();
+
+                spawn_local(async move {
+                    match api::games::update(
+                        game_id,
+                        GameUpdate {
+                            score1: Some(val),
+                            score2: None,
+                            phase: None,
+                            status: None,
+                        },
+                    )
+                    .await
+                    {
+                        Ok(_) => {}
+
+                        Err(e) => {
+                            notifs.spawn(CustomNotification::new(
+                                format!("Erreur: {}", e.error.reason),
+                                e.error.description,
+                                NotifType::Error,
+                                Duration::seconds(5),
+                            ));
+                        }
+                    }
+                });
+            }
         })
     };
+
     let change_score2 = {
+        let game_id = game.id;
+        let notifs = notifs.clone();
+
         Callback::from(move |e: Event| {
             let target: EventTarget = e
                 .target()
@@ -55,7 +96,34 @@ pub fn BracketMatch(props: &BracketMatchProps) -> Html {
                 .unchecked_into::<HtmlInputElement>()
                 .value()
                 .parse::<i32>()
-            {}
+            {
+                let notifs = notifs.clone();
+
+                spawn_local(async move {
+                    match api::games::update(
+                        game_id,
+                        GameUpdate {
+                            score1: None,
+                            score2: Some(val),
+                            phase: None,
+                            status: None,
+                        },
+                    )
+                    .await
+                    {
+                        Ok(_) => {}
+
+                        Err(e) => {
+                            notifs.spawn(CustomNotification::new(
+                                format!("Erreur: {}", e.error.reason),
+                                e.error.description,
+                                NotifType::Error,
+                                Duration::seconds(5),
+                            ));
+                        }
+                    }
+                });
+            }
         })
     };
 
@@ -222,7 +290,7 @@ pub fn BracketMatch(props: &BracketMatchProps) -> Html {
             <li class={"game game-bottom"}>
                 <div style={team_color_wrapper(game.team2.name.clone())} class={classes!("border-l-4", "team-border-color", "flex", "bg-nutLighter", "pl-2", if game.status == 2 && game.score2 > game.score1 {"font-bold"} else {""})}>
                     <span>{game.team2.name.clone()}</span>
-                    <input type="number" disabled={!*editable} value={game.score2.to_string()} class={classes!("game-input-score", if game.status == 2 {if game.score2 > game.score1 {"bg-green-300"} else {"bg-red-300"}} else {""})}/>
+                    <input type="number" disabled={!*editable} onchange={change_score2} value={game.score2.to_string()} class={classes!("game-input-score", if game.status == 2 {if game.score2 > game.score1 {"bg-green-300"} else {"bg-red-300"}} else {""})}/>
                 </div>
             </li>
         </>

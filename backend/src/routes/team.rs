@@ -12,7 +12,7 @@ use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
 
 use super::auth::ApiAuth;
-use super::tournoix::{is_owner, tournament_is_started};
+use super::tournoix::tournament_is_started;
 
 // get all team from a tournament
 #[get("/tournoix/<id>/teams")]
