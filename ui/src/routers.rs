@@ -5,7 +5,7 @@ use crate::{
     components::user_provider::UserContext,
     pages::{
         home::Home, login::Login, register::Register, tournoix::Tournoix,
-        tournoix_create::TournoixCreate, tournoix_edit::TournoixEdit, tournoix_view::TournoixView, games_view::MatchView,
+        tournoix_create::TournoixCreate, tournoix_edit::TournoixEdit, tournoix_view::TournoixView, games_view::MatchView, join::Join,
     },
 };
 
@@ -23,6 +23,8 @@ pub enum Route {
     TournoixView { id: i32 },
     #[at("/tournoix/:tournament_id/match/:match_id")]
     MatchView { tournament_id: i32, match_id: i32 },
+    #[at("/join/:code")]
+    Join {code: String},
     #[at("/login")]
     Login,
     #[at("/register")]
@@ -40,6 +42,7 @@ pub fn router(routes: Route) -> Html {
         Route::TournoixEdit { id } => html! {<LoggedRoute><TournoixEdit id={id} /></LoggedRoute>},
         Route::TournoixCreate => html! {<LoggedRoute><TournoixCreate /></LoggedRoute>},
         Route::MatchView { tournament_id, match_id } => html! {<LoggedRoute><MatchView tournament_id={tournament_id} match_id={match_id} /></LoggedRoute>},
+        Route::Join { code } => html! {<LoggedRoute><Join code={code}/></LoggedRoute>},
         Route::Login => html! {<Login/>},
         Route::Register => html! {<Register/>},
         Route::NotFound => html! {<h1>{"404 Not Found"}</h1>},

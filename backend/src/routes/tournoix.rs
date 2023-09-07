@@ -67,6 +67,35 @@ pub async fn get_tournoix(
     }
 }
 
+#[get("/tournoix_by_code/<code>")]
+    pub async fn get_tournoix_by_code(
+        connection: MysqlConnection,
+        code: String,
+        _auth: ApiAuth,
+    ) -> Result<Json<Tournament>, (Status, Json<ErrorResponse>)> {
+        match connection
+            .run(move |c| tournaments::table.filter(tournaments::code.eq(code)).first::<Tournament>(c))
+            .await
+        {
+            Ok(tournoi) => {
+                Ok(Json(tournoi))
+            }
+    
+            Err(_e) => {    
+                return Err((
+                    Status::NotFound,
+                    Json(ErrorResponse {
+                        error: ErrorBody {
+                            code: 404,
+                            reason: "Not Found".into(),
+                            description: "Tournament with given code does not exists".into(),
+                        },
+                    }),
+                ));
+            }
+        }
+    }
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AddTournament {
     pub name: String,

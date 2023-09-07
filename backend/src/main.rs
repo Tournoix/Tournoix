@@ -106,6 +106,7 @@ fn rocket() -> _ {
                 create_tournoix,
                 update_tournoix,
                 delete_tournoix,
+                get_tournoix_by_code,
                 // Teams
                 get_teams,
                 create_team,

@@ -7,7 +7,7 @@ use crate::{ErrorBody, ErrorResponse, MysqlConnection};
 use diesel::prelude::*;
 use rocket::http::Status;
 use rocket::serde::json::Json;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 // get all tournament created by the user
 #[get("/users/@me/tournoix")]
@@ -51,7 +51,9 @@ pub async fn get_user_subscription(
     match connection
         .run(move |c| {
             subscriptions::table
-                .inner_join(tournaments::table.on(tournaments::id.eq(subscriptions::fk_tournaments)))
+                .inner_join(
+                    tournaments::table.on(tournaments::id.eq(subscriptions::fk_tournaments)),
+                )
                 .select(tournaments::all_columns)
                 .filter(subscriptions::fk_users.eq(auth.user.id))
                 .load::<Tournament>(c)
@@ -76,7 +78,7 @@ pub async fn get_user_subscription(
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SubscriptionRequest {
-    pub code: String
+    pub code: String,
 }
 
 // create a subscription for a tournament with the code of the tournament and the id of the user
@@ -86,7 +88,7 @@ pub async fn create_subsciption(
     connection: MysqlConnection,
     data: Json<SubscriptionRequest>,
     auth: ApiAuth,
-) -> Result<Json<Subscription>, (Status, String)> {
+) -> Result<Json<Subscription>, (Status, Json<ErrorResponse>)> {
     let code = data.0.code;
 
     // verify the existance of the code in the database
@@ -99,8 +101,45 @@ pub async fn create_subsciption(
         .await
     {
         Ok(tournament) => tournament,
-        Err(_) => return Err((Status::NotFound, "Wrong code".to_string())),
+        Err(_) => {
+            return Err((
+                Status::NotFound,
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 404,
+                        reason: "Not Found".into(),
+                        description: "No tournament found".to_string(),
+                    },
+                }),
+            ))
+        }
     };
+
+    let is_subscriber = match connection
+        .run(move |c| {
+            subscriptions::table
+                .filter(subscriptions::fk_tournaments.eq(tournament.id))
+                .filter(subscriptions::fk_users.eq(auth.user.id))
+                .first::<Subscription>(c)
+        })
+        .await
+    {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
+    if is_subscriber {
+        return Err((
+            Status::BadRequest,
+            Json(ErrorResponse {
+                error: ErrorBody {
+                    code: 400,
+                    reason: "Bad Request".into(),
+                    description: "You are already subscribed".to_string(),
+                },
+            }),
+        ));
+    }
 
     // create the subscription
     let subscription = NewSubscription {
@@ -135,7 +174,13 @@ pub async fn create_subsciption(
                 Err(_) => {
                     return Err((
                         Status::InternalServerError,
-                        "Internel Server Error".to_string(),
+                        Json(ErrorResponse {
+                            error: ErrorBody {
+                                code: 500,
+                                reason: "Internal Server Error".into(),
+                                description: "An error has occured".to_string(),
+                            },
+                        }),
                     ))
                 }
             }
@@ -168,7 +213,13 @@ pub async fn create_subsciption(
         Err(_e) => {
             return Err((
                 Status::InternalServerError,
-                "Internel Server Error".to_string(),
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 500,
+                        reason: "Internal Server Error".into(),
+                        description: "An error has occured".to_string(),
+                    },
+                }),
             ))
         }
     }

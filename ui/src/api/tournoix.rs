@@ -1,7 +1,7 @@
 use reqwest::{header::HeaderMap, Method};
 use serde::{Deserialize, Serialize};
 
-use super::{api_call, models::Tournament, ErrorResponse};
+use super::{api_call, models::{Tournament, Subscription}, ErrorResponse};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateTournoixRequest {
@@ -43,6 +43,31 @@ pub async fn get(tournoix_id: i32) -> Result<Tournament, ErrorResponse> {
         String::new(),
     )
     .await
+}
+
+pub async fn get_by_code(code: impl Into<String>) -> Result<Tournament, ErrorResponse> {
+    api_call::<Tournament>(
+        Method::GET,
+        &format!("tournoix_by_code/{}", code.into()),
+        HeaderMap::new(),
+        String::new(),
+    )
+    .await
+}
+
+pub async fn subscribe(request: SubscriptionRequest) -> Result<Subscription, ErrorResponse> {
+    api_call::<Subscription>(
+        Method::POST,
+        "/users/@me/subscription",
+        HeaderMap::new(),
+        serde_json::to_string(&request).unwrap(),
+    )
+    .await
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct SubscriptionRequest {
+    pub code: String
 }
 
 #[derive(Serialize, Deserialize, Debug)]
