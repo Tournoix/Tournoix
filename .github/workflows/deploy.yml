@@ -34,7 +34,7 @@ jobs:
         shared-key: "rust_cache"
     
     - name: Build frontend
-      run: cd ./ui && npm i && npx tailwindcss -i ./style.scss -o ./output.scss --minify && trunk build --release
+      run: cd ./ui && mv ./.env.example ./.env && npm i && npx tailwindcss -i ./style.scss -o ./output.scss --minify && trunk build --release
       
     - name: Build and test backend
       run: cd ./backend && cargo test --release --verbose
