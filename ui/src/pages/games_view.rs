@@ -198,19 +198,7 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                         let loading = loading.clone();
 
                         spawn_local(async move {
-                            if let Some(bet) = api::game::get_user_bet_on_match(user.id.clone() as i32, match_id).await.ok() {
-                                let mut response = bet;
-
-                                // For some obscure reason, some fields are mixed up...
-                                let temp: i32 = response.fk_teams;
-                                response.fk_teams = response.fk_games;
-                                response.fk_games = response.fk_users;
-                                response.fk_users = temp;
-
-                                user_bet.set(Some(response));
-                            } else {
-                                user_bet.set(None);
-                            }
+                            user_bet.set(api::game::get_user_bet_on_match(user.id.clone() as i32, match_id).await.ok());
 
                             if let Some(nut) = api::game::get_nb_nut(tournament_id.clone()).await.ok() {
                                 user_nut.set(nut.stock);

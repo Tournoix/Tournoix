@@ -574,8 +574,8 @@ pub async fn create_bet(
     }
 
     // remove the nut from the user
-    // let new_stock = nut.stock - data.nut as i32;
-    // let nut = set_stock(&connection, nut.id, new_stock).await?;
+    let new_stock = nut.stock - data.nut as i32;
+    let nut = set_stock(&connection, nut.id, new_stock).await?;
 
     // create the bet
     let new_bet = NewBet {
