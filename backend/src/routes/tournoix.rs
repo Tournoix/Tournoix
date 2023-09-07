@@ -14,6 +14,15 @@ use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
 
+#[get("/tournoix/<id>/me@/is_owner")]
+pub async fn get_tournoix_is_owner(
+    connection: MysqlConnection,
+    id: i32,
+    auth: ApiAuth,
+) -> Result<Json<bool>, (Status, Json<ErrorResponse>)> {
+    return Ok(Json(!is_owner(&connection, id, &auth).await));
+}
+
 #[get("/tournoix/<id>")]
 pub async fn get_tournoix(
     connection: MysqlConnection,

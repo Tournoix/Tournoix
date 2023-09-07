@@ -34,6 +34,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
     let has_joined_this_tournament = use_state(|| false);
     let loading = use_state(|| true);
     let user_nut = use_state(|| 0);
+    let can_edit_tournament = use_state(|| false);
 
     {
         let tournament = tournament.clone();
@@ -43,6 +44,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
         let loading = loading.clone();
         let id = id.clone();
         let has_joined_this_tournament = has_joined_this_tournament.clone();
+        let can_edit_tournament = can_edit_tournament.clone();
 
         use_effect_once(move || {
             if let Some(user) = user {
@@ -57,6 +59,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                     });
 
                     let tournament = tournament.clone();
+                    let can_edit_tournament = can_edit_tournament.clone();
         
                     spawn_local(async move {
                         if let Some(subscriptions) = user.subscriptions().await.ok() {
@@ -83,12 +86,15 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
         let loading_bettable_games = loading_bettable_games.clone();
         let tournament_clone = (*tournament).clone();
         let user_nut = user_nut.clone();
+        let can_edit_tournament = can_edit_tournament.clone();
 
         use_effect_with_deps(
             move |_| {
                 if let Some(tournament_clone) = tournament_clone {
                     let tournament_clone = tournament_clone.clone();
+                    let tournament = tournament_clone.clone();
                     let user_nut = user_nut.clone();
+                    let can_edit_tournament = can_edit_tournament.clone();
                     spawn_local(async move {
                         if let Some(games) = tournament_clone.get_matches().await.ok() {
                             bettable_games.set(games.iter()
@@ -103,6 +109,12 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                             user_nut.set(nut.stock);
                         }
                     });
+
+                    spawn_local(async move {
+                        if let Some(can_edit) = api::tournoix::is_tournoix_owner(tournament.id.clone()).await.ok() {
+                            can_edit_tournament.set(can_edit);
+                        }
+                    });
                 }
 
                 || ()
@@ -115,8 +127,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
         Callback::from(move |_| trigger.set(!*trigger))
     };
 
-    // TODO Wheter or not the current user can edit this tournament
-    let can_edit_tournament = true;
+    let tournament_over = true; // TODO: DB
 
     let groups: UseStateHandle<Vec<Group>> =
         use_state(|| vec![Group {}, Group {}, Group {}, Group {}, Group {}, Group {}]);
@@ -126,9 +137,6 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
         let id = id.clone();
         Callback::from(move |_| navigator.push(&Route::TournoixEdit { id }))
     };
-
-    // TODO: DB
-    let tournament_over = true;
 
     html! {
         <HomeLayout>
@@ -141,7 +149,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         <div>{"Oups, ce tournoi n'existe pas :("}</div>
                     } else  {
                         <h1 class="mb-5">{tournament.as_ref().unwrap().name.to_string()}</h1>
-                        {if can_edit_tournament { html! {<a onclick={on_click_edit} class="a_link mb-6">{"Modifier ce tournoi"}</a>}} else { html! {} }}
+                        {if !(*can_edit_tournament) { html! {<a onclick={on_click_edit} class="a_link mb-6">{"Modifier ce tournoi"}</a>}} else { html! {} }}
                         <JoinCode code={tournament.as_ref().unwrap().code.to_string()}/>
                         <hr/>
                         <h2>{"Informations"}</h2>
