@@ -36,4 +36,4 @@ jobs:
       run: cd ./ui && mv ./.env.example ./.env && npm i && npm run build
 
     - name: Run backend tests
-      run: cd ./backend && cargo test --release --verbose
+      run: cd ./backend && cargo test --release
