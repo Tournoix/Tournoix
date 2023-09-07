@@ -255,3 +255,10 @@ pub struct Bet {
     pub fk_users: i32,
     pub nb_nut: i32,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Subscription {
+    pub id: i32,
+    pub fk_users: i32,
+    pub fk_tournaments: i32,
+}

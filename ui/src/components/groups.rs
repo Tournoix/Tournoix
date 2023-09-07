@@ -28,7 +28,7 @@ pub fn Groups(props: &GroupsProps) -> Html {
     let GroupsProps {
         tournament,
         should_update,
-        editable
+        editable,
     } = props;
 
     let groups: UseStateHandle<BTreeMap<i32, Vec<Team>>> = use_state(|| BTreeMap::new());
