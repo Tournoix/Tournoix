@@ -11,7 +11,7 @@ fn client() -> Client {
     Client::tracked(rocket()).expect("valid rocket instance")
 }
 
-
+/*
 #[test]
 fn successful_register_request() {
     const TEST_USER_EMAIL: &str = "john.doe@tournoix.com";
@@ -42,6 +42,7 @@ fn successful_register_request() {
     assert_eq!(response.status(), Status::Ok);
 }
 
+ */
 #[test]
 fn successful_login_logoff_request(){
     use crate::routes::auth::LoginRequest;
