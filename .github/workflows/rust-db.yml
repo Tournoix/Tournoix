@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      run: cargo build --verbose
+      run: cd backend && cargo build --verbose
     - name: Setup MySQL
       # You may pin to the exact commit or the version.
       # uses: mirromutth/mysql-action@de1fba8b3f90ce8db80f663a7043be3cf3231248
