@@ -158,15 +158,6 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                             let match_id = match_id.clone();
 
                             spawn_local(async move {
-                                if let Some(user_bet) = &*user_bet {
-                                    notifications_manager.spawn(CustomNotification::new(
-                                        "Vous avez misé",
-                                        format!("Vous vous avez misé {} sur ce match.", nb_nut),
-                                        NotifType::Success,
-                                        Duration::seconds(5),
-                                    ));
-                                }
-
                                 if let Some(user) = user {
                                     let res = api::game::bet(match_id.clone() as i32, BetData {
                                         team_id: team_id.clone(),
@@ -175,6 +166,13 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                                     
                                     if let Ok(res) = res {
                                         user_bet.set(Some(res));
+
+                                        notifications_manager.spawn(CustomNotification::new(
+                                            "Vous avez misé",
+                                            format!("Vous vous avez misé {} sur ce match.", nb_nut),
+                                            NotifType::Success,
+                                            Duration::seconds(5),
+                                        ));
                                     } else {
                                         notifications_manager.spawn(CustomNotification::new(
                                             "Erreur",
@@ -301,12 +299,12 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                                             <FormInput id="nut_bet" label="Nombre de noix à miser" form_type="number" min_num={1} required={true}/>
                                             <div class="flex relative drop-shadow-lg">
                                                 <div style={team_color_wrapper(game.team1.name.clone())} class="flex grow-[1] hover:duration-[200ms] duration-[600ms] hover:grow-[3] rounded-l team-bg-color">
-                                                    <Button class="bg-transparent px-4 py-3 text-right w-full" onclick={on_bet_click(game.team1.id.clone())}>
+                                                    <Button class="bg-transparent px-4 py-3 text-right w-full hover:tracking-normal" onclick={on_bet_click(game.team1.id.clone())}>
                                                         {format!("Miser sur \"{}\"", game.team1.name.clone())}
                                                     </Button>
                                                 </div>
                                                 <div style={team_color_wrapper(game.team2.name.clone())} class="flex grow-[1] hover:duration-[200ms] duration-[600ms] hover:grow-[3] rounded-r team-bg-color">
-                                                    <Button class="bg-transparent px-4 py-3 text-left w-full" onclick={on_bet_click(game.team2.id.clone())}>
+                                                    <Button class="bg-transparent px-4 py-3 text-left w-full hover:tracking-normal" onclick={on_bet_click(game.team2.id.clone())}>
                                                         {format!("Miser sur \"{}\"", game.team2.name.clone())}
                                                     </Button>
                                                 </div>
