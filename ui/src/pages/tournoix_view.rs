@@ -57,7 +57,6 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                             subscriptions.iter().for_each(|t| {
                                 if t.id == id {
                                     has_joined_this_tournament.set(true);
-                                    log::info!("User has joined this tournament");
                                 }
                             });
                         }

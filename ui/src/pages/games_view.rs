@@ -8,7 +8,7 @@ use crate::{
     },
     layouts::homelayout::HomeLayout,
     routers::Route,
-    utils::utils::team_color_wrapper, api::{models::{GameWithTeams, self}, self}, notification::{NotifType, CustomNotification},
+    utils::utils::team_color_wrapper, api::{models::{GameWithTeams, self}, self, game::BetData}, notification::{NotifType, CustomNotification},
 };
 use time::Duration;
 use wasm_bindgen::JsCast;
@@ -74,7 +74,19 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                         let tournament_id = tournament_id.clone();
 
                         spawn_local(async move {
-                            user_bet.set(api::game::get_user_bet_on_match(user.id.clone() as i32, match_id).await.ok());
+                            if let Some(bet) = api::game::get_user_bet_on_match(user.id.clone() as i32, match_id).await.ok() {
+                                let mut response = bet;
+
+                                // For some obscure reason, some fields are mixed up...
+                                let temp: i32 = response.fk_teams;
+                                response.fk_teams = response.fk_games;
+                                response.fk_games = response.fk_users;
+                                response.fk_users = temp;
+
+                                user_bet.set(Some(response));
+                            } else {
+                                user_bet.set(None);
+                            }
 
                             if let Some(nut) = api::game::get_nb_nut(tournament_id.clone()).await.ok() {
                                 user_nut.set(nut.stock);
@@ -120,11 +132,14 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
         );
     }
 
-    let on_bet_click = |is_team_left: bool| {
+    let on_bet_click = |team_id: i32| {
+        let user_info = user_info.clone();
+        let user = user_info.user.clone();
         let user_bet = user_bet.clone();
         let game = game.clone();
         let notifications_manager = notifications_manager.clone();
         let trigger = trigger.clone();
+        let match_id = match_id.clone();
 
         Callback::from(move |_| {
             if let Some(game) = (*game).clone() {
@@ -135,13 +150,44 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                 if let Some(input_element) = input_element {
                     if let Ok(nb_nut) = input_element.value().parse::<i32>() {
                         if nb_nut > 0 {
-                            notifications_manager.spawn(CustomNotification::new(
-                                "Vous avez misé",
-                                format!("Vous vous avez misé {} sur ce match.", nb_nut),
-                                NotifType::Success,
-                                Duration::seconds(5),
-                            ));
-                            trigger.set(!*trigger);
+
+                            let user_bet = user_bet.clone();
+                            let notifications_manager = notifications_manager.clone();
+                            let user = user.clone();
+                            let trigger = trigger.clone();
+                            let match_id = match_id.clone();
+
+                            spawn_local(async move {
+                                if let Some(user_bet) = &*user_bet {
+                                    notifications_manager.spawn(CustomNotification::new(
+                                        "Vous avez misé",
+                                        format!("Vous vous avez misé {} sur ce match.", nb_nut),
+                                        NotifType::Success,
+                                        Duration::seconds(5),
+                                    ));
+                                }
+
+                                if let Some(user) = user {
+                                    let res = api::game::bet(match_id.clone() as i32, BetData {
+                                        team_id: team_id.clone(),
+                                        nut: nb_nut.clone(),
+                                    }).await;
+                                    
+                                    if let Ok(res) = res {
+                                        user_bet.set(Some(res));
+                                    } else {
+                                        notifications_manager.spawn(CustomNotification::new(
+                                            "Erreur",
+                                            format!("Impossible de miser {} noix sur ce match.", nb_nut),
+                                            NotifType::Error,
+                                            Duration::seconds(5),
+                                        ));
+                                    }
+                                }
+                                
+                                trigger.set(!*trigger);
+                            });
+
                         }
                     }
                 }
@@ -190,12 +236,14 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
         let user_bet = user_bet.clone();
         let notifications_manager = notifications_manager.clone();
         let trigger = trigger.clone();
+        let match_id = match_id.clone();
 
         Callback::from(move |_| {
             if let Some(user) = user.clone() {
                 let user_bet = user_bet.clone();
                 let notifications_manager = notifications_manager.clone();
                 let trigger = trigger.clone();
+                let match_id = match_id.clone();
 
                 spawn_local(async move {
                     if let Some(user_bet) = &*user_bet {
@@ -207,7 +255,7 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                         ));
                     }
 
-                    user_bet.set(api::game::delete_bet(user.id.clone() as i32).await.ok());
+                    user_bet.set(api::game::delete_bet(match_id.clone() as i32).await.ok());
                     
                     trigger.set(!*trigger);
                 });
@@ -253,12 +301,12 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                                             <FormInput id="nut_bet" label="Nombre de noix à miser" form_type="number" min_num={1} required={true}/>
                                             <div class="flex relative drop-shadow-lg">
                                                 <div style={team_color_wrapper(game.team1.name.clone())} class="flex grow-[1] hover:duration-[200ms] duration-[600ms] hover:grow-[3] rounded-l team-bg-color">
-                                                    <Button class="bg-transparent px-4 py-3 text-right w-full" onclick={on_bet_click(false)}>
+                                                    <Button class="bg-transparent px-4 py-3 text-right w-full" onclick={on_bet_click(game.team1.id.clone())}>
                                                         {format!("Miser sur \"{}\"", game.team1.name.clone())}
                                                     </Button>
                                                 </div>
                                                 <div style={team_color_wrapper(game.team2.name.clone())} class="flex grow-[1] hover:duration-[200ms] duration-[600ms] hover:grow-[3] rounded-r team-bg-color">
-                                                    <Button class="bg-transparent px-4 py-3 text-left w-full" onclick={on_bet_click(true)}>
+                                                    <Button class="bg-transparent px-4 py-3 text-left w-full" onclick={on_bet_click(game.team2.id.clone())}>
                                                         {format!("Miser sur \"{}\"", game.team2.name.clone())}
                                                     </Button>
                                                 </div>
