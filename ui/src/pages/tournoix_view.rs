@@ -139,7 +139,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         <div>{"Lieu: "}{tournament.as_ref().unwrap().location.as_ref().unwrap_or(&String::new())}</div>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.2.2/ol.css"/>
                         <script src="https://cdn.jsdelivr.net/npm/ol@v7.2.2/dist/ol.js"></script>
-                        <div id="map" class="h-56 w-80"></div>
+                        <div id="map" class="h-56 w-80" style="background-image: url(\"/img/loading.gif\")"></div>
                         <script>
                         {format!("LOCATION = '{}'", tournament.as_ref().unwrap().location.as_ref().unwrap_or(&String::new()))}
                         </script>
