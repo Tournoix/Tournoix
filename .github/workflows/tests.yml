@@ -1,0 +1,50 @@
+name: MySQL service
+on: push
+
+jobs:
+  container-job:
+    runs-on: ubuntu-latest
+    container: mysql:latest
+    services:
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Check MySQL connection
+        run: mysql -h
+
+      # Run sql script to create tables and insert data
+      - name: Run sql script
+        run: mysql -h localhost -u root -proot test < ./test.sql
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - uses: jetli/trunk-action@v0.4.0
+        with:
+          version: 'latest'
+  
+      - name: Install latest stable
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+            target: wasm32-unknown-unknown
+  
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-directories: "./backend/.cargo\n ./backend/target\n ./ui/.cargo\n ./ui/target"
+          shared-key: "rust_cache"
+  
+      - name: Build frontend
+        run: cd ./ui && npm i && npm run build
+  
+      - name: Run backend tests
+        run: cd ./backend && cargo test --release --verbose
+  
+      
