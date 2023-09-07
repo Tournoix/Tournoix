@@ -70,6 +70,9 @@ fn successful_login_logoff_request() {
         .body(json_register_request.unwrap())
         .dispatch();
 
+    // Wait for user to be registered
+    std::thread::sleep(std::time::Duration::from_secs(3));
+
 
     info!("Register Response: {:?}", response);
     assert_eq!(response.status(), Status::Ok);
