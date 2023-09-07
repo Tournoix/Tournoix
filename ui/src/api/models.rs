@@ -191,7 +191,7 @@ pub struct Game {
     pub group: Option<i32>
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Clone, Serialize, Deserialize, Debug)]
 pub struct GameWithTeams {
     pub id: i32,
     pub team1: Team,
