@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Check MySQL connection
-        run: mysql -h
+        run: mysql -h localhost -u root -proot -e "SHOW DATABASES;"
 
       # Run sql script to create tables and insert data
       - name: Run sql script
