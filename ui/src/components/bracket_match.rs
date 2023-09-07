@@ -150,13 +150,6 @@ pub fn BracketMatch(props: &BracketMatchProps) -> Html {
                 .await
                 {
                     Ok(game) => {
-                        notifs.spawn(CustomNotification::new(
-                            "Match modifié",
-                            &format!("Le match \"{}\" a démarré !", game.id),
-                            NotifType::Success,
-                            Duration::seconds(5),
-                        ));
-
                         on_game_update.emit(game.id);
                     }
 
@@ -185,13 +178,6 @@ pub fn BracketMatch(props: &BracketMatchProps) -> Html {
             spawn_local(async move {
                 match api::games::close(game_id).await {
                     Ok(_) => {
-                        notifs.spawn(CustomNotification::new(
-                            "Match modifié",
-                            &format!("Le match \"{}\" est terminé !", game_id),
-                            NotifType::Success,
-                            Duration::seconds(5),
-                        ));
-
                         on_game_update.emit(game_id);
                     }
 
@@ -230,13 +216,6 @@ pub fn BracketMatch(props: &BracketMatchProps) -> Html {
                 .await
                 {
                     Ok(game) => {
-                        notifs.spawn(CustomNotification::new(
-                            "Match modifié",
-                            &format!("Le match \"{}\" a été annulé !", game.id),
-                            NotifType::Success,
-                            Duration::seconds(5),
-                        ));
-
                         on_game_update.emit(game.id);
                     }
 

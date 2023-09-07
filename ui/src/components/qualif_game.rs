@@ -8,9 +8,8 @@ use yew_notifications::use_notification;
 use crate::{
     api::{
         self,
-        models::{Game, GameUpdate, GameWithTeams},
+        models::{GameUpdate, GameWithTeams},
     },
-    components::checkbox::CheckBox,
     notification::{CustomNotification, NotifType},
     utils::utils::team_color_wrapper,
 };
@@ -57,13 +56,6 @@ pub fn QualifGame(props: &QualifGameProps) -> Html {
                 .await
                 {
                     Ok(game) => {
-                        notifs.spawn(CustomNotification::new(
-                            "Match modifié",
-                            &format!("Le match \"{}\" a démarré !", game.id),
-                            NotifType::Success,
-                            Duration::seconds(5),
-                        ));
-
                         on_game_update.emit(game.id);
                     }
 
@@ -96,13 +88,6 @@ pub fn QualifGame(props: &QualifGameProps) -> Html {
                 .await
                 {
                     Ok(_) => {
-                        notifs.spawn(CustomNotification::new(
-                            "Match modifié",
-                            &format!("Le match \"{}\" est terminé !", game_id),
-                            NotifType::Success,
-                            Duration::seconds(5),
-                        ));
-
                         on_game_update.emit(game_id);
                     }
 
@@ -141,13 +126,6 @@ pub fn QualifGame(props: &QualifGameProps) -> Html {
                 .await
                 {
                     Ok(game) => {
-                        notifs.spawn(CustomNotification::new(
-                            "Match modifié",
-                            &format!("Le match \"{}\" a été annulé !", game.id),
-                            NotifType::Success,
-                            Duration::seconds(5),
-                        ));
-
                         on_game_update.emit(game.id);
                     }
 
