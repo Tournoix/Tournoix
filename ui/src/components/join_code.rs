@@ -14,7 +14,7 @@ pub fn JoinCode(props: &JoinCodeProps) -> Html {
         <div class="flex items-center sm:flex-row flex-col">
             <span class="text-2xl mr-4">{"Code pour rejoindre ce tournoi :"}</span>
             <div class="flex flex-col items-center">
-                <img src={format!("https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={}/join?code={}", dotenv!("APP_URL"), code)}/>
+                <img src={format!("https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={}/join/{}", dotenv!("APP_URL"), code)}/>
                 <span class="text-lg">{ code }</span>
             </div>
         </div>
