@@ -48,28 +48,6 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
     let qualif_ref = use_node_ref();
     let elim_ref = use_node_ref();
 
-    /*
-    let on_qualif_change = {
-        let is_qualif = is_qualif.clone();
-        Callback::from(move |e: Event| {
-            let target = e.target().unwrap();
-
-            is_qualif.set(target.unchecked_into::<HtmlInputElement>().checked());
-        })
-    };
-    */
-
-    /*
-    let on_elim_change = {
-        let is_elim = is_elim.clone();
-        Callback::from(move |e: Event| {
-            let target = e.target().unwrap();
-
-            is_elim.set(target.unchecked_into::<HtmlInputElement>().checked());
-        })
-    };
-    */
-
     {
         let tournament = tournament.clone();
         let loading = loading.clone();
@@ -116,7 +94,6 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         let date_ref = date_ref.clone();
         let location_ref = location_ref.clone();
         let description_ref = description_ref.clone();
-        // let groupe_size_ref = groupe_size_ref.clone();
         let qualif_ref = qualif_ref.clone();
         let elim_ref = elim_ref.clone();
         let trigger = trigger.clone();
@@ -129,16 +106,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
             let date = date_ref.cast::<HtmlInputElement>().unwrap().value();
             let location = location_ref.cast::<HtmlInputElement>().unwrap().value();
             let description = description_ref.cast::<HtmlInputElement>().unwrap().value();
-            // let groupe_size = groupe_size_ref.cast::<HtmlInputElement>().unwrap().value();
             let qualif = qualif_ref.cast::<HtmlInputElement>().unwrap().checked();
             let elim = elim_ref.cast::<HtmlInputElement>().unwrap().checked();
-
-            /*
-            let groupe_size = match groupe_size.is_empty() {
-                true => None,
-                false => Some(groupe_size.parse().unwrap()),
-            };
-            */
 
             let date = chrono::NaiveDateTime::from_str(&format!("{}:00", date)).unwrap();
 
@@ -322,7 +291,6 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                                     <FormInput id="date" label="Date" form_type="datetime-local" value={tournament.date.format("%Y-%m-%dT%H:%M").to_string()}  _ref={date_ref} required={true}/>
                                     <FormInput id="location" label="Lieu" form_type="text" value={tournament.location.as_ref().unwrap_or(&String::new()).to_string()}  _ref={location_ref} required={true}/>
                                     <FormInput id="description" label="Description" form_type="text" value={tournament.description.clone()}  _ref={description_ref} required={true}/>
-                                    // <FormInput id="nb_team_per_group" label="Nombre d'équipes par groupe" form_type="number" value={if let Some(s) = tournament.size_group {s.to_string()} else {String::new()}}  _ref={groupe_size_ref}/>
                                     <FormInput id="phase_qualifications" label="Phase de qualifications" form_type="checkbox" checked={tournament.is_qualif} _ref={qualif_ref} />
                                     <FormInput id="phase_eliminations" label="Phase d'éliminations" form_type="checkbox" checked={tournament.is_elim} _ref={elim_ref} />
 

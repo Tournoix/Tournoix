@@ -1,12 +1,17 @@
 use log::info;
+use web_sys::HtmlInputElement;
 use yew::platform::spawn_local;
 use yew::prelude::*;
+use yew_router::prelude::use_navigator;
 
+use crate::components::button::Button;
+use crate::components::form_input::FormInput;
 use crate::components::loading_circle::LoadingCircle;
 use crate::components::tournament_create_button::TournamentCreateButton;
 use crate::components::tournaments::Tournaments;
 use crate::components::user_provider::UserContext;
 use crate::layouts::homelayout::HomeLayout;
+use crate::routers::Route;
 
 #[derive(PartialEq, Properties)]
 pub struct TournoixProps {}
@@ -20,6 +25,8 @@ pub fn Tournoix(props: &TournoixProps) -> Html {
     let loading_owned = use_state(|| true);
     let loading_joined = use_state(|| true);
     let trigger = use_state(|| false);
+    let code_ref = use_node_ref();
+    let navigator = use_navigator().unwrap();
 
     {
         let owned_tournaments = owned_tournaments.clone();
@@ -64,6 +71,15 @@ pub fn Tournoix(props: &TournoixProps) -> Html {
         trigger.set(!*trigger);
     });
 
+    let on_join = {
+        let code_ref = code_ref.clone();
+
+        Callback::from(move |_| {
+            let code = code_ref.cast::<HtmlInputElement>().unwrap().value();
+            navigator.push(&Route::Join { code });
+        })
+    };
+
     html! {
         <HomeLayout>
             <div class="flex flex-col items-center h-full pb-16 sm:w-9/12 w-11/12 mx-auto relative">
@@ -81,6 +97,10 @@ pub fn Tournoix(props: &TournoixProps) -> Html {
                 if *loading_joined {
                     <LoadingCircle />
                 } else {
+                    <form class="flex items-center gap-1" onsubmit={on_join}>
+                        <FormInput id="code" label="code" form_type="text" _ref={code_ref} required={true}/>
+                        <Button class="px-2 py-1">{"Rejoindre"}</Button>
+                    </form>
                     if joined_tournaments.len() == 0 {
                         <span>{"Vous n'avez rejoint aucun tournois"}</span>
                     } else {
