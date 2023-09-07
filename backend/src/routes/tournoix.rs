@@ -1,8 +1,9 @@
 use crate::models::game::Game;
+use crate::models::nut::NewNut;
 use crate::models::team::Team;
 use crate::models::tournament::{NewTournament, PatchTournament, Tournament};
 use crate::routes::auth::ApiAuth;
-use crate::schema::{games, teams, tournaments};
+use crate::schema::{games, nuts, teams, tournaments};
 use crate::{EmptyResponse, ErrorBody, ErrorResponse, MysqlConnection};
 use diesel::prelude::*;
 use diesel::result::Error;
@@ -158,6 +159,33 @@ pub async fn create_tournoix(
                 auth.user.id,
                 tournoix.id
             );
+
+            // Add nuts to tournament owner
+            let nut = NewNut {
+                fk_users: auth.user.id,
+                fk_tournaments: tournoix.id,
+                stock: 20,
+            };
+
+            match connection
+                .run(move |c| diesel::insert_into(nuts::table).values(nut).execute(c))
+                .await
+            {
+                Ok(_) => (),
+                Err(_) => {
+                    return Err((
+                        Status::InternalServerError,
+                        Json(ErrorResponse {
+                            error: ErrorBody {
+                                code: 500,
+                                reason: "Internal Server Error".into(),
+                                description: "An error occured".into(),
+                            },
+                        }),
+                    ))
+                }
+            }
+
             return Ok(tournoix);
         }
 
@@ -182,13 +210,58 @@ pub async fn update_tournoix(
     data: Json<PatchTournament>,
     id: i32,
     auth: ApiAuth,
-) -> Result<Json<Tournament>, (Status, String)> {
+) -> Result<Json<Tournament>, (Status, Json<ErrorResponse>)> {
     // verify if the user is the owner of the tournament
     if !is_owner(&connection, id, &auth).await {
-        return Err((Status::Unauthorized, "Unauthorized".to_string()));
+        return Err((
+            Status::Forbidden,
+            Json(ErrorResponse {
+                error: ErrorBody {
+                    code: 403,
+                    reason: "Forbidden".into(),
+                    description: "Access Forbidden".into(),
+                },
+            }),
+        ));
     }
 
     let tournoix = data.0;
+    let actual_tournoix = match connection
+        .run(move |c| tournaments::table.find(id).first::<Tournament>(c))
+        .await
+    {
+        Ok(tournoi) => tournoi,
+
+        Err(_e) => {
+            return Err((
+                Status::NotFound,
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 404,
+                        reason: "Not Found".into(),
+                        description: "Tournament with given id does not exists".into(),
+                    },
+                }),
+            ));
+        }
+    };
+
+    if tournament_is_started(&connection, id).await
+        && ((tournoix.is_elim.is_some() && tournoix.is_elim.unwrap() != actual_tournoix.is_elim)
+            || (tournoix.is_qualif.is_some()
+                && tournoix.is_qualif.unwrap() != actual_tournoix.is_qualif))
+    {
+        return Err((
+            Status::BadRequest,
+            Json(ErrorResponse {
+                error: ErrorBody {
+                    code: 400,
+                    reason: "Bad Request".into(),
+                    description: "Cannot modify tournament structure when already started".into(),
+                },
+            }),
+        ));
+    }
 
     match connection
         .run(move |c| {
@@ -218,7 +291,13 @@ pub async fn update_tournoix(
         Err(_e) => {
             return Err((
                 Status::InternalServerError,
-                "Internel Server Error".to_string(),
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 500,
+                        reason: "Internal Server Error".into(),
+                        description: "An error occured".into(),
+                    },
+                }),
             ))
         }
     }

@@ -9,6 +9,7 @@ use super::team::Team;
 #[diesel(table_name = games)]
 pub struct Game {
     pub id: i32,
+    pub fk_tournaments: i32,
     pub fk_team1: i32,
     pub fk_team2: i32,
     pub score1: i32,
@@ -24,6 +25,7 @@ pub struct Game {
 #[diesel(table_name = games)]
 pub struct GameWithGroup {
     pub id: i32,
+    pub fk_tournaments: i32,
     pub fk_team1: i32,
     pub fk_team2: i32,
     pub score1: i32,
@@ -40,6 +42,7 @@ pub struct GameWithGroup {
 #[diesel(table_name = games)]
 pub struct GameWithTeams {
     pub id: i32,
+    pub fk_tournaments: i32,
     pub team1: Team,
     pub team2: Team,
     pub score1: i32,
@@ -55,6 +58,7 @@ pub struct GameWithTeams {
 #[diesel(belongs_to(Team))]
 #[diesel(table_name = games)]
 pub struct NewGame {
+    pub fk_tournaments: i32,
     pub fk_team1: i32,
     pub fk_team2: i32,
     pub score1: i32,
@@ -70,6 +74,8 @@ pub struct NewGame {
 pub struct PatchGame {
     pub fk_team1: Option<i32>,
     pub fk_team2: Option<i32>,
+    pub score1: Option<i32>,
+    pub score2: Option<i32>,
     pub place: Option<i32>,
     pub status: Option<i32>,
     pub has_gained_nut: Option<bool>,

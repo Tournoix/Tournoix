@@ -71,30 +71,6 @@ pub async fn get_tournoix_game(
         ));
     }
 
-    // get all team from a tournament
-    let teams: Vec<Team> = match connection
-        .run(move |c| {
-            teams::table
-                .filter(teams::fk_tournaments.eq(id))
-                .load::<Team>(c)
-        })
-        .await
-    {
-        Ok(teams) => teams,
-        Err(_) => {
-            return Err((
-                Status::InternalServerError,
-                Json(ErrorResponse {
-                    error: ErrorBody {
-                        code: 500,
-                        reason: "Internal Server Error".into(),
-                        description: "An error has occured".into(),
-                    },
-                }),
-            ))
-        }
-    };
-
     // get all match from a team
     match connection
         .run(move |c| {
@@ -104,6 +80,7 @@ pub async fn get_tournoix_game(
                 .inner_join(teams2.on(games::fk_team2.eq(teams2.field(teams::id))))
                 .select((
                     games::id,
+                    games::fk_tournaments,
                     teams1.fields(teams::all_columns),
                     teams2.fields(teams::all_columns),
                     games::score1,
@@ -114,8 +91,7 @@ pub async fn get_tournoix_game(
                     games::has_gained_nut,
                     teams1.field(teams::group),
                 ))
-                .filter(games::fk_team1.eq_any(teams.iter().map(|t| t.id)))
-                .or_filter(games::fk_team1.eq_any(teams.iter().map(|t| t.id)))
+                .filter(games::fk_tournaments.eq(id))
                 .load::<GameWithTeams>(c)
         })
         .await
@@ -137,7 +113,7 @@ pub async fn get_tournoix_game(
 }
 
 // get all match from a team
-#[get("/team/<id>/games")]
+#[get("/teams/<id>/games")]
 pub async fn get_team_game(
     connection: MysqlConnection,
     id: i32,
@@ -148,6 +124,7 @@ pub async fn get_team_game(
                 .inner_join(teams::table.on(games::fk_team1.eq(teams::id)))
                 .select((
                     games::id,
+                    games::fk_tournaments,
                     games::fk_team1,
                     games::fk_team2,
                     games::score1,
@@ -171,12 +148,12 @@ pub async fn get_team_game(
 }
 
 // validate the score of a game, lock it and give the nut to the winners / remove it from the losers
-#[get("/game/<id>/close")]
+#[post("/games/<id>/close")]
 pub async fn close_game(
     connection: MysqlConnection,
     id: i32,
     auth: ApiAuth,
-) -> Result<Status, (Status, String)> {
+) -> Result<Json<EmptyResponse>, (Status, Json<ErrorResponse>)> {
     // the user is not the owner of the game
     if !is_owner_game(&connection, id, &auth).await {
         warn!(
@@ -185,7 +162,16 @@ pub async fn close_game(
             auth.user.id,
             id
         );
-        return Err((Status::Unauthorized, "Unauthorized".to_string()));
+        return Err((
+            Status::Forbidden,
+            Json(ErrorResponse {
+                error: ErrorBody {
+                    code: 403,
+                    reason: "Forbiden".into(),
+                    description: "Access Forbidden".into(),
+                },
+            }),
+        ));
     }
     update_game_fn(
         &connection,
@@ -193,8 +179,10 @@ pub async fn close_game(
             has_gained_nut: Some(false),
             fk_team1: None,
             fk_team2: None,
+            score1: None,
+            score2: None,
             place: None,
-            status: None,
+            status: Some(2),
         }),
         id,
     )
@@ -296,6 +284,7 @@ pub async fn create_games(
         for i in 0..group.len() {
             for j in i + 1..group.len() {
                 let game = NewGame {
+                    fk_tournaments: id,
                     fk_team1: group[i].id,
                     fk_team2: group[j].id,
                     score1: 0,
@@ -383,7 +372,7 @@ async fn update_game_fn(
     connection: &MysqlConnection,
     data: Json<PatchGame>,
     id: i32,
-) -> Result<Json<Game>, (Status, String)> {
+) -> Result<Json<Game>, (Status, Json<ErrorResponse>)> {
     let game = data.0;
 
     // cannot update the game it the betting is closed
@@ -414,26 +403,34 @@ async fn update_game_fn(
             return Ok(game);
         }
 
-        Err(_e) => {
+        Err(e) => {
+            warn!("{}", e);
+
             return Err((
                 Status::InternalServerError,
-                "Internel Server Error".to_string(),
+                Json(ErrorResponse {
+                    error: ErrorBody {
+                        code: 500,
+                        reason: "Internel Server Error".into(),
+                        description: "An error occured".into(),
+                    },
+                }),
             ))
         }
     }
 }
 
-#[patch("/game/<id>", data = "<data>")]
+#[patch("/games/<id>", data = "<data>")]
 pub async fn update_game(
     connection: MysqlConnection,
     data: Json<PatchGame>,
     id: i32,
-) -> Result<Json<Game>, (Status, String)> {
+) -> Result<Json<Game>, (Status, Json<ErrorResponse>)> {
     return update_game_fn(&connection, data, id).await;
 }
 
 // block the action of betting on a game
-#[patch("/game/<id>/closeBetting")]
+#[patch("/games/<id>/closeBetting")]
 pub async fn close_game_betting(
     connection: MysqlConnection,
     id: i32,
