@@ -40,7 +40,11 @@ jobs:
         with:
           cache-directories: "./backend/.cargo\n ./backend/target\n ./ui/.cargo\n ./ui/target"
           shared-key: "rust_cache"
-
+  # Run tests
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
       - name: Run backend tests
         run: cd ./backend && cargo test
 
