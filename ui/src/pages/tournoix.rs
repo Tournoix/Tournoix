@@ -45,6 +45,7 @@ pub fn Tournoix(props: &TournoixProps) -> Html {
 
                     spawn_local(async move {
                         if let Some(tournoix) = user.subscriptions().await.ok() {
+                            //info!("{}", tournoix);
                             joined_tournaments.set(tournoix);
                         }
 

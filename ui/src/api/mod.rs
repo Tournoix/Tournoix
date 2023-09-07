@@ -10,6 +10,7 @@ use crate::components::user_provider::UserInfo;
 use self::models::User;
 
 pub mod auth;
+pub mod games;
 pub mod models;
 pub mod teams;
 pub mod tournoix;
