@@ -13,6 +13,7 @@ use crate::{
         join_code::JoinCode,
         loading_circle::LoadingCircle,
         results::Results,
+        user_provider::UserContext, button::Button,
     },
     layouts::homelayout::HomeLayout,
     routers::Route,
@@ -27,24 +28,81 @@ pub struct TournoixViewProps {
 pub fn TournoixView(props: &TournoixViewProps) -> Html {
     let TournoixViewProps { id } = props;
     let navigator = use_navigator().unwrap();
-
+    
+    let user_info = use_context::<UserContext>().expect("Missing user context provider");
     let tournament: UseStateHandle<Option<Tournament>> = use_state(|| None);
+    let has_joined_this_tournament = use_state(|| false);
     let loading = use_state(|| true);
 
     {
         let tournament = tournament.clone();
+        let user_info = user_info.clone();
+        let user = user_info.user.clone();
         let loading = loading.clone();
         let id = id.clone();
+        let has_joined_this_tournament = has_joined_this_tournament.clone();
 
         use_effect_once(move || {
-            spawn_local(async move {
-                tournament.set(api::tournoix::get(id).await.ok());
-                loading.set(false);
-            });
+            if let Some(user) = user {
+                {
+                    let user = user.clone();
+
+                    spawn_local(async move {
+                        tournament.set(api::tournoix::get(id).await.ok());
+                        loading.set(false);
+                    });
+        
+                    spawn_local(async move {
+                        if let Some(subscriptions) = user.subscriptions().await.ok() {
+                            subscriptions.iter().for_each(|t| {
+                                if t.id == id {
+                                    has_joined_this_tournament.set(true);
+                                    log::info!("User has joined this tournament");
+                                }
+                            });
+                        }
+                    });
+                }
+            }
 
             || ()
         });
     }
+
+    // Bettable games
+    let trigger = use_state(|| false);
+    let bettable_games = use_state(|| Vec::new());
+    let loading_bettable_games = use_state(|| true);
+    {
+        let bettable_games = bettable_games.clone();
+        let loading_bettable_games = loading_bettable_games.clone();
+        let tournament_clone = (*tournament).clone();
+
+        use_effect_with_deps(
+            move |_| {
+                if let Some(tournament_clone) = tournament_clone {
+                    let tournament_clone = tournament_clone.clone();
+                    spawn_local(async move {
+                        if let Some(games) = tournament_clone.get_matches().await.ok() {
+                            bettable_games.set(games.iter()
+                                .filter(|&m| m.status == 0) // filter out finished matches
+                                .cloned()
+                                .collect()
+                            );
+                        }
+                        loading_bettable_games.set(false);
+                    });
+                }
+
+                || ()
+            },
+            (tournament.clone(), trigger.clone()),
+        );
+    }
+    let on_click_refresh_games = {
+        let trigger = trigger.clone();
+        Callback::from(move |_| trigger.set(!*trigger))
+    };
 
     // TODO Wheter or not the current user can edit this tournament
     let can_edit_tournament = true;
@@ -57,47 +115,6 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
         let id = id.clone();
         Callback::from(move |_| navigator.push(&Route::TournoixEdit { id }))
     };
-
-    let matches: UseStateHandle<Vec<Match>> = use_state(|| {
-        vec![
-            Match {
-                id: 0,
-                team1: "Cloud9".to_string(),
-                score1: 0,
-                team2: "FaZe Clan".to_string(),
-                score2: 0,
-                started: false,
-                finished: false,
-            },
-            Match {
-                id: 1,
-                team1: "NaVi".to_string(),
-                score1: 0,
-                team2: "NRG Esports".to_string(),
-                score2: 0,
-                started: true,
-                finished: false,
-            },
-            Match {
-                id: 2,
-                team1: "G2 Esports".to_string(),
-                score1: 0,
-                team2: "fnatic".to_string(),
-                score2: 0,
-                started: true,
-                finished: true,
-            },
-            Match {
-                id: 3,
-                team1: "Team with a comically long name".to_string(),
-                score1: 0,
-                team2: "Team 42".to_string(),
-                score2: 0,
-                started: false,
-                finished: false,
-            },
-        ]
-    });
 
     // TODO: DB
     let tournament_over = true;
@@ -185,9 +202,18 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         <div>{"Description: "}{tournament.as_ref().unwrap().description.to_string()}</div>
                         <hr/>
                         <h2>{"Paris disponibles"}</h2>
-                        <p class="discrete">{"Vous pouvez misez vos noix dans ces matchs et peut-être remporter le pactole !"}</p>
-                        <p class="mb-4">{format!("Vous possédez actuellement {} noix.", user_nut)}</p>
-                        <BetList matches={(*matches).clone()}/>
+                        if *has_joined_this_tournament {
+                            <p class="discrete">{"Vous pouvez misez vos noix dans ces matchs et peut-être remporter le pactole !"}</p>
+                            <p class="mb-2">{format!("Vous possédez actuellement {} noix.", user_nut)}</p>
+                            <Button class="px-3 py-2 hover:scale-110 mb-4" onclick={on_click_refresh_games}>{"Rafraîchir"}</Button>
+                            if *loading_bettable_games {
+                                <LoadingCircle />
+                            } else {
+                                <BetList tournament_id={id.clone()} matches={(*bettable_games).clone()}/>
+                            }
+                        } else {
+                            {"Vous devez rejoindre ce tournoi afin de pouvoir y miser vos noix."}
+                        }
                         <hr/>
                         <h2>{"Phase de qualifications"}</h2>
                         <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>

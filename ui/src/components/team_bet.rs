@@ -5,7 +5,7 @@ use crate::utils::utils::team_color_wrapper;
 #[derive(Clone, PartialEq, Debug)]
 pub struct Bet {
     pub name: String,
-    pub bet_value: i32,
+    pub nb_nut: i32,
 }
 
 #[derive(PartialEq, Properties)]
@@ -33,9 +33,9 @@ pub fn TeamBet(props: &TeamBetProps) -> Html {
                     bets.iter().enumerate().map(|(index, bet)| {
                         html!{<li class={if index % 2 == 0 { "px-2 py-1 " } else { "px-2 py-1 bg-[#f1f1f1]" }}>
                             if is_left.clone() {
-                                {format!("{} - {}", bet.name, bet.bet_value)}
+                                {format!("{} - {}", bet.name, bet.nb_nut)}
                             } else {
-                                {format!("{} - {}", bet.bet_value, bet.name)}
+                                {format!("{} - {}", bet.nb_nut, bet.name)}
                             }
                         </li>}
                     }).collect::<Html>()

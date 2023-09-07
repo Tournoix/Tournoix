@@ -170,6 +170,42 @@ pub async fn get_team_game(
     Ok(Json(matchs))
 }
 
+// get a match from an id
+#[get("/game/<id>")]
+pub async fn get_game(
+    connection: MysqlConnection,
+    id: i32,
+) -> Result<Json<GameWithTeams>, (Status, String)> {
+    let matchs = match connection
+        .run(move |c| {
+            let (teams1, teams2) = alias!(teams as team1, teams as team2);
+            games::table
+                .inner_join(teams1.on(games::fk_team1.eq(teams1.field(teams::id))))
+                .inner_join(teams2.on(games::fk_team2.eq(teams2.field(teams::id))))
+                .select((
+                    games::id,
+                    teams1.fields(teams::all_columns),
+                    teams2.fields(teams::all_columns),
+                    games::score1,
+                    games::score2,
+                    games::phase,
+                    games::place,
+                    games::status,
+                    games::has_gained_nut,
+                    teams1.field(teams::group),
+                ))
+                .filter(games::id.eq(id))
+                .first::<GameWithTeams>(c)
+        })
+        .await
+    {
+        Err(_) => return Err((Status::NotFound, "Wrong code".to_string())),
+        Ok(matchs) => matchs,
+    };
+
+    Ok(Json(matchs))
+}
+
 // validate the score of a game, lock it and give the nut to the winners / remove it from the losers
 #[get("/game/<id>/close")]
 pub async fn close_game(

@@ -191,7 +191,7 @@ pub struct Game {
     pub group: Option<i32>
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Clone, Serialize, Deserialize, Debug)]
 pub struct GameWithTeams {
     pub id: i32,
     pub team1: Team,
@@ -211,4 +211,13 @@ pub struct Nut {
     pub fk_users: i32,
     pub fk_tournaments: i32,
     pub stock: i32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Bet {
+    pub id: i32,
+    pub fk_nuts: i32,
+    pub fk_games: i32,
+    pub fk_teams: i32,
+    pub nb_nut: i32,
 }

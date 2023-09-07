@@ -121,6 +121,7 @@ fn rocket() -> _ {
                 // games
                 get_tournoix_game,
                 get_team_game,
+                get_game,
                 create_games,
                 update_game,
                 close_game,
