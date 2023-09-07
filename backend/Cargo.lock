@@ -1679,6 +1679,7 @@ dependencies = [
  "rocket_sync_db_pools",
  "rust-argon2",
  "serde",
+ "serde_json",
  "simplelog",
  "uuid",
 ]

@@ -79,7 +79,7 @@ fn rocket() -> _ {
     dotenv().ok();
 
     TermLogger::init(
-        LevelFilter::Trace,
+        LevelFilter::Info,
         Config::default(),
         TerminalMode::Mixed,
         ColorChoice::Auto,
