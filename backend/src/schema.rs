@@ -5,7 +5,7 @@ diesel::table! {
         id -> Integer,
         fk_games -> Integer,
         fk_teams -> Integer,
-        fk_nuts -> Integer,
+        fk_users -> Integer,
         nb_nut -> Integer,
     }
 }
@@ -13,6 +13,7 @@ diesel::table! {
 diesel::table! {
     games (id) {
         id -> Integer,
+        fk_tournaments -> Integer,
         fk_team1 -> Integer,
         fk_team2 -> Integer,
         score1 -> Integer,
@@ -94,8 +95,9 @@ diesel::table! {
 }
 
 diesel::joinable!(bets -> games (fk_games));
-diesel::joinable!(bets -> nuts (fk_nuts));
 diesel::joinable!(bets -> teams (fk_teams));
+diesel::joinable!(bets -> users (fk_users));
+diesel::joinable!(games -> tournaments (fk_tournaments));
 diesel::joinable!(nuts -> tournaments (fk_tournaments));
 diesel::joinable!(nuts -> users (fk_users));
 diesel::joinable!(subscriptions -> tournaments (fk_tournaments));

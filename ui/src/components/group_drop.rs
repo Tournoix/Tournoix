@@ -7,7 +7,7 @@ use crate::{
         self,
         models::{Team, TeamUpdate},
     },
-    components::team_drag::TeamDrag,
+    components::{team_drag::TeamDrag, team_no_drag::TeamNoDrag},
 };
 
 #[derive(PartialEq, Properties)]
@@ -15,6 +15,8 @@ pub struct GroupDropProps {
     pub id: i32,
     pub teams: Vec<Team>,
     pub update_trigger: UseStateHandle<bool>,
+    #[prop_or_default]
+    pub editable: bool
 }
 
 #[function_component]
@@ -23,6 +25,7 @@ pub fn GroupDrop(props: &GroupDropProps) -> Html {
         id,
         teams,
         update_trigger,
+        editable
     } = props;
     let node = use_node_ref();
     let state = {
@@ -67,7 +70,11 @@ pub fn GroupDrop(props: &GroupDropProps) -> Html {
             <div class="flex flex-col gap-1 team-list">
                 {
                     teams.iter().map(|team| {
-                        html! (<TeamDrag team={team.clone()} update_trigger={update_trigger.clone()} />)
+                        if *editable {
+                            html! (<TeamDrag team={team.clone()} update_trigger={update_trigger.clone()} />)
+                        } else {
+                            html! (<TeamNoDrag team={team.clone()} />)
+                        }
                     }).collect::<Html>()
                 }
             </div>

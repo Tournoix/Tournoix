@@ -21,7 +21,7 @@ pub struct TeamDragProps {
 pub fn TeamDrag(props: &TeamDragProps) -> Html {
     let TeamDragProps {
         team,
-        update_trigger,
+        update_trigger
     } = props;
     let node = use_node_ref();
     let state = {

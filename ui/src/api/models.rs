@@ -191,7 +191,21 @@ pub struct Game {
     pub group: Option<i32>
 }
 
-#[derive(PartialEq, Clone, Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GameUpdate {
+    pub score1: Option<i32>,
+    pub score2: Option<i32>,
+    pub phase: Option<i32>,
+    pub status: Option<i32>,
+}
+
+impl Game {
+    pub async fn update(&self, update_request: GameUpdate) -> Result<Game, ErrorResponse> {
+        super::games::update(self.id, update_request).await
+    }
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
 pub struct GameWithTeams {
     pub id: i32,
     pub team1: Team,

@@ -7,6 +7,7 @@ use crate::{ErrorBody, ErrorResponse, MysqlConnection};
 use diesel::prelude::*;
 use rocket::http::Status;
 use rocket::serde::json::Json;
+use serde::{Serialize, Deserialize};
 
 // get all tournament created by the user
 #[get("/users/@me/tournoix")]
@@ -47,15 +48,17 @@ pub async fn get_user_subscription(
     auth: ApiAuth,
 ) -> Result<Json<Vec<Tournament>>, (Status, Json<ErrorResponse>)> {
     // get all subsciptions for the user
-    let tab_subscriber = match connection
+    match connection
         .run(move |c| {
             subscriptions::table
+                .inner_join(tournaments::table.on(tournaments::id.eq(subscriptions::fk_tournaments)))
+                .select(tournaments::all_columns)
                 .filter(subscriptions::fk_users.eq(auth.user.id))
-                .load::<Subscription>(c)
+                .load::<Tournament>(c)
         })
         .await
     {
-        Ok(subscribers) => subscribers,
+        Ok(tournaments) => Ok(Json(tournaments)),
         Err(_) => {
             return Err((
                 Status::InternalServerError,
@@ -68,46 +71,24 @@ pub async fn get_user_subscription(
                 }),
             ))
         }
-    };
-
-    // vector to store all tournaments linked to the user
-    let mut tournoix_vec = Vec::new();
-
-    // for each subscription, get the tournament
-    for subscriber in tab_subscriber {
-        let tournaments = match connection
-            .run(move |c| tournaments::table.find(subscriber.fk_users).load::<Tournament>(c))
-            .await
-        {
-            Ok(tournaments) => tournaments,
-            Err(_) => {
-                return Err((
-                    Status::NotFound,
-                    Json(ErrorResponse {
-                        error: ErrorBody {
-                            code: 404,
-                            reason: "Not Found".into(),
-                            description: "Wrong tournament id".to_string(),
-                        },
-                    }),
-                ))
-            }
-        };
-
-        tournoix_vec.extend(tournaments);
     }
+}
 
-    Ok(Json(tournoix_vec))
+#[derive(Serialize, Deserialize, Clone)]
+pub struct SubscriptionRequest {
+    pub code: String
 }
 
 // create a subscription for a tournament with the code of the tournament and the id of the user
 // + add the nuts to the user for the tournament if he doesn't have one allready
-#[post("/users/@me/subscription", data = "<code>")]
+#[post("/users/@me/subscription", data = "<data>")]
 pub async fn create_subsciption(
     connection: MysqlConnection,
-    code: String,
+    data: Json<SubscriptionRequest>,
     auth: ApiAuth,
 ) -> Result<Json<Subscription>, (Status, String)> {
+    let code = data.0.code;
+
     // verify the existance of the code in the database
     let tournament = match connection
         .run(move |c| {

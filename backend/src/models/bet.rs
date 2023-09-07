@@ -8,7 +8,7 @@ use rocket::serde::{Deserialize, Serialize};
 #[diesel(table_name = bets)]
 pub struct Bet {
     pub id: i32,
-    pub fk_nuts: i32,
+    pub fk_users: i32,
     pub fk_games: i32,
     pub fk_teams: i32,
     pub nb_nut: i32,
@@ -20,7 +20,7 @@ pub struct Bet {
 #[diesel(belongs_to(Team))]
 #[diesel(table_name = bets)]
 pub struct NewBet {
-    pub fk_nuts: i32,
+    pub fk_users: i32,
     pub fk_games: i32,
     pub fk_teams: i32,
     pub nb_nut: i32,

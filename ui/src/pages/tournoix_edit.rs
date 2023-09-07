@@ -143,7 +143,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         let date_ref = date_ref.clone();
         let location_ref = location_ref.clone();
         let description_ref = description_ref.clone();
-        let groupe_size_ref = groupe_size_ref.clone();
+        // let groupe_size_ref = groupe_size_ref.clone();
         let is_qualif = is_qualif.clone();
         let is_elim = is_elim.clone();
         let trigger = trigger.clone();
@@ -155,14 +155,16 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
             let date = date_ref.cast::<HtmlInputElement>().unwrap().value();
             let location = location_ref.cast::<HtmlInputElement>().unwrap().value();
             let description = description_ref.cast::<HtmlInputElement>().unwrap().value();
-            let groupe_size = groupe_size_ref.cast::<HtmlInputElement>().unwrap().value();
+            // let groupe_size = groupe_size_ref.cast::<HtmlInputElement>().unwrap().value();
             // let qualif = qualif_ref.cast::<HtmlInputElement>().unwrap().checked();
             // let elim = elim_ref.cast::<HtmlInputElement>().unwrap().checked();
 
+            /*
             let groupe_size = match groupe_size.is_empty() {
                 true => None,
                 false => Some(groupe_size.parse().unwrap()),
             };
+            */
 
             let date = chrono::NaiveDateTime::from_str(&format!("{}:00", date)).unwrap();
 
@@ -172,7 +174,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                 location: Some(location),
                 description: Some(description),
                 phase: None,
-                size_group: groupe_size,
+                size_group: None,
                 is_qualif: Some(*is_qualif),
                 is_elim: Some(*is_elim)
             };
@@ -216,115 +218,6 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         let should_update = should_update.clone();
         Callback::from(move |_| {
             should_update.set(!*should_update);
-        })
-    };
-
-    let on_started_click = |group_matches: UseStateHandle<Vec<Vec<Match>>>| {
-        Callback::from(move |match_id| {
-            // Deep copy the group_matches vector into a buffer
-            let mut group_matches_buf = vec![];
-            for group_match in group_matches.iter() {
-                let mut _group_match = vec![];
-                let group_match = group_match.clone();
-
-                for mut _match in group_match.iter() {
-                    let mut _match = _match.clone();
-
-                    if match_id == _match.id {
-                        _match.started = !_match.started;
-
-                        // TODO DB
-                        // UPDATE match SET started = _match.started WHERE id = _match.id
-                    }
-
-                    _group_match.push(_match);
-                }
-
-                group_matches_buf.push(_group_match);
-            }
-
-            group_matches.set(group_matches_buf);
-        })
-    };
-    let on_finished_click = |group_matches: UseStateHandle<Vec<Vec<Match>>>| {
-        Callback::from(move |match_id| {
-            // Deep copy the group_matches vector into a buffer
-            let mut group_matches_buf = vec![];
-            for group_match in group_matches.iter() {
-                let mut _group_match = vec![];
-                let group_match = group_match.clone();
-
-                for mut _match in group_match.iter() {
-                    let mut _match = _match.clone();
-
-                    if match_id == _match.id {
-                        _match.finished = !_match.finished;
-                    }
-
-                    // TODO DB
-                    // UPDATE match SET finished = _match.finished WHERE id = _match.id
-
-                    _group_match.push(_match);
-                }
-
-                group_matches_buf.push(_group_match);
-            }
-
-            group_matches.set(group_matches_buf);
-        })
-    };
-    let on_score1_change = |group_matches: UseStateHandle<Vec<Vec<Match>>>| {
-        Callback::from(move |(match_id, val)| {
-            // Deep copy the group_matches vector into a buffer
-            let mut group_matches_buf = vec![];
-            for group_match in group_matches.iter() {
-                let mut _group_match = vec![];
-                let group_match = group_match.clone();
-
-                for mut _match in group_match.iter() {
-                    let mut _match = _match.clone();
-
-                    if match_id == _match.id {
-                        _match.score1 = val;
-                    }
-
-                    // TODO DB
-                    // UPDATE match SET score1 = _match.score1 WHERE id = _match.id
-
-                    _group_match.push(_match);
-                }
-
-                group_matches_buf.push(_group_match);
-            }
-
-            group_matches.set(group_matches_buf);
-        })
-    };
-    let on_score2_change = |group_matches: UseStateHandle<Vec<Vec<Match>>>| {
-        Callback::from(move |(match_id, val)| {
-            // Deep copy the group_matches vector into a buffer
-            let mut group_matches_buf = vec![];
-            for group_match in group_matches.iter() {
-                let mut _group_match = vec![];
-                let group_match = group_match.clone();
-
-                for mut _match in group_match.iter() {
-                    let mut _match = _match.clone();
-
-                    if match_id == _match.id {
-                        _match.score2 = val;
-                    }
-
-                    // TODO DB
-                    // UPDATE match SET score2 = _match.score2 WHERE id = _match.id
-
-                    _group_match.push(_match);
-                }
-
-                group_matches_buf.push(_group_match);
-            }
-
-            group_matches.set(group_matches_buf);
         })
     };
 
@@ -382,7 +275,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                                     <FormInput id="date" label="Date" form_type="datetime-local" value={tournament.date.format("%Y-%m-%dT%H:%M").to_string()}  _ref={date_ref} required={true}/>
                                     <FormInput id="location" label="Lieu" form_type="text" value={tournament.location.as_ref().unwrap_or(&String::new()).to_string()}  _ref={location_ref} required={true}/>
                                     <FormInput id="description" label="Description" form_type="text" value={tournament.description.clone()}  _ref={description_ref} required={true}/>
-                                    <FormInput id="nb_team_per_group" label="Nombre d'équipes par groupe" form_type="number" value={if let Some(s) = tournament.size_group {s.to_string()} else {String::new()}}  _ref={groupe_size_ref}/>
+                                    // <FormInput id="nb_team_per_group" label="Nombre d'équipes par groupe" form_type="number" value={if let Some(s) = tournament.size_group {s.to_string()} else {String::new()}}  _ref={groupe_size_ref}/>
                                     <FormInput id="phase_qualifications" label="Phase de qualifications" form_type="checkbox" checked={*is_qualif} onchange={on_qualif_change} />
                                     <FormInput id="phase_eliminations" label="Phase d'éliminations" form_type="checkbox" checked={*is_elim} onchange={on_elim_change} />
 
@@ -396,12 +289,12 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                         if *is_qualif {
                             <hr/>
                             <h2>{"Phase de qualifications"}</h2>
-                            <Groups tournament={tournament.clone()} should_update={should_update.clone()} />
+                            <Groups tournament={tournament.clone()} should_update={should_update.clone()} editable={true} />
                             <div class={"flex gap-4 mt-3"}>
                                 <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700" onclick={on_qualif_gen_click}>{"Générer les matches"}</Button> // Génère les matches et bloque la modification des équipes
                                 <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700" onclick={on_qualif_reset_click}>{"Réinitialiser les matches"}</Button> // Reset les matches, possible uniquement si aucun match n'a démarré !
                             </div>
-                            <QualificationPhase tournament={tournament.clone()} should_update={should_update} editable={true} />
+                            <QualificationPhase tournament={tournament.clone()} should_update={should_update.clone()} editable={true} />
                         }
                         if *is_elim {
                             <hr/>
@@ -415,7 +308,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                                     <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700">{"Réinitialiser les matches"}</Button> // Reset les matches, possible uniquement si aucun match n'a démarré !
                                 </div>
                             }
-                            <Bracket teams={(*elim_matches).clone()} on_started_click={on_started_click(elim_matches.clone())} on_finished_click={on_finished_click(elim_matches.clone())} on_score1_change={on_score1_change(elim_matches.clone())} on_score2_change={on_score2_change(elim_matches.clone())} />
+                            <Bracket tournament={tournament.clone()} should_update={should_update} />
                         }
                     } else {
                         <div>{"Oups, ce tournoi n'existe pas :("}</div>
