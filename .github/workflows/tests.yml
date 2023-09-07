@@ -2,7 +2,7 @@ name: MySQL service
 on: push
 
 env:
-  DB_DATABASE: tournoix_test_db
+  DB_DATABASE: tournoix_db
   DB_USER: root
   DB_PASSWORD: root
 
