@@ -133,7 +133,7 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                 phase: None,
                 size_group: None,
                 is_qualif: Some(qualif),
-                is_elim: Some(elim)
+                is_elim: Some(elim),
                 is_closed: Some(false)
             };
 
