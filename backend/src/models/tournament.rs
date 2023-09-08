@@ -3,7 +3,19 @@ use diesel::{QueryDsl, ExpressionMethods};
 use rocket::serde::{Deserialize, Serialize};
 use diesel::prelude::*;
 
-use super::{user::UserInfo, subscription::Subscription};
+use super::{user::UserInfo, subscription::Subscription, team::Team};
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Score {
+    pub name: String,
+    pub val: i32,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Results {
+    pub subscribers: Vec<Score>,
+    pub teams: Vec<Score>,
+}
 
 #[derive(Serialize, Deserialize, Queryable, Identifiable)]
 #[diesel(belongs_to(User))]
@@ -20,6 +32,7 @@ pub struct Tournament {
     pub code: String,
     pub is_qualif: bool,
     pub is_elim: bool,
+    pub is_closed: bool,
 }
 
 impl Tournament {
@@ -54,6 +67,7 @@ pub struct NewTournament {
     pub code: String,
     pub is_qualif: bool,
     pub is_elim: bool,
+    pub is_closed: bool,
 }
 
 #[derive(Serialize, Deserialize, AsChangeset, Clone)]
@@ -68,4 +82,5 @@ pub struct PatchTournament {
     pub size_group: Option<i32>,
     pub is_qualif: Option<bool>,
     pub is_elim: Option<bool>,
+    pub is_closed: Option<bool>,
 }

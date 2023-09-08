@@ -5,6 +5,7 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
+use yew_hooks::use_effect_once;
 use yew_notifications::use_notification;
 use yew_router::prelude::use_navigator;
 
@@ -19,7 +20,7 @@ use crate::{
         join_code::JoinCode,
         loading_circle::LoadingCircle,
         qualification_phase::QualificationPhase,
-        teams::Teams,
+        teams::Teams, results::Results,
     },
     layouts::homelayout::HomeLayout,
     notification::{CustomNotification, NotifType},
@@ -49,6 +50,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
     let is_qualif = use_state(|| false);
     let is_elim = use_state(|| false);
 
+    let tournament_is_started = use_state(|| false);
+
     let on_qualif_change = {
         let is_qualif = is_qualif.clone();
         Callback::from(move |e: Event| {
@@ -69,14 +72,20 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
 
     {
         let tournament = tournament.clone();
+        let tournament_clone2 = tournament.clone();
         let loading = loading.clone();
         let id = id.clone();
         let is_qualif = is_qualif.clone();
         let is_elim = is_elim.clone();
         let notifs = notifs.clone();
+        let tournament_is_started = tournament_is_started.clone();
+        let tournament_is_started_clone = tournament_is_started.clone();
 
         use_effect_with_deps(
             move |_| {
+                let tournament = tournament.clone();
+                let tournament_clone = (*tournament).clone();
+                let tournament_is_started = tournament_is_started.clone();
                 spawn_local(async move {
                     let tournoix = match api::tournoix::get(id).await {
                         Ok(t) => Some(t),
@@ -93,6 +102,10 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                     };
 
                     if let Some(tournoix) = &tournoix {
+                        if let Some(is_started) = api::tournoix::is_tournoix_started(tournoix.id.clone()).await.ok() {
+                            tournament_is_started.set(is_started);
+                        }
+
                         is_elim.set(tournoix.is_elim);
                         is_qualif.set(tournoix.is_qualif);
                     }
@@ -154,7 +167,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                 phase: None,
                 size_group: None,
                 is_qualif: Some(*is_qualif),
-                is_elim: Some(*is_elim)
+                is_elim: Some(*is_elim),
+                is_closed: Some(false)
             };
 
             {
@@ -306,6 +320,42 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
         })
     };
 
+    let close_tournament_click = {
+        let tournament = tournament.clone();
+        let notifs = notifs.clone();
+        let trigger = trigger.clone();
+
+        Callback::from(move |_| {
+            if tournament.is_some() {
+                let tournament = tournament.clone();
+                let notifs = notifs.clone();
+                let trigger = trigger.clone();
+
+                spawn_local(async move {
+                    match tournament.as_ref().unwrap().close().await {
+                        Ok(_) => {
+                            notifs.spawn(CustomNotification::new(
+                                "Tournoi fermé !",
+                                &format!("Le tournoi \"{}\" à été fermé", tournament.as_ref().unwrap().name),
+                                NotifType::Success,
+                                Duration::seconds(5),
+                            ));
+                            trigger.set(!*trigger);
+                        },
+                        Err(e) => {
+                            notifs.spawn(CustomNotification::new(
+                                &format!("Erreur: {}", e.error.reason),
+                                &e.error.description,
+                                NotifType::Error,
+                                Duration::seconds(5),
+                            ));
+                        }
+                    };
+                });
+            }
+        })
+    };
+
     html! {
         <HomeLayout>
             <div class="flex flex-col items-center h-full pb-16 pt-12 sm:w-9/12 w-11/12 mx-auto relative">
@@ -319,6 +369,15 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                         <JoinCode code={tournament.code.to_string()}/>
                         <hr/>
                         <h2>{"Informations"}</h2>
+                        if tournament.is_closed {
+                            <div class="text-lg">{"Etat: Ce tournoi est fermé."}</div>
+                        } else {
+                            if *tournament_is_started {
+                                <div class="text-lg">{"Etat: Ce tournoi a démarré."}</div>
+                            } else {
+                                <div class="text-lg">{"Etat: Ce tournoi n'est pas encore démarré."}</div>
+                            }
+                        }
                         <div class="flex flex-row w-full justify-center gap-5 lg:flex-nowrap flex-wrap">
                             <div class="w-1/2">
                                 <form class="flex flex-col items-end" onsubmit={on_submit}>
@@ -327,8 +386,8 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                                     <FormInput id="location" label="Lieu" form_type="text" value={tournament.location.as_ref().unwrap_or(&String::new()).to_string()}  _ref={location_ref} required={true}/>
                                     <FormInput id="description" label="Description" form_type="text" value={tournament.description.clone()}  _ref={description_ref} required={true}/>
                                     // <FormInput id="nb_team_per_group" label="Nombre d'équipes par groupe" form_type="number" value={if let Some(s) = tournament.size_group {s.to_string()} else {String::new()}}  _ref={groupe_size_ref}/>
-                                    <FormInput id="phase_qualifications" label="Phase de qualifications" form_type="checkbox" checked={*is_qualif} onchange={on_qualif_change} />
-                                    <FormInput id="phase_eliminations" label="Phase d'éliminations" form_type="checkbox" checked={*is_elim} onchange={on_elim_change} />
+                                    <FormInput id="phase_qualifications" disabled={*tournament_is_started} label="Phase de qualifications" form_type="checkbox" checked={*is_qualif} onchange={on_qualif_change} />
+                                    <FormInput id="phase_eliminations" disabled={*tournament_is_started} label="Phase d'éliminations" form_type="checkbox" checked={*is_elim} onchange={on_elim_change} />
 
                                     <Button class="text-lg px-3 py-2 mt-3 hover:scale-110 bg-green-700">{"Sauvegarder les informations"}</Button>
                                 </form>
@@ -356,6 +415,12 @@ pub fn TournoixEdit(props: &TournoixEditProps) -> Html {
                                 <Button class="text-lg px-3 py-2 hover:scale-110 bg-green-700" onclick={on_elim_reset_click}>{"Réinitialiser les matches"}</Button>
                             </div>
                             <Bracket tournament={tournament.clone()} should_update={should_update} editable={true} />
+                        }
+                        <hr/>
+                        <h2>{"Résultats"}</h2>
+                        <Results tournament_id={ id } can_show_results={tournament.is_closed.clone() && *tournament_is_started} />
+                        if !tournament.is_closed.clone() {
+                            <Button disabled={!*tournament_is_started} onclick={close_tournament_click} class="mt-6 px-3 py-2 hover:scale-110">{"Fermer le tournoi"}</Button>
                         }
                     } else {
                         <div>{"Oups, ce tournoi n'existe pas :("}</div>
