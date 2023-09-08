@@ -49,6 +49,11 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
         Callback::from(move |_| navigator.push(&Route::Login))
     };
 
+    let on_create_account_click = {
+        let navigator = navigator.clone();
+        Callback::from(move |_| navigator.push(&Route::Register))
+    };
+
     let on_tournoix_click = {
         let navigator = navigator.clone();
         Callback::from(move |_| navigator.push(&Route::Tournoix))
@@ -86,18 +91,23 @@ pub fn HomeLayout(props: &HomeLayoutProps) -> Html {
                         </div>
                     </a>
                     if *is_logged {
-                        <div class="ml-auto my-auto flex">
-                            <Button class="sm:px-4 px-2 py-1 hover:scale-110 sm:text-base text-sm mr-6" onclick={on_tournoix_click}>{"Liste des tournoix"}</Button>
-                            <Button class="sm:px-4 px-2 py-1 origin-right hover:scale-110 sm:text-base text-sm" onclick={on_logout_click}>{"Déconnexion"}</Button>
+                        <div class="ml-auto my-auto mr-10 flex">
                             if let Some(user) = &user_info.user {
-                                <div class="drop-shadow ml-4 font-bold">
+                                <div class="drop-shadow mr-4 font-bold">
                                     {user.name.clone()}
                                 </div>
                             }
+                            <div class="flex flex-col gap-1">
+                                <Button class="px-2 py-1 hover:scale-110 text-xs" onclick={on_tournoix_click}>{"Liste des tournoix"}</Button>
+                                <Button class="px-2 py-1 hover:scale-110 text-xs" onclick={on_logout_click}>{"Déconnexion"}</Button>
+                            </div>
                         </div>
                     } else {
                         <div class="ml-auto my-auto flex">
-                            <Button class="sm:px-4 px-2 py-1 origin-right hover:scale-110 sm:text-base text-sm" onclick={on_login_click}>{"Connexion"}</Button>
+                            <div class="flex flex-col gap-1">
+                                <Button class="px-2 py-1 hover:scale-110 text-xs" onclick={on_login_click}>{"Connexion"}</Button>
+                                <Button class="px-2 py-1 hover:scale-110 text-xs" onclick={on_create_account_click}>{"Créer un compte"}</Button>
+                            </div>
                         </div>
                     }
                 </div>
