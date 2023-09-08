@@ -108,7 +108,7 @@ Dnas notre repertoire git, nous utilisons les branches de trois façon distincte
 
 ![tournoix_structure drawio](https://github.com/Tournoix/Tournoix/assets/30533851/9f160057-f37e-42c5-ba31-2a0790b3d757)
 
-Notre application est en réalité composée de deux applications distinctes:
+Notre application est composée de deux applications distinctes:
 
 - Un backend, qui est une application web fournissant l'application frontend et une API REST
 - Un frontend, qui est une application WebAssembly tournant dans le navigateur
@@ -168,7 +168,15 @@ Copier le fichier `.env.example` et le renommer `.env`
 Copier le fichier `Rocket.toml.example` et le renommer `Rocket.toml`
 Modifier ces fichiers selon la config (par exemple le mot de passe ou le nom de la db)
 
-4.4. Lancer les migrations pour créer la base de donnée
+5. Diesel CLI
+5.1. Installation
+```bash
+cargo install diesel_cli --no-default-features --features postgres
+```
+
+Note: l'installation de Diesel nécessite les librairies dev de mysql (libmysql-dev), l'installation de ces librairies dépends du système d'exploitation.
+
+5.2. Lancer les migrations pour créer la base de donnée
 
 ```bash
 diesel migration run
