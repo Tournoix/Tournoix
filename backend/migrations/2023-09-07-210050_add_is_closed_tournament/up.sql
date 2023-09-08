@@ -1,0 +1,1 @@
+ALTER TABLE tournaments ADD COLUMN is_closed BOOLEAN NOT NULL;

@@ -102,6 +102,8 @@ fn rocket() -> _ {
                 get_current_user,
                 // Tournoix
                 get_tournoix_is_owner,
+                get_tournoix_results,
+                get_tournoix_is_started,
                 get_tournoix,
                 create_tournoix,
                 update_tournoix,
