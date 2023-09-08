@@ -158,10 +158,18 @@ fn get_user_info_request() {
 
     std::thread::sleep(std::time::Duration::from_secs(3));
 
-    const TEST_USER_EMAIL: &str = "john.doe2@tournoix.com";
-    const TEST_USER_PASSWORD: &str ="Password123!2";
+    const TEST_USER_EMAIL: &str = "john.doe4@tournoix.com";
+    const TEST_USER_PASSWORD: &str ="Password123!4";
+    const TEST_USER_NAME: &str = "John Doe 4";
 
     let c = client();
+
+    let json_register_request = format!("{{\"email\":\"{}\",\"password\":\"{}\",\"name\":\"{}\"}}", TEST_USER_EMAIL, TEST_USER_PASSWORD, TEST_USER_NAME);
+
+    let response = c.post("/api/auth/register")
+        .header(ContentType::JSON)
+        .body(json_register_request)
+        .dispatch();
     
     let json_login_request = format!("{{\"email\":\"{}\",\"password\":\"{}\"}}", TEST_USER_EMAIL, TEST_USER_PASSWORD);
 

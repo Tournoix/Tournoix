@@ -2,8 +2,6 @@ name: MySQL service
 on: 
   push:
     branches: [ "main", "develop" ]
-  pull_request:
-    branches: [ "main", "develop" ]
 
 env:
   DB_DATABASE: tournoix_db
