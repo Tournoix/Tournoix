@@ -306,19 +306,19 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                                     if let Ok(res) = res {
                                         user_bet.set(Some(res));
 
-                                        notifications_manager.spawn(CustomNotification::new(
+                                        /*notifications_manager.spawn(CustomNotification::new(
                                             "Vous avez misé",
                                             format!("Vous vous avez misé {} sur ce match.", nb_nut),
                                             NotifType::Success,
                                             Duration::seconds(5),
-                                        ));
+                                        ));*/
                                     } else {
-                                        notifications_manager.spawn(CustomNotification::new(
+                                        /*notifications_manager.spawn(CustomNotification::new(
                                             "Erreur",
                                             format!("Impossible de miser {} noix sur ce match.", nb_nut),
                                             NotifType::Error,
                                             Duration::seconds(5),
-                                        ));
+                                        ));*/
                                     }
                                 }
                                 
@@ -349,12 +349,12 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
 
                 spawn_local(async move {
                     if let Some(user_bet) = &*user_bet {
-                        notifications_manager.spawn(CustomNotification::new(
+                        /*notifications_manager.spawn(CustomNotification::new(
                             "Mise annulée",
                             format!("Vous avez annulé votre mise de {}.", user_bet.nb_nut.clone()),
                             NotifType::Success,
                             Duration::seconds(5),
-                        ));
+                        ));*/
                     }
 
                     user_bet.set(api::game::delete_bet(match_id.clone() as i32).await.ok());
@@ -375,7 +375,7 @@ pub fn MatchView(props: &MatchViewProps) -> Html {
                         <LoadingCircle />
                     } else {
                         if let Some(game) = &*game {
-                            <div class="flex gap-5">
+                            <div class="flex sm:flex-row flex-col gap-5">
                                 <TeamBet total={(*total_1).clone()} is_left={true} team_name={game.team1.name.clone()} score={game.score1.clone()} bets={(*bets_1).clone()}/>
                                 <div class="flex flex-col w-96">
                                     <img src="/img/versus_big.png" class="w-72 mx-auto"/>

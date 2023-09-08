@@ -6,7 +6,7 @@ use yew_notifications::use_notification;
 
 use crate::{
     api::models::{Team, TeamUpdate},
-    notification::{CustomNotification, NotifType},
+    notification::{CustomNotification, NotifType}, utils::utils::team_color_wrapper,
 };
 
 #[derive(PartialEq, Properties)]
@@ -133,7 +133,7 @@ pub fn TeamCard(props: &TeamCardProps) -> Html {
 
     html! {
         <div class="team-item">
-            <div class={"team-name rounded-t"}>
+            <div style={team_color_wrapper(team.name.clone())} class={"team-name rounded-t border-b-4 team-border-color"}>
                 <input class={format!("w-full text-center {}", if *is_being_edited { "bg-yellow-200" } else { "bg-transparent" })} disabled={!*is_being_edited} type="text" value={team.name.clone()} ref={name_ref} />
             </div>
             <div class="team-btn-list">

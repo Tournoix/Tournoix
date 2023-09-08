@@ -6,10 +6,10 @@ use web_sys::window;
 use yew::prelude::*;
 use yew_hooks::{use_drag_with_options, UseDragOptions};
 
-use crate::api::{
+use crate::{api::{
     self,
     models::{Team, TeamUpdate},
-};
+}, utils::utils::team_color_wrapper};
 
 #[derive(PartialEq, Properties)]
 pub struct TeamDragProps {
@@ -147,11 +147,11 @@ pub fn TeamDrag(props: &TeamDragProps) -> Html {
             ontouchstart={on_touch_start}
             ontouchmove={on_touch_move}
             ontouchend={on_touch_end}
-            class={classes!("p-2", "bg-nutLight", "rounded", "cursor-grab", if *state.dragging {"opacity-50"} else {""}, if *dragging {"z-50"} else {""})}
+            class={classes!("p-2", "team-border-color", "border-r-4", "bg-nutLight", "rounded", "cursor-grab", if *state.dragging {"opacity-50"} else {""}, if *dragging {"z-50"} else {""})}
             ref={node}
-            style={format!("touch-action: none; {}", if *dragging {format!("transform: translate({}px, {}px);", drag_pos.0 - drag_pos_origin.0, drag_pos.1  - drag_pos_origin.1)} else {"".to_string()})}
+            style={format!("{};touch-action: none; {}", team_color_wrapper(team.name.clone()), if *dragging {format!("transform: translate({}px, {}px);", drag_pos.0 - drag_pos_origin.0, drag_pos.1  - drag_pos_origin.1)} else {"".to_string()})}
         >
-            <div class={""}>
+            <div>
                 {&team.name}
             </div>
         </div>
