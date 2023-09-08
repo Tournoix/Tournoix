@@ -1,7 +1,7 @@
 use reqwest::{header::HeaderMap, Method};
 use serde::{Deserialize, Serialize};
 
-use super::{api_call, models::{Tournament, Subscription}, ErrorResponse};
+use super::{api_call, models::{Tournament, Subscription, Team}, ErrorResponse};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateTournoixRequest {
@@ -11,12 +11,45 @@ pub struct CreateTournoixRequest {
     pub location: String,
     pub is_qualif: bool,
     pub is_elim: bool,
+    pub is_closed: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Score {
+    pub name: String,
+    pub val: i32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Results {
+    pub subscribers: Vec<Score>,
+    pub teams: Vec<Score>,
 }
 
 pub async fn is_tournoix_owner(tournoix_id: i32) -> Result<bool, ErrorResponse> {
     api_call::<bool>(
         Method::GET,
         &format!("tournoix/{}/me@/is_owner", tournoix_id),
+        HeaderMap::new(),
+        String::new(),
+    )
+    .await
+}
+
+pub async fn is_tournoix_started(tournoix_id: i32) -> Result<bool, ErrorResponse> {
+    api_call::<bool>(
+        Method::GET,
+        &format!("tournoix/{}/is_started", tournoix_id),
+        HeaderMap::new(),
+        String::new(),
+    )
+    .await
+}
+
+pub async fn get_tournoix_results(tournoix_id: i32) -> Result<Results, ErrorResponse> {
+    api_call::<Results>(
+        Method::GET,
+        &format!("tournoix/{}/results", tournoix_id),
         HeaderMap::new(),
         String::new(),
     )
@@ -80,6 +113,7 @@ pub struct UpdateTournoixRequest {
     pub size_group: Option<i32>,
     pub is_qualif: Option<bool>,
     pub is_elim: Option<bool>,
+    pub is_closed: Option<bool>,
 }
 
 pub async fn update(

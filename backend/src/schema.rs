@@ -79,6 +79,7 @@ diesel::table! {
         code -> Varchar,
         is_qualif -> Bool,
         is_elim -> Bool,
+        is_closed -> Bool,
     }
 }
 

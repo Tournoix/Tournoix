@@ -33,6 +33,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
     let loading = use_state(|| true);
     let user_nut = use_state(|| 0);
     let can_edit_tournament = use_state(|| false);
+    let tournament_is_started = use_state(|| false);
 
     {
         let tournament = tournament.clone();
@@ -60,6 +61,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
         let tournament_clone = (*tournament).clone();
         let user_nut = user_nut.clone();
         let can_edit_tournament = can_edit_tournament.clone();
+        let tournament_is_started = tournament_is_started.clone();
 
         use_effect_with_deps(
             move |_| {
@@ -68,6 +70,7 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                     let tournament = tournament_clone.clone();
                     let user_nut = user_nut.clone();
                     let can_edit_tournament = can_edit_tournament.clone();
+                    let tournament_is_started = tournament_is_started.clone();
                     spawn_local(async move {
                         if let Some(games) = tournament_clone.get_matches().await.ok() {
                             bettable_games.set(
@@ -94,6 +97,12 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                             can_edit_tournament.set(can_edit);
                         }
                     });
+
+                    spawn_local(async move {
+                        if let Some(is_started) = api::tournoix::is_tournoix_started(tournament.id.clone()).await.ok() {
+                            tournament_is_started.set(is_started);
+                        }
+                    });
                 }
 
                 || ()
@@ -105,8 +114,6 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
         let trigger = trigger.clone();
         Callback::from(move |_| trigger.set(!*trigger))
     };
-
-    let tournament_over = true; // TODO: DB
 
     let groups: UseStateHandle<Vec<Group>> =
         use_state(|| vec![Group {}, Group {}, Group {}, Group {}, Group {}, Group {}]);
@@ -130,8 +137,20 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         <JoinCode code={tournament.code.to_string()}/>
                         <hr/>
                         <h2>{"Informations"}</h2>
+
+                        if tournament.is_closed {
+                            <div class="text-lg">{"Etat: Ce tournoi est fermé."}</div>
+                        } else {
+                            if *tournament_is_started {
+                                <div class="text-lg">{"Etat: Ce tournoi a démarré."}</div>
+                            } else {
+                                <div class="text-lg">{"Etat: Ce tournoi n'est pas encore démarré."}</div>
+                            }
+                        }
+
                         <div>{"Date: "}{tournament.date.format("%d.%m.%Y %H:%M:%S")}</div>
                         <div>{"Lieu: "}{tournament.location.as_ref().unwrap_or(&String::new())}</div>
+
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.2.2/ol.css"/>
                         <script src="https://cdn.jsdelivr.net/npm/ol@v7.2.2/dist/ol.js"></script>
                         <div id="map" class="h-56 w-80" style="background-image: url(\"/img/loading.gif\")"></div>
@@ -213,11 +232,9 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         <hr/>
                         <h2>{"Phase d'éliminations"}</h2>
                         <Bracket tournament={tournament.clone()} should_update={trigger} editable={false} />
-                        if tournament_over {
-                            <hr/>
-                            <h2>{"Résultats"}</h2>
-                            <Results tournament_id={ id }/>
-                        }
+                        <hr/>
+                        <h2>{"Résultats"}</h2>
+                        <Results can_show_results={tournament.is_closed && *tournament_is_started} tournament_id={ id }/>
                     } else {
                         <div>{"Oups, ce tournoi n'existe pas :("}</div>
                     }

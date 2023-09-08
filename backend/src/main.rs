@@ -81,12 +81,12 @@ pub struct ErrorBody {
 fn rocket() -> _ {
     dotenv().ok();
 
-    TermLogger::init(
-        LevelFilter::Trace,
+    let _ = TermLogger::init(
+        LevelFilter::Info,
         Config::default(),
         TerminalMode::Mixed,
         ColorChoice::Auto,
-    ).unwrap();
+    );
 
     rocket::build()
         .attach(MysqlConnection::fairing())
@@ -102,6 +102,8 @@ fn rocket() -> _ {
                 get_current_user,
                 // Tournoix
                 get_tournoix_is_owner,
+                get_tournoix_results,
+                get_tournoix_is_started,
                 get_tournoix,
                 create_tournoix,
                 update_tournoix,

@@ -1,9 +1,14 @@
+use std::collections::HashMap;
+
 use crate::models::game::Game;
-use crate::models::nut::NewNut;
+use crate::models::nut::{NewNut, Nut};
+use crate::models::subscription::{self, Subscription};
 use crate::models::team::Team;
-use crate::models::tournament::{NewTournament, PatchTournament, Tournament};
+use crate::models::tournament::{NewTournament, PatchTournament, Tournament, Results, Score};
+use crate::models::user::User;
 use crate::routes::auth::ApiAuth;
-use crate::schema::{games, nuts, teams, tournaments};
+use crate::schema::bets::nb_nut;
+use crate::schema::{games, nuts, teams, tournaments, subscriptions, users};
 use crate::{EmptyResponse, ErrorBody, ErrorResponse, MysqlConnection};
 use diesel::prelude::*;
 use diesel::result::Error;
@@ -67,6 +72,146 @@ pub async fn get_tournoix(
     }
 }
 
+#[get("/tournoix/<id>/results")]
+    pub async fn get_tournoix_results(
+        connection: MysqlConnection,
+        id: i32,
+        auth: ApiAuth,
+    ) -> Result<Json<Results>, (Status, Json<ErrorResponse>)> {
+        match connection
+            .run(move |c| tournaments::table.find(id).first::<Tournament>(c))
+            .await
+        {
+            Ok(tournoi) => {
+                if tournoi.user_has_rights(&connection, auth.user).await {
+                    let subscribers = match connection
+                        .run(move |c| {
+                            subscriptions::table
+                                .inner_join(
+                                    tournaments::table.on(tournaments::id.eq(subscriptions::fk_tournaments)),
+                                )
+                                .inner_join(users::table.on(users::id.eq(subscriptions::fk_users)))
+                                .inner_join(nuts::table.on(nuts::fk_users.eq(users::id)))
+                                .filter(nuts::fk_tournaments.eq(id))
+                                .select((subscriptions::all_columns, users::all_columns, nuts::all_columns))
+                                .load::<(Subscription, User, Nut)>(c)
+                        })
+                        .await
+                    {
+                        Ok(data) => {
+                            let mut subscribers_vec = vec![];
+                            for (sub, usr, nut) in data {
+                                subscribers_vec.push(Score {
+                                    name: usr.name,
+                                    val: nut.stock,
+                                });
+                            }
+                            subscribers_vec
+                        }
+    
+                        Err(_e) => {
+                            return Err((
+                                Status::InternalServerError,
+                                Json(ErrorResponse {
+                                    error: ErrorBody {
+                                        code: 500,
+                                        reason: "Internal Server Error".into(),
+                                        description: "An error occured".into(),
+                                    },
+                                }),
+                            ))
+                        }
+                    };
+
+                    let games_in_tournament = match connection
+                        .run(move |c| {
+                            games::table
+                                .filter(games::fk_tournaments.eq(id))
+                                .select(games::all_columns)
+                                .load::<Game>(c)
+                        })
+                        .await
+                    {
+                        Ok(data) => data,
+                        Err(_e) => {
+                            return Err((
+                                Status::InternalServerError,
+                                Json(ErrorResponse {
+                                    error: ErrorBody {
+                                        code: 500,
+                                        reason: "Internal Server Error".into(),
+                                        description: "An error occured".into(),
+                                    },
+                                }),
+                            ))
+                        }
+                    };
+
+                    let teams_in_tournament = match connection
+                        .run(move |c| {
+                            teams::table
+                                .filter(teams::fk_tournaments.eq(id))
+                                .select(teams::all_columns)
+                                .load::<Team>(c)
+                        })
+                        .await
+                    {
+                        Ok(data) => data,
+                        Err(_e) => {
+                            return Err((
+                                Status::InternalServerError,
+                                Json(ErrorResponse {
+                                    error: ErrorBody {
+                                        code: 500,
+                                        reason: "Internal Server Error".into(),
+                                        description: "An error occured".into(),
+                                    },
+                                }),
+                            ))
+                        }
+                    };
+
+                    // games_in_tournament
+                    // teams_in_tournament
+
+                    // TODO
+                    let teams = vec![];
+
+                    Ok(Json(Results {
+                        subscribers,
+                        teams,
+                    }))
+                } else {
+                    Err((
+                        Status::Forbidden,
+                        Json(ErrorResponse {
+                            error: ErrorBody {
+                                code: 403,
+                                reason: "Forbidden".into(),
+                                description: "Access forbidden".into(),
+                            },
+                        }),
+                    ))
+                }
+            }
+    
+            Err(_e) => {
+                info!("{} - User {} tried to access non-existing tournament {} - routes/tournoix/get_tournoix()", chrono::Local::now().format("%d/%m/%Y %H:%M"), auth.user.id, id);
+    
+                return Err((
+                    Status::NotFound,
+                    Json(ErrorResponse {
+                        error: ErrorBody {
+                            code: 404,
+                            reason: "Not Found".into(),
+                            description: "Tournament with given id does not exists".into(),
+                        },
+                    }),
+                ));
+            }
+        }
+    }
+
 #[get("/tournoix_by_code/<code>")]
     pub async fn get_tournoix_by_code(
         connection: MysqlConnection,
@@ -105,6 +250,7 @@ pub struct AddTournament {
     pub size_group: Option<i32>,
     pub is_qualif: bool,
     pub is_elim: bool,
+    pub is_closed: bool,
 }
 
 #[post("/tournoix", data = "<data>")]
@@ -171,6 +317,7 @@ pub async fn create_tournoix(
         code: generated_code, // Use the generated code
         is_qualif: add_tournoix.is_qualif,
         is_elim: add_tournoix.is_elim,
+        is_closed: add_tournoix.is_closed,
     };
 
     match connection
@@ -410,5 +557,19 @@ pub async fn tournament_is_started(connection: &MysqlConnection, id: i32) -> boo
     {
         Ok(games) => games.len() > 0,
         Err(_) => false,
+    }
+}
+
+#[get("/tournoix/<id>/is_started")]
+pub async fn get_tournoix_is_started(
+    connection: MysqlConnection,
+    id: i32,
+    _auth: ApiAuth,
+) -> Result<Json<bool>, (Status, Json<ErrorResponse>)> {
+    // verify if the tournament has games
+    if tournament_is_started(&connection, id).await {
+        Ok(Json(true))
+    } else {
+        Ok(Json(false))
     }
 }

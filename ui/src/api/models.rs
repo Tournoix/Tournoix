@@ -56,9 +56,27 @@ pub struct Tournament {
     pub code: String,
     pub is_qualif: bool,
     pub is_elim: bool,
+    pub is_closed: bool,
 }
 
 impl Tournament {
+    pub async fn close(
+        &self,
+    ) -> Result<Tournament, ErrorResponse> {
+        let update_request = UpdateTournoixRequest {
+            name: None,
+            date: None,
+            location: None,
+            description: None,
+            phase: None,
+            size_group: None,
+            is_qualif: None,
+            is_elim: None,
+            is_closed: Some(true),
+        };
+        super::tournoix::update(self.id, update_request).await
+    }
+
     pub async fn update(
         &self,
         update_request: UpdateTournoixRequest,

@@ -115,13 +115,13 @@ impl<'r> FromRequest<'r> for ApiAuth {
 }
 
 // Login user
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Serialize, Debug)]
 pub struct LoginRequest {
     pub email: String,
     pub password: String,
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, Deserialize)]
 pub struct LoginResponse {
     pub token: String,
     pub expiration_date: chrono::NaiveDateTime,
