@@ -13,7 +13,7 @@ use crate::{
         groups::{Group, Groups},
         join_code::JoinCode,
         loading_circle::LoadingCircle,
-        results::Results,
+        results::Results, user_provider::UserContext,
     },
     layouts::homelayout::HomeLayout,
     routers::Route,
@@ -28,28 +28,51 @@ pub struct TournoixViewProps {
 pub fn TournoixView(props: &TournoixViewProps) -> Html {
     let TournoixViewProps { id } = props;
     let navigator = use_navigator().unwrap();
+    let user_info = use_context::<UserContext>().expect("Missing user context provider");
 
     let tournament: UseStateHandle<Option<Tournament>> = use_state(|| None);
     let loading = use_state(|| true);
     let user_nut = use_state(|| 0);
     let can_edit_tournament = use_state(|| false);
     let tournament_is_started = use_state(|| false);
+    let user = user_info.user.clone();
+    let has_joined_this_tournament = use_state(|| false);
 
     {
         let tournament = tournament.clone();
+        let user = user.clone();
         let loading = loading.clone();
         let id = id.clone();
+        let has_joined_this_tournament = has_joined_this_tournament.clone();
 
         use_effect_once(move || {
             let tournament = tournament.clone();
+            let tournament_clone = tournament.clone();
 
             spawn_local(async move {
                 tournament.set(api::tournoix::get(id).await.ok());
                 loading.set(false);
             });
+            let has_joined_this_tournament = has_joined_this_tournament.clone();
+            let user = user.clone();
+            let tournament = tournament_clone.clone();
+
+            spawn_local(async move {
+                if let Some(user) = user {
+                    if let Some(subscriptions) = user.subscriptions().await.ok() {
+                        subscriptions.iter().for_each(|t| {
+                            if t.id == id {
+                                has_joined_this_tournament.set(true);
+                            }
+                        });
+                    }
+                }
+            });
             || ()
         });
     }
+
+    let user = user_info.user.clone();
 
     // Bettable games
     let trigger = use_state(|| false);
@@ -62,10 +85,29 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
         let user_nut = user_nut.clone();
         let can_edit_tournament = can_edit_tournament.clone();
         let tournament_is_started = tournament_is_started.clone();
+        let user = user.clone();
+        let has_joined_this_tournament = has_joined_this_tournament.clone();
+        let id = id.clone();
 
         use_effect_with_deps(
             move |_| {
+                let user = user.clone();
+                let id = id.clone();
+                let has_joined_this_tournament = has_joined_this_tournament.clone();
+                spawn_local(async move {
+                    if let Some(user) = user {
+                        if let Some(subscriptions) = user.subscriptions().await.ok() {
+                            subscriptions.iter().for_each(|t: &Tournament| {
+                                if t.id == id.clone() {
+                                    has_joined_this_tournament.set(true);
+                                }
+                            });
+                        }
+                    }
+                });
+                
                 if let Some(tournament_clone) = tournament_clone {
+
                     let tournament_clone = tournament_clone.clone();
                     let tournament = tournament_clone.clone();
                     let user_nut = user_nut.clone();
@@ -219,10 +261,14 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         <p class="discrete">{"Vous pouvez misez vos noix dans ces matchs et peut-être remporter le pactole !"}</p>
                         <p class="mb-2">{format!("Vous possédez actuellement {} noix.", &*user_nut)}</p>
                         <Button class="px-3 py-2 hover:scale-110 mb-4" onclick={on_click_refresh_games}>{"Rafraîchir"}</Button>
-                        if *loading_bettable_games {
-                            <LoadingCircle />
+                        if *has_joined_this_tournament {
+                            if *loading_bettable_games {
+                                <LoadingCircle />
+                            } else {
+                                <BetList tournament_id={id.clone()} matches={(*bettable_games).clone()}/>
+                            }
                         } else {
-                            <BetList tournament_id={id.clone()} matches={(*bettable_games).clone()}/>
+                            {"Vous devez rejoindre ce tournoi afin de pouvoir y miser vos noix."}
                         }
                         <hr/>
                         <h2>{"Phase de qualifications"}</h2>
