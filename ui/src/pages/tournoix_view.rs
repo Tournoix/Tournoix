@@ -8,12 +8,12 @@ use crate::{
     components::{
         backlink::Backlink,
         bet_list::BetList,
-        bracket::Match,
+        bracket::Bracket,
+        button::Button,
         groups::{Group, Groups},
         join_code::JoinCode,
         loading_circle::LoadingCircle,
         results::Results,
-        user_provider::UserContext, button::Button,
     },
     layouts::homelayout::HomeLayout,
     routers::Route,
@@ -28,10 +28,8 @@ pub struct TournoixViewProps {
 pub fn TournoixView(props: &TournoixViewProps) -> Html {
     let TournoixViewProps { id } = props;
     let navigator = use_navigator().unwrap();
-    
-    let user_info = use_context::<UserContext>().expect("Missing user context provider");
+
     let tournament: UseStateHandle<Option<Tournament>> = use_state(|| None);
-    let has_joined_this_tournament = use_state(|| false);
     let loading = use_state(|| true);
     let user_nut = use_state(|| 0);
     let can_edit_tournament = use_state(|| false);
@@ -39,41 +37,16 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
 
     {
         let tournament = tournament.clone();
-        let user_info = user_info.clone();
-        let user = user_info.user.clone();
-        let user_nut = user_nut.clone();
         let loading = loading.clone();
         let id = id.clone();
-        let has_joined_this_tournament = has_joined_this_tournament.clone();
-        let can_edit_tournament = can_edit_tournament.clone();
 
         use_effect_once(move || {
-            if let Some(user) = user {
-                {
-                    let user = user.clone();
-                    let user_nut = user_nut.clone();
-                    let tournament_clone = tournament.clone();
+            let tournament = tournament.clone();
 
-                    spawn_local(async move {
-                        tournament_clone.set(api::tournoix::get(id).await.ok());
-                        loading.set(false);
-                    });
-
-                    let tournament = tournament.clone();
-                    let can_edit_tournament = can_edit_tournament.clone();
-        
-                    spawn_local(async move {
-                        if let Some(subscriptions) = user.subscriptions().await.ok() {
-                            subscriptions.iter().for_each(|t| {
-                                if t.id == id {
-                                    has_joined_this_tournament.set(true);
-                                }
-                            });
-                        }
-                    });
-                }
-            }
-
+            spawn_local(async move {
+                tournament.set(api::tournoix::get(id).await.ok());
+                loading.set(false);
+            });
             || ()
         });
     }
@@ -100,10 +73,12 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                     let tournament_is_started = tournament_is_started.clone();
                     spawn_local(async move {
                         if let Some(games) = tournament_clone.get_matches().await.ok() {
-                            bettable_games.set(games.iter()
-                                .filter(|&m| m.status == 0 || 1 == 1) // filter out finished matches
-                                .cloned()
-                                .collect()
+                            bettable_games.set(
+                                games
+                                    .iter()
+                                    .filter(|&m| m.status == 0 || 1 == 1) // filter out finished matches
+                                    .cloned()
+                                    .collect(),
                             );
                         }
                         loading_bettable_games.set(false);
@@ -114,7 +89,11 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                     });
 
                     spawn_local(async move {
-                        if let Some(can_edit) = api::tournoix::is_tournoix_owner(tournament.id.clone()).await.ok() {
+                        if let Some(can_edit) =
+                            api::tournoix::is_tournoix_owner(tournament.id.clone())
+                                .await
+                                .ok()
+                        {
                             can_edit_tournament.set(can_edit);
                         }
                     });
@@ -152,15 +131,14 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                 if *loading {
                     <LoadingCircle />
                 } else {
-                    if tournament.is_none() {
-                        <div>{"Oups, ce tournoi n'existe pas :("}</div>
-                    } else  {
-                        <h1 class="mb-5">{tournament.as_ref().unwrap().name.to_string()}</h1>
+                    if let Some(tournament) = &*tournament {
+                        <h1 class="mb-5">{tournament.name.to_string()}</h1>
                         {if !(*can_edit_tournament) { html! {<a onclick={on_click_edit} class="a_link mb-6">{"Modifier ce tournoi"}</a>}} else { html! {} }}
-                        <JoinCode code={tournament.as_ref().unwrap().code.to_string()}/>
+                        <JoinCode code={tournament.code.to_string()}/>
                         <hr/>
                         <h2>{"Informations"}</h2>
-                        if tournament.as_ref().unwrap().is_closed {
+
+                        if tournament.is_closed {
                             <div class="text-lg">{"Etat: Ce tournoi est fermé."}</div>
                         } else {
                             if *tournament_is_started {
@@ -169,13 +147,15 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                                 <div class="text-lg">{"Etat: Ce tournoi n'est pas encore démarré."}</div>
                             }
                         }
-                        <div>{"Date: "}{tournament.as_ref().unwrap().date.format("%d.%m.%Y %H:%M:%S")}</div>
-                        <div>{"Lieu: "}{tournament.as_ref().unwrap().location.as_ref().unwrap_or(&String::new())}</div>
+
+                        <div>{"Date: "}{tournament.date.format("%d.%m.%Y %H:%M:%S")}</div>
+                        <div>{"Lieu: "}{tournament.location.as_ref().unwrap_or(&String::new())}</div>
+
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.2.2/ol.css"/>
                         <script src="https://cdn.jsdelivr.net/npm/ol@v7.2.2/dist/ol.js"></script>
                         <div id="map" class="h-56 w-80" style="background-image: url(\"/img/loading.gif\")"></div>
                         <script>
-                        {format!("LOCATION = '{}'", tournament.as_ref().unwrap().location.as_ref().unwrap_or(&String::new()))}
+                        {format!("LOCATION = '{}'", tournament.location.as_ref().unwrap_or(&String::new()))}
                         </script>
                         <script defer={true}>
     {r#"
@@ -233,32 +213,30 @@ pub fn TournoixView(props: &TournoixViewProps) -> Html {
                         markers.getSource().addFeature(marker);
                     }, 2000) // Wait so the map library is loaded
 "#}</script>
-                        <div>{"Description: "}{tournament.as_ref().unwrap().description.to_string()}</div>
+                        <div>{"Description: "}{tournament.description.to_string()}</div>
                         <hr/>
                         <h2>{"Paris disponibles"}</h2>
-                        if *has_joined_this_tournament {
-                            <p class="discrete">{"Vous pouvez misez vos noix dans ces matchs et peut-être remporter le pactole !"}</p>
-                            <p class="mb-2">{format!("Vous possédez actuellement {} noix.", &*user_nut)}</p>
-                            <Button class="px-3 py-2 hover:scale-110 mb-4" onclick={on_click_refresh_games}>{"Rafraîchir"}</Button>
-                            if *loading_bettable_games {
-                                <LoadingCircle />
-                            } else {
-                                <BetList tournament_id={id.clone()} matches={(*bettable_games).clone()}/>
-                            }
+                        <p class="discrete">{"Vous pouvez misez vos noix dans ces matchs et peut-être remporter le pactole !"}</p>
+                        <p class="mb-2">{format!("Vous possédez actuellement {} noix.", &*user_nut)}</p>
+                        <Button class="px-3 py-2 hover:scale-110 mb-4" onclick={on_click_refresh_games}>{"Rafraîchir"}</Button>
+                        if *loading_bettable_games {
+                            <LoadingCircle />
                         } else {
-                            {"Vous devez rejoindre ce tournoi afin de pouvoir y miser vos noix."}
+                            <BetList tournament_id={id.clone()} matches={(*bettable_games).clone()}/>
                         }
                         <hr/>
                         <h2>{"Phase de qualifications"}</h2>
                         <ContextProvider<UseStateHandle<Vec<Group>>> context={groups.clone()}>
-                            <Groups tournament={tournament.as_ref().unwrap().clone()}/>
+                            <Groups tournament={tournament.clone()}/>
                         </ContextProvider<UseStateHandle<Vec<Group>>>>
                         <hr/>
                         <h2>{"Phase d'éliminations"}</h2>
-                        /*<Bracket/>*/
+                        <Bracket tournament={tournament.clone()} should_update={trigger} editable={false} />
                         <hr/>
                         <h2>{"Résultats"}</h2>
-                        <Results can_show_results={tournament.as_ref().unwrap().is_closed && *tournament_is_started} tournament_id={ id }/>
+                        <Results can_show_results={tournament.is_closed && *tournament_is_started} tournament_id={ id }/>
+                    } else {
+                        <div>{"Oups, ce tournoi n'existe pas :("}</div>
                     }
                 }
             </div>

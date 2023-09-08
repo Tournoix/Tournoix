@@ -1,0 +1,51 @@
+name: MySQL service
+on: 
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+env:
+  DB_DATABASE: tournoix_db
+  DB_USER: root
+  DB_PASSWORD: root
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up MySQL
+        run: |
+          sudo /etc/init.d/mysql start
+          mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
+
+      # Run diesel migrations
+      - name: Run diesel migrations
+        run: |
+          cd ./backend
+          cargo install diesel_cli --no-default-features --features mysql
+          diesel migration run --database-url mysql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:3306/${{ env.DB_DATABASE }}
+        
+      - uses: jetli/trunk-action@v0.4.0
+        with:
+          version: 'latest'
+
+      - name: Install latest stable
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+            target: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-directories: "./backend/.cargo\n ./backend/target\n ./ui/.cargo\n ./ui/target"
+          shared-key: "rust_cache"
+
+      - name: Run backend tests
+        run: cd ./backend && cargo test -- --test-threads 1
+
+    

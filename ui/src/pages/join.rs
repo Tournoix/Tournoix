@@ -3,7 +3,7 @@ use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_hooks::use_effect_once;
 use yew_notifications::use_notification;
-use yew_router::{navigator, prelude::use_navigator};
+use yew_router::prelude::use_navigator;
 
 use crate::{
     api::{self, models::Tournament, tournoix::SubscriptionRequest},
